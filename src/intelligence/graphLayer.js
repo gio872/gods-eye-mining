@@ -84,10 +84,25 @@ function renderGraphSvg(container, graph, seedId, onSelect){
 export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph(), sourceLayers=null }={}) {
   let activeGraph=graph;
   let layersSource=sourceLayers;
-  let viewer=null,panel=null,enabled=false,selectedId='location:sample',selected=null;
+  let viewer=null,panel=null,enabled=false,selectedId='location:sample',selected=null,focusLocation=null,clickHandler=null;
   return {
     id:'intelligence-graph',name:"God's Eye Intelligence Graph",icon:'◎',source:'GEM · GRAPH',updateInterval:0,
-    init(nextViewer){viewer=nextViewer||null;return Boolean(viewer);},
+    init(nextViewer){
+      viewer=nextViewer||null;
+      clickHandler?.destroy?.();
+      clickHandler=null;
+      if(viewer?.scene?.canvas && typeof Cesium !== 'undefined'){
+        clickHandler=new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        clickHandler.setInputAction((movement)=>{
+          if(!enabled)return;
+          const cartesian=viewer.camera.pickEllipsoid(movement?.position, Cesium.Ellipsoid.WGS84);
+          if(!cartesian)return;
+          const carto=Cesium.Cartographic.fromCartesian(cartesian);
+          this.setFocusLocation({lat:Cesium.Math.toDegrees(carto.latitude),lon:Cesium.Math.toDegrees(carto.longitude)});
+        },Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      }
+      return Boolean(viewer);
+    },
     enable(nextViewer){
       viewer=nextViewer||viewer;if(!viewer?.container)return false;enabled=true;
       if(!panel){
@@ -100,13 +115,20 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       panel.hidden=false;this._refreshGraph();return true;
     },
     attachDataManager(manager){this._manager=manager||null;},
+    setFocusLocation(location){
+      if(!location)return;
+      focusLocation={lat:Number(location.lat),lon:Number(location.lon)};
+      selectedId='location:focus';
+      this._refreshGraph();
+    },
+    clearFocus(){focusLocation=null;this._refreshGraph();},
     setSourceLayers(nextLayers){
       layersSource=nextLayers || null;
       this._refreshGraph();
     },
     _refreshGraph(){
       if(layersSource){
-        const next=buildIntelligenceGraphFromLayers(layersSource);
+        const next=buildIntelligenceGraphFromLayers(layersSource,{focusLocation,maxDistanceKm:75});
         activeGraph=next.nodes.length ? next : createDemoIntelligenceGraph();
       }
       if(!activeGraph.getNode(selectedId)) selectedId=activeGraph.nodes[0]?.id || '';
@@ -122,7 +144,7 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
     },
     disable(){enabled=false;if(panel)panel.hidden=true;return true;},
     update(){if(!enabled)return true;this._refreshGraph();return true;},
-    destroy(){enabled=false;panel?.remove?.();panel=null;viewer=null;this._manager=null;},
+    destroy(){enabled=false;clickHandler?.destroy?.();clickHandler=null;panel?.remove?.();panel=null;viewer=null;this._manager=null;},
     getStats(){return {enabled,nodes:activeGraph.nodes.length,edges:activeGraph.edges.length,selected:selected?.id||selectedId,live:Boolean(layersSource)};},
     getRowControls(){return {readout:`${activeGraph.nodes.length} nodes / ${activeGraph.edges.length} edges`};},
   };
