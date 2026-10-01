@@ -40,7 +40,7 @@ function shell(){
   return panel;
 }
 
-function renderGraphSvg(container, graph, seedId, onSelect){
+function renderGraphSvg(container, graph, seedId, onSelect, onEdge){
   const {nodes,edges}=graph.subgraph(seedId,2);
   const width=container.clientWidth||900, height=container.clientHeight||500;
   const cx=width/2, cy=height/2;
@@ -64,11 +64,16 @@ function renderGraphSvg(container, graph, seedId, onSelect){
   const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M 0 0 L 10 5 L 0 10 z');path.setAttribute('fill','#4f858b');marker.appendChild(path);defs.appendChild(marker);svg.appendChild(defs);
   edges.forEach(edge=>{
     const a=positions.get(edge.from),b=positions.get(edge.to);if(!a||!b)return;
+    const hit=document.createElementNS('http://www.w3.org/2000/svg','line');
+    hit.setAttribute('x1',a.x);hit.setAttribute('y1',a.y);hit.setAttribute('x2',b.x);hit.setAttribute('y2',b.y);
+    hit.setAttribute('stroke','transparent');hit.setAttribute('stroke-width','14');hit.style.cursor='pointer';
+    hit.addEventListener('click',(event)=>{event.stopPropagation();onEdge?.(edge);});svg.appendChild(hit);
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
-    line.setAttribute('stroke','rgba(80,145,151,.7)');line.setAttribute('stroke-width','1.2');line.setAttribute('marker-end','url(#gem-arrow)');svg.appendChild(line);
+    line.setAttribute('stroke','rgba(80,145,151,.7)');line.setAttribute('stroke-width','1.2');line.setAttribute('marker-end','url(#gem-arrow)');
+    line.style.pointerEvents='none';svg.appendChild(line);
     const tx=(a.x+b.x)/2,ty=(a.y+b.y)/2;
-    const text=document.createElementNS('http://www.w3.org/2000/svg','text');text.setAttribute('x',tx);text.setAttribute('y',ty-4);text.setAttribute('fill','#719398');text.setAttribute('font-size','7');text.setAttribute('text-anchor','middle');text.textContent=edge.label;svg.appendChild(text);
+    const text=document.createElementNS('http://www.w3.org/2000/svg','text');text.setAttribute('x',tx);text.setAttribute('y',ty-4);text.setAttribute('fill','#719398');text.setAttribute('font-size','7');text.setAttribute('text-anchor','middle');text.textContent=edge.label;text.style.pointerEvents='none';svg.appendChild(text);
   });
   nodes.forEach(node=>{
     const p=positions.get(node.id);if(!p)return;
@@ -82,6 +87,24 @@ function renderGraphSvg(container, graph, seedId, onSelect){
   container.appendChild(svg);
 }
 
+
+function nearestGraphNode(graph, position, maxKm=2){
+  if(!position)return null;
+  let best=null,bestDistance=Infinity;
+  for(const node of graph.nodes){
+    if(!node.position)continue;
+    const d=distanceBetween(position,node.position);
+    if(d<bestDistance){best=node;bestDistance=d;}
+  }
+  return bestDistance<=maxKm?best:null;
+}
+function distanceBetween(a,b){
+  const lat1=Number(a?.lat),lon1=Number(a?.lon),lat2=Number(b?.lat),lon2=Number(b?.lon);
+  if(![lat1,lon1,lat2,lon2].every(Number.isFinite))return Infinity;
+  const rad=Math.PI/180,dLat=(lat2-lat1)*rad,dLon=(lon2-lon1)*rad;
+  const h=Math.sin(dLat/2)**2+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
+  return 6371*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
+}
 
 function entityPosition(viewer, entity) {
   const position = entity?.position;
@@ -104,7 +127,7 @@ function entityPosition(viewer, entity) {
 export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph(), sourceLayers=null }={}) {
   let activeGraph=graph;
   let layersSource=sourceLayers;
-  let viewer=null,panel=null,enabled=false,selectedId='location:sample',selected=null,focusLocation=null,clickHandler=null;
+  let viewer=null,panel=null,enabled=false,selectedId='location:sample',selected=null,selectedEdge=null,focusLocation=null,clickHandler=null,relationDataSource=null;
   return {
     id:'intelligence-graph',name:"God's Eye Intelligence Graph",icon:'◎',source:'GEM · GRAPH',updateInterval:0,
     init(nextViewer){
@@ -125,6 +148,8 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
         const entity=picked?.id || picked?.primitive?.id || null;
         const pickedPosition=entityPosition(viewer, entity);
         if(pickedPosition){
+          const node=nearestGraphNode(activeGraph,pickedPosition,2);
+          if(node){this._selectGraphNode(node);return;}
           this.setFocusLocation(pickedPosition);
           return;
         }
@@ -136,6 +161,34 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
           lon:Cesium.Math.toDegrees(carto.longitude),
         });
       },Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    },
+    _showEdgeEvidence(edge){
+      selectedEdge=edge||null;
+      const from=activeGraph.getNode(edge?.from),to=activeGraph.getNode(edge?.to);
+      const evidence=Array.isArray(edge?.evidence)&&edge.evidence.length ? edge.evidence : [];
+      const evidenceText=evidence.length
+        ? evidence.map((item)=>Object.entries(item).map(([key,value])=>`${key}: ${typeof value==='object' ? JSON.stringify(value) : String(value)}`).join(' · ')).join('<br>')
+        : 'No structured evidence attached to this relationship.';
+      const box=panel?.querySelector('#gem-graph-evidence');
+      if(box)box.innerHTML=`<span style="color:#f2c55d">RELATION EVIDENCE</span> · <b>${esc(from?.label||edge.from)}</b> → <b>${esc(to?.label||edge.to)}</b> · <span style="color:#67dfe6">${esc(edge.type)}</span><br>source: ${esc(edge.source)} · observed: ${esc(edge.observedAt||'n/a')} · weight: ${Number(edge.weight).toFixed(3)}<br>${esc(evidenceText).replace(/&lt;br&gt;/g,'<br>')}`;
+      this._showRelationOnMap(from,to);
+      this._render();
+    },
+    _showRelationOnMap(from,to){
+      if(!viewer?.entities || typeof Cesium==='undefined')return;
+      relationDataSource?.entities?.removeAll?.();
+      if(!relationDataSource){
+        relationDataSource=new Cesium.CustomDataSource('gem-intelligence-relation');
+        viewer.dataSources.add(relationDataSource);
+      }
+      if(!from?.position||!to?.position)return;
+      const p1=Cesium.Cartesian3.fromDegrees(Number(from.position.lon),Number(from.position.lat),0);
+      const p2=Cesium.Cartesian3.fromDegrees(Number(to.position.lon),Number(to.position.lat),0);
+      relationDataSource.entities.add({
+        id:'gem-selected-relation',
+        polyline:{positions:[p1,p2],width:4,material:new Cesium.PolylineGlowMaterialProperty({glowPower:.18,color:Cesium.Color.CYAN})},
+      });
+      viewer.camera.flyTo({destination:Cesium.Rectangle.fromCartesianArray([p1,p2]),duration:.9});
     },
     _flyToNode(node){
       if(!viewer?.camera || !node?.position || typeof Cesium === 'undefined') return false;
@@ -152,6 +205,9 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       if(!node)return;
       selectedId=node.id;
       selected=node;
+      selectedEdge=null;
+      const box=panel?.querySelector('#gem-graph-evidence');
+      if(box)box.innerHTML=`<span style="color:#f2c55d">NODE</span> · <b>${esc(node.label)}</b> · ${esc(node.type)}<br>source: ${esc(node.source)} · ${esc(node.subtitle)}`;
       if(node.position){
         focusLocation={lat:Number(node.position.lat),lon:Number(node.position.lon)};
         this._refreshGraph();
@@ -166,7 +222,12 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       if(!panel){
         panel=shell();viewer.container.appendChild(panel);
         panel.querySelector('#gem-graph-close').addEventListener('click',()=>{void this._manager?.setEnabled?.(this.id,false,{origin:'user'});});
-        const body=document.createElement('div');body.style.cssText='position:absolute;left:14px;right:14px;top:96px;bottom:14px';panel.appendChild(body);
+        const body=document.createElement('div');body.style.cssText='position:absolute;left:14px;right:14px;top:96px;bottom:110px';panel.appendChild(body);
+        const evidence=document.createElement('div');
+        evidence.id='gem-graph-evidence';
+        evidence.style.cssText='position:absolute;left:14px;right:14px;bottom:14px;height:82px;box-sizing:border-box;padding:9px 11px;border:1px solid rgba(32,206,216,.18);border-radius:7px;background:rgba(2,12,17,.82);font-size:8px;line-height:1.45;color:#a8c6ca;overflow:auto';
+        evidence.innerHTML='<span style="color:#f2c55d">RELATION EVIDENCE</span> · Select an edge or node.';
+        panel.appendChild(evidence);
         this._body=body;
         this._render();
       }
@@ -198,11 +259,11 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       const summary=panel?.querySelector('#gem-graph-summary');
       const stats=activeGraph.stats();
       if(summary)summary.textContent=`${stats.nodes} NODES · ${stats.edges} RELATIONSHIPS · DEPTH 2 · LIVE SOURCES`;
-      renderGraphSvg(this._body,activeGraph,selectedId,(node)=>this._selectGraphNode(node));
+      renderGraphSvg(this._body,activeGraph,selectedId,(node)=>this._selectGraphNode(node),(edge)=>this._showEdgeEvidence(edge));
     },
     disable(){enabled=false;if(panel)panel.hidden=true;return true;},
     update(){if(!enabled)return true;this._refreshGraph();return true;},
-    destroy(){enabled=false;clickHandler?.destroy?.();clickHandler=null;panel?.remove?.();panel=null;viewer=null;this._manager=null;},
+    destroy(){enabled=false;clickHandler?.destroy?.();clickHandler=null;relationDataSource?.entities?.removeAll?.();if(viewer&&relationDataSource)viewer.dataSources.remove(relationDataSource,true);relationDataSource=null;panel?.remove?.();panel=null;viewer=null;this._manager=null;},
     getStats(){return {enabled,nodes:activeGraph.nodes.length,edges:activeGraph.edges.length,selected:selected?.id||selectedId,live:Boolean(layersSource)};},
     getRowControls(){return {readout:`${activeGraph.nodes.length} nodes / ${activeGraph.edges.length} edges`};},
   };
