@@ -2084,6 +2084,7 @@
       "src/app/catalog.js",
       "src/app/constructCatalog.js",
       "src/mining/layers/prospectivity.js",
+      "src/layers/populations/source.js",
       "src/mining/core/miningTypes.js",
       "src/mining/core/prospectivityEngine.js",
       "src/mining/core/miningEngine.js",
