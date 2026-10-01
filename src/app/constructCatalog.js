@@ -30,6 +30,7 @@ import { localGeoJsonServices } from './localGeojsonServices.js';
 import { createBhoteKoshiEventLayer } from '../data/bhoteKoshiEvent.js';
 import { createBhoteKoshiLocatorLayer } from '../data/bhoteKoshiLocator.js';
 import { createProspectivityLayer } from '../mining/layers/prospectivity.js';
+import { createAnmMiningCadastreLayer } from '../mining/sources/anmMiningCadastre.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -65,6 +66,7 @@ const SOURCE_METHODS = Object.freeze({
 export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'local-adsb', disposition: 'local-only' }),
   Object.freeze({ id: 'gem-prospectivity', disposition: 'local-only' }),
+  Object.freeze({ id: 'anm-mining-cadastre', disposition: 'local-only' }),
 ]);
 
 /** Serialization metadata for every layer the application catalog constructs. */
@@ -174,6 +176,7 @@ export function createApplicationCatalog({
         createApplicationDirections(),
         recentImagery,
         gemProspectivity,
+        createAnmMiningCadastreLayer({ signal }),
         vessels,
         installations,
         createApplicationAwareness({
