@@ -67,7 +67,7 @@ async function waitForFile(file, timeoutMs = 5000) {
 
 function verifyPlaybackToken(secret, cameraId, token) {
   const [expires, sig] = String(token || '').split('.');
-  if (!/^\\d+$/.test(expires) || !/^[a-f0-9]{64}$/i.test(sig)) return false;
+  if (!/^\d+$/.test(expires) || !/^[a-f0-9]{64}$/i.test(sig)) return false;
   const expiresAt = Number(expires);
   if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) return false;
   const expected = signPlaybackToken(secret, cameraId, expiresAt).split('.')[1];
