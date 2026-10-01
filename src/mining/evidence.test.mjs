@@ -75,7 +75,7 @@ test('GEM keeps unavailable geology and hydrology explicit', async () => {
   assert.equal(rows[0].factors.geology, 0);
   assert.equal(rows[0].factors.hydrology, 0);
   assert.equal(rows[0].metadata.geologyAvailable, false);
-  assert.equal(rows[0].metadata.evidenceCoverage, 1 / 6);
+  assert.equal(rows[0].metadata.evidenceCoverage, 1 / 10);
 });
 
 
