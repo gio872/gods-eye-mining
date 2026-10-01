@@ -3114,7 +3114,8 @@
       "src/mining/index.js",
       "src/mining/core/miningTypes.js",
       "src/mining/core/prospectivityEngine.js",
-      "src/mining/core/miningEngine.js"
+      "src/mining/core/miningEngine.js",
+      "src/mining/core/economicValue.js"
     ],
     "external": []
   },
