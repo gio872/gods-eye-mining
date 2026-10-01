@@ -3580,6 +3580,8 @@
       "src/intelligence/criticalMinerals/countryRisk.js",
       "src/intelligence/criticalMinerals/marketRisk.js",
       "src/intelligence/criticalMinerals/shockModel.js",
+      "src/intelligence/criticalMinerals/sources.js",
+      "src/intelligence/criticalMinerals/dataPipeline.js",
       "src/mining/core/economicValue.js",
       "src/intelligence/graph.js",
       "src/intelligence/graphLayer.js",
