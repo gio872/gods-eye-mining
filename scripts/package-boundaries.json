@@ -3535,9 +3535,7 @@
     "external": []
   },
   "gem-mining-cadastre-source": {
-    "exports": [
-      "./mining/sources/anm-cadastre"
-    ],
+    "exports": ["./mining/sources/anm-cadastre"],
     "modules": [
       "src/app/layers/overlayHost.js",
       "src/celestialRing.js",
@@ -3551,9 +3549,7 @@
       "src/overlays/worldOverlayTokens.js",
       "src/renderGovernor.js"
     ],
-    "external": [
-      "cesium"
-    ]
+    "external": ["cesium"]
   },
   "gem-metal-markets": {
     "exports": [
