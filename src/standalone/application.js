@@ -57,6 +57,7 @@ export function createStandaloneApplication({
         ...(geospatial.geologySource
           ? { geologySource: geospatial.geologySource }
           : {}),
+        gemProfile: geospatial.gemProfile || 'gold-alluvial',
       });
       return scene;
     },
