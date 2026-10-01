@@ -145,6 +145,7 @@ export function createMiningEvidenceBridge({
   featureSource = null,
   geologySource = null,
   imageryLayer = null,
+  imagerySource = searchHls,
   getContextLayers = () => [],
   hydrologyRadiusKm = 2,
   signal = null,
@@ -240,10 +241,10 @@ export function createMiningEvidenceBridge({
     const centre = points[Math.floor(points.length / 2)];
     let candidates = [];
     let catalogError = null;
-    if (centre) {
+    if (centre && typeof imagerySource === 'function') {
       try {
         const delta = 0.02;
-        const result = await searchHls({
+        const result = await imagerySource({
           box: {
             west: Math.max(-180, centre.lon - delta),
             south: Math.max(-90, centre.lat - delta),
