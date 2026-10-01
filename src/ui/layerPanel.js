@@ -26,26 +26,52 @@ const PANEL_GROUPS = [
     ids: ['metal-markets', 'anm-mining-cadastre', 'gem-prospectivity'],
   },
   {
-    label: 'Earth Observation',
-    ids: ['recent-imagery', 'earthquakes'],
+    label: 'Movement',
+    ids: [
+      'satellites',
+      'flights',
+      'military',
+      'local-adsb',
+      'ais-live-vessels',
+      'traffic',
+      'transit',
+      'bikeshare',
+    ],
   },
   {
-    label: 'Analysis',
-    ids: ['directions'],
+    label: 'Cameras',
+    ids: ['cctv', 'recent-imagery'],
+  },
+  {
+    label: 'Infrastructure',
+    ids: [
+      'alpr-cameras',
+      'military-installations',
+      'local-datacenters',
+      'telegeography-submarine-cables',
+      'local-dams',
+    ],
+  },
+  {
+    label: 'Events',
+    ids: ['rocket-launches', 'earthquakes', 'local-firms', 'fire-perimeters'],
+  },
+  {
+    label: 'Weather',
+    ids: [
+      'wind',
+      'weather-radar',
+      'weather-satellite',
+      'weather-lightning',
+      'weather-cyclones',
+    ],
+  },
+  {
+    label: 'Utilities',
+    ids: ['directions', 'radio'],
   },
 ];
 
-// Default Mining Mode: non-mining/non-terrestrial-context layers stay available
-// in the catalog but are intentionally hidden from the primary operator panel.
-const MINING_MODE_VISIBLE_IDS = new Set([
-  'population-places',
-  'metal-markets',
-  'anm-mining-cadastre',
-  'gem-prospectivity',
-  'recent-imagery',
-  'earthquakes',
-  'directions',
-]);
 const PANEL_ORDER = PANEL_GROUPS.flatMap(({ label, ids }) =>
   ids.map((id) => ({ id, label })),
 );
@@ -176,7 +202,6 @@ export class LayerPanel {
 
     const generation = this._generation;
     const layers = this.getAll()
-      .filter((layer) => MINING_MODE_VISIBLE_IDS.has(layer.id))
       .slice()
       .sort(
         (a, b) =>
