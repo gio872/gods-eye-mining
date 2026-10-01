@@ -450,7 +450,7 @@ async function identifyGeochemistry(point, radiusKm, geochemistryUrl, fetchImpl,
   const values = { au: null, ag: null, cu: null };
   for (const row of Array.isArray(json?.results) ? json.results : []) {
     const layerId = finite(row?.layerId);
-    const value = finite(row?.value);
+    const value = finite(row?.value ?? row?.attributes?.value ?? row?.attributes?.Value);
     if (!Number.isFinite(value)) continue;
     if (layerId === GEOCHEMISTRY_LAYERS.au) values.au = value;
     if (layerId === GEOCHEMISTRY_LAYERS.ag) values.ag = value;
