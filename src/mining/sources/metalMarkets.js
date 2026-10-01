@@ -99,12 +99,11 @@ function metalRows(json) {
   const rates = json?.metals && typeof json.metals === 'object' ? json.metals : {};
   return METALS.map((metal) => {
     const value = finite(rates[metal.id]);
-    const previous = finite(rates[`${metal.id}_previous`]);
     return {
       ...metal,
       price: value,
-      previous,
-      change: previous !== null && value !== null ? value - previous : null,
+      previous: null,
+      change: null,
     };
   });
 }
@@ -302,7 +301,7 @@ function renderMarket(panel, state) {
   const table = document.createElement('table');
   table.className = 'tqm-table';
   table.innerHTML =
-    '<thead><tr><th>METAL</th><th>PRECIO USD</th><th>VALOR COP</th><th>CAMBIO</th><th>ESTADO</th></tr></thead>';
+    '<thead><tr><th>METAL</th><th>PRECIO USD</th><th>VALOR COP</th><th>Δ ÚLTIMO TICK</th><th>ESTADO</th></tr></thead>';
   const body = document.createElement('tbody');
 
   metals.forEach((metal) => {
@@ -357,6 +356,7 @@ export function createMetalMarketsLayer({
   let usdCop = null;
   let providerTimestamp = null;
   let loading = false;
+  let previousPrices = new Map();
 
   const state = () => ({
     apiKey: String(apiKey || '').trim(),
@@ -389,8 +389,18 @@ export function createMetalMarketsLayer({
         fetchImpl,
         signal,
       );
-      const nextRows = metalRows(json);
+      const nextRows = metalRows(json).map((metal) => ({
+        ...metal,
+        change: previousPrices.has(metal.id) && metal.price !== null
+          ? metal.price - previousPrices.get(metal.id)
+          : null,
+      }));
       const usdPerCop = finite(json?.currencies?.COP);
+      previousPrices = new Map(
+        nextRows
+          .filter((metal) => metal.price !== null)
+          .map((metal) => [metal.id, metal.price]),
+      );
       rows = nextRows;
       usdCop = usdPerCop;
       providerTimestamp = json?.timestamp || null;
@@ -443,7 +453,7 @@ export function createMetalMarketsLayer({
         info: providerTimestamp
           ? `Proveedor: Metals.Dev · ${marketStatus(providerTimestamp)} · ${new Date(providerTimestamp).toLocaleTimeString('es-CO')}`
           : 'Proveedor: Metals.Dev · configuración pendiente',
-        infoTitle: 'El módulo muestra precio spot y conversión aproximada a COP con el tipo USD/COP del mismo proveedor.',
+        infoTitle: 'El módulo muestra precio spot, variación desde el último refresco y conversión aproximada a COP con el tipo USD/COP del mismo proveedor.',
       };
     },
 
