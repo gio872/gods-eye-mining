@@ -1762,6 +1762,7 @@
       "src/mining/sources/sgcGeology.js",
       "src/mining/sources/hlsSpectral.js",
       "src/mining/sources/anmMiningCadastre.js",
+      "src/mining/sources/metalMarkets.js",
       "src/standalone/layerSources.js",
       "src/styles/anime.js",
       "src/styles/noir.js",
