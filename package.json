@@ -265,6 +265,9 @@
     },
     "./server/providers/onvif": {
       "node": "./server/providers/onvif.js"
+    },
+    "./server/providers/aml": {
+      "node": "./server/providers/aml.js"
     }
   }
 }
