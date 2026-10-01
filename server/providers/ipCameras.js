@@ -201,8 +201,9 @@ export function ipCamerasProxy({
   const install = (server) => {
     server.httpServer?.on('close', cleanupStreams);
     server.middlewares.use('/api/ip-cameras', async (req, res) => {
+      let cameras = [];
       try {
-        const cameras = await loadStore(storeFile);
+        cameras = await loadStore(storeFile);
         const sourceById = new Map(cameras.map((camera) => [camera.id, camera]));
         const url = new URL(req.url || '/', 'http://localhost');
         const token = readToken(req);
@@ -212,6 +213,7 @@ export function ipCamerasProxy({
           return json(res, 200, {
             configured,
             ffmpeg: ffmpegPath,
+            store: storeFile,
             cameras: cameras.map((camera) => publicCamera(camera, health.get(camera.id))),
           });
         }
@@ -308,8 +310,17 @@ export function ipCamerasProxy({
 
         return json(res, 404, { error: 'Not found' });
       } catch (error) {
-        console.error('[IP Cameras]', error?.message || String(error));
-        return json(res, 500, { error: 'IP camera service error' });
+        const code = String(error?.code || '');
+        const message = String(error?.message || error || 'Unknown error')
+          .replace(/[\r\n]+/g, ' ')
+          .slice(0, 320);
+        console.error('[IP Cameras]', code, message);
+        return json(res, 500, {
+          error: 'IP camera service error',
+          detail: message,
+          code,
+          cameraCount: cameras.length,
+        });
       }
     });
   };
