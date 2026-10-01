@@ -158,7 +158,7 @@ function formatValue(value) {
       : value.toLocaleString('es-CO', {
           maximumFractionDigits: 4,
         });
-  if (typeof value === 'string' && /^\\d{13}$/.test(value)) {
+  if (typeof value === 'string' && value.length === 13 && [...value].every((ch) => ch >= '0' && ch <= '9')) {
     const millis = Number(value);
     if (Number.isFinite(millis))
       return new Date(millis).toLocaleDateString('es-CO');
