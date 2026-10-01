@@ -1,6 +1,7 @@
 import Hls from 'hls.js';
 import * as Cesium from 'cesium';
 import { createIpCameraSource } from './ipCameraSource.js';
+import { createOnvifDiscovery } from './onvif.js';
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char]);
@@ -75,6 +76,7 @@ export function createIpCamerasLayer({
   let dataManager = null;
   const hls = new Map();
   const entities = new Map();
+  let onvifDiscovery = null;
 
   const token = () => sourceToken || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('gem.camera.adminToken') || '' : '');
   const setMessage = (message, error = false) => {
@@ -207,6 +209,11 @@ export function createIpCamerasLayer({
         const ok = await refresh();
         setMessage(ok ? 'Administrador autenticado' : 'Token rechazado por el servidor', !ok);
       };
+      onvifDiscovery = createOnvifDiscovery({ source: undefined, onAdd: async (camera) => { await source.add(camera); await refresh(); } });
+      const onvifHost = document.createElement('div');
+      onvifHost.className = 'gem-ip-onvif-host';
+      panel.querySelector('.gem-ip-form').before(onvifHost);
+      onvifDiscovery.mount(onvifHost);
       panel.querySelector('.gem-ip-add-toggle').onclick = () => { panel.querySelector('.gem-ip-form').hidden = !panel.querySelector('.gem-ip-form').hidden; };
       panel.querySelector('.gem-ip-cancel').onclick = () => { panel.querySelector('.gem-ip-form').reset(); panel.querySelector('.gem-ip-form').hidden = true; };
       panel.querySelector('.gem-ip-close').onclick = () => dataManager?.setEnabled('ip-cameras', false, { origin: 'user' });
@@ -242,6 +249,7 @@ export function createIpCamerasLayer({
       for (const id of hls.keys()) stopHls(id);
       for (const entity of entities.values()) viewer?.entities?.remove(entity);
       entities.clear();
+      onvifDiscovery?.destroy?.(); onvifDiscovery = null;
       panel?.remove(); panel = null; viewer = null; dataManager = null;
     },
     getStats() { return { count: cameras.length, status: sourceToken ? 'admin' : 'authentication-required' }; },
