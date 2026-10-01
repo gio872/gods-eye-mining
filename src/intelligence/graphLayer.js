@@ -82,6 +82,25 @@ function renderGraphSvg(container, graph, seedId, onSelect){
   container.appendChild(svg);
 }
 
+
+function entityPosition(viewer, entity) {
+  const position = entity?.position;
+  if (!position || !viewer?.clock) return null;
+  try {
+    const value = typeof position.getValue === 'function'
+      ? position.getValue(viewer.clock.currentTime)
+      : position;
+    if (!value) return null;
+    const carto = Cesium.Cartographic.fromCartesian(value);
+    return {
+      lat: Cesium.Math.toDegrees(carto.latitude),
+      lon: Cesium.Math.toDegrees(carto.longitude),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph(), sourceLayers=null }={}) {
   let activeGraph=graph;
   let layersSource=sourceLayers;
@@ -92,20 +111,58 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       viewer=nextViewer||null;
       clickHandler?.destroy?.();
       clickHandler=null;
-      if(viewer?.scene?.canvas && typeof Cesium !== 'undefined'){
-        clickHandler=new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-        clickHandler.setInputAction((movement)=>{
-          if(!enabled)return;
-          const cartesian=viewer.camera.pickEllipsoid(movement?.position, Cesium.Ellipsoid.WGS84);
-          if(!cartesian)return;
-          const carto=Cesium.Cartographic.fromCartesian(cartesian);
-          this.setFocusLocation({lat:Cesium.Math.toDegrees(carto.latitude),lon:Cesium.Math.toDegrees(carto.longitude)});
-        },Cesium.ScreenSpaceEventType.LEFT_CLICK);
-      }
+      this._installMapClickHandler?.();
       return Boolean(viewer);
+    },
+    _installMapClickHandler(){
+      clickHandler?.destroy?.();
+      clickHandler=null;
+      if(!viewer?.scene?.canvas || typeof Cesium === 'undefined') return;
+      clickHandler=new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      clickHandler.setInputAction((movement)=>{
+        if(!enabled)return;
+        const picked=viewer.scene.pick?.(movement?.position);
+        const entity=picked?.id || picked?.primitive?.id || null;
+        const pickedPosition=entityPosition(viewer, entity);
+        if(pickedPosition){
+          this.setFocusLocation(pickedPosition);
+          return;
+        }
+        const cartesian=viewer.camera.pickEllipsoid(movement?.position, Cesium.Ellipsoid.WGS84);
+        if(!cartesian)return;
+        const carto=Cesium.Cartographic.fromCartesian(cartesian);
+        this.setFocusLocation({
+          lat:Cesium.Math.toDegrees(carto.latitude),
+          lon:Cesium.Math.toDegrees(carto.longitude),
+        });
+      },Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    },
+    _flyToNode(node){
+      if(!viewer?.camera || !node?.position || typeof Cesium === 'undefined') return false;
+      const lat=Number(node.position.lat), lon=Number(node.position.lon);
+      if(!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+      const height=Number(node.properties?.cameraHeight);
+      viewer.camera.flyTo({
+        destination:Cesium.Cartesian3.fromDegrees(lon,lat,Number.isFinite(height) ? height : 12000),
+        duration:0.9,
+      });
+      return true;
+    },
+    _selectGraphNode(node){
+      if(!node)return;
+      selectedId=node.id;
+      selected=node;
+      if(node.position){
+        focusLocation={lat:Number(node.position.lat),lon:Number(node.position.lon)};
+        this._refreshGraph();
+      } else {
+        this._render();
+      }
+      this._flyToNode(node);
     },
     enable(nextViewer){
       viewer=nextViewer||viewer;if(!viewer?.container)return false;enabled=true;
+      this._installMapClickHandler?.();
       if(!panel){
         panel=shell();viewer.container.appendChild(panel);
         panel.querySelector('#gem-graph-close').addEventListener('click',()=>{void this._manager?.setEnabled?.(this.id,false,{origin:'user'});});
@@ -141,7 +198,7 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       const summary=panel?.querySelector('#gem-graph-summary');
       const stats=activeGraph.stats();
       if(summary)summary.textContent=`${stats.nodes} NODES · ${stats.edges} RELATIONSHIPS · DEPTH 2 · LIVE SOURCES`;
-      renderGraphSvg(this._body,activeGraph,selectedId,(node)=>{selectedId=node.id;selected=node;this._render();});
+      renderGraphSvg(this._body,activeGraph,selectedId,(node)=>this._selectGraphNode(node));
     },
     disable(){enabled=false;if(panel)panel.hidden=true;return true;},
     update(){if(!enabled)return true;this._refreshGraph();return true;},
