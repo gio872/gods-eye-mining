@@ -3103,5 +3103,16 @@
     "external": [
       "cesium"
     ]
+  },
+  "gem-mining-sources": {
+    "exports": [
+      "./mining/sources/sgc",
+      "./mining/sources/hls-spectral"
+    ],
+    "modules": [
+      "src/mining/sources/sgcGeology.js",
+      "src/mining/sources/hlsSpectral.js"
+    ],
+    "external": []
   }
 }
