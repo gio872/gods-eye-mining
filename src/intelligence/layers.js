@@ -14,14 +14,6 @@ const TRADE_CORRIDORS = Object.freeze([
   { id:'latam-gulf', name:'LatAm → Golfo', origin:'Latinoamérica', destination:'Golfo', mode:'marítimo / aéreo', status:'MODELO' },
 ]);
 
-const OFAC_SOURCES = Object.freeze([
-  { name:'OFAC SDN', status:'provider-ready', description:'Lista de Specially Designated Nationals' },
-  { name:'OFAC Consolidated', status:'provider-ready', description:'Listas no-SDN consolidadas' },
-  { name:'PEP', status:'provider-required', description:'Fuente PEP externa pendiente' },
-  { name:'Adverse Media', status:'provider-required', description:'Proveedor de noticias/OSINT pendiente' },
-  { name:'UBO / Ownership', status:'provider-required', description:'Registro corporativo pendiente' },
-]);
-
 function finite(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
