@@ -3574,7 +3574,8 @@
       "src/intelligence/layers.js",
       "src/mining/core/economicValue.js",
       "src/intelligence/graph.js",
-      "src/intelligence/graphLayer.js"
+      "src/intelligence/graphLayer.js",
+      "src/intelligence/graphBuilder.js"
     ],
     "external": []
   }
