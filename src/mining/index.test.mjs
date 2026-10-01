@@ -18,6 +18,9 @@ test('GEM exposes stable mining domain primitives', () => {
     'mineralization',
     'remote-sensing',
     'alluvial',
+    'geochemistry',
+    'lineaments',
+    'drainage',
     'sampling',
   ]);
 });
@@ -44,6 +47,9 @@ test('factor values are normalized to the analytical range', () => {
   assert.equal(target.factors.structure, 0);
   assert.equal(target.factors.mineralization, 0);
   assert.equal(target.factors.alluvial, 0);
+  assert.equal(target.factors.geochemistry, 0);
+  assert.equal(target.factors.lineaments, 0);
+  assert.equal(target.factors.drainage, 0);
 });
 
 test('prospectivity scoring normalizes weights and ranks candidates', () => {
@@ -53,6 +59,9 @@ test('prospectivity scoring normalizes weights and ranks candidates', () => {
       hydrology: 0,
       geology: 1,
       'remote-sensing': 0,
+      geochemistry: 0,
+      lineaments: 0,
+      drainage: 0,
       sampling: 0,
     },
   });
@@ -178,4 +187,35 @@ test('coverage lowers score when channels are unavailable', () => {
     factors: { geology: 1 },
   });
   assert.ok(partial.score < full.score);
+});
+
+
+test('extended GEM factors participate in the same weighted score', () => {
+  const engine = createProspectivityEngine({
+    weights: {
+      geochemistry: 0.5,
+      lineaments: 0.2,
+      drainage: 0.3,
+      terrain: 0,
+      hydrology: 0,
+      geology: 0,
+      structure: 0,
+      mineralization: 0,
+      'remote-sensing': 0,
+      alluvial: 0,
+      sampling: 0,
+    },
+  });
+  const target = engine.score({
+    id: 'extended',
+    latitude: 4.45,
+    longitude: -75.2,
+    confidence: 1,
+    factors: {
+      geochemistry: 0.8,
+      lineaments: 0.4,
+      drainage: 0.6,
+    },
+  });
+  assert.equal(target.score, 0.64);
 });
