@@ -3572,6 +3572,10 @@
     "modules": [
       "src/intelligence/index.js",
       "src/intelligence/layers.js",
+      "src/intelligence/criticalMinerals/index.js",
+      "src/intelligence/criticalMinerals/catalog.js",
+      "src/intelligence/criticalMinerals/criticality.js",
+      "src/intelligence/criticalMinerals/opportunity.js",
       "src/mining/core/economicValue.js",
       "src/intelligence/graph.js",
       "src/intelligence/graphLayer.js",
