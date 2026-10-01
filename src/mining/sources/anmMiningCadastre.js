@@ -1,5 +1,4 @@
 import * as Cesium from 'cesium';
-import { overlayHost } from '../../app/layers/overlayHost.js';
 
 const DEFAULT_WMS_URL =
   'https://geo.anm.gov.co/webgis/services/ANM/ServiciosGeograficosANM/MapServer/WMSServer';
@@ -270,14 +269,14 @@ function geometryCenter(geometry) {
   };
 }
 
-function clearHighlights(dataSource) {
+function clearHighlights(dataSource, overlay) {
   dataSource?.entities?.removeAll?.();
-  overlayHost.clearSource('anm-mining-cadastre');
+  overlay?.clearSource?.('anm-mining-cadastre');
 }
 
-function highlightResults(dataSource, results, clickPoint) {
+function highlightResults(dataSource, results, clickPoint, overlay) {
   if (!dataSource) return;
-  clearHighlights(dataSource);
+  clearHighlights(dataSource, overlay);
   const pointEntity = dataSource.entities.add({
     position: Cesium.Cartesian3.fromDegrees(clickPoint.lon, clickPoint.lat, 0),
     point: {
@@ -374,7 +373,7 @@ function highlightResults(dataSource, results, clickPoint) {
     });
   });
 
-  overlayHost.setEntries('anm-mining-cadastre', overlayEntries, {
+  overlayHost?.setEntries?.('anm-mining-cadastre', overlayEntries, {
     visible: true,
     maxVisible: 24,
     collisionCapacity: 32,
@@ -515,6 +514,7 @@ export function createAnmMiningCadastreLayer({
   identifyUrl: identifyEndpoint = DEFAULT_IDENTIFY_URL,
   fetchImpl = (...args) => fetch(...args),
   signal = null,
+  overlayHost = null,
 } = {}) {
   if (typeof fetchImpl !== 'function')
     throw new TypeError('A fetch implementation is required');
@@ -591,7 +591,7 @@ export function createAnmMiningCadastreLayer({
       lastFeatureCount = results.length;
       lastUpdate = Date.now();
       lastError = null;
-      highlightResults(highlightDataSource, results, point);
+      highlightResults(highlightDataSource, results, point, overlayHost);
       renderInfo(
         detailPanel,
         { ...point, resultCount: results.length },
