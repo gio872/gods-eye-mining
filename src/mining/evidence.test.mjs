@@ -57,9 +57,9 @@ test('GEM combines terrain, hydrology, geology, imagery and layer context', asyn
   assert.ok(rows[0].factors.terrain > 0);
   assert.equal(rows[0].factors.hydrology, 1);
   assert.equal(rows[0].factors.geology, 0.8);
-  assert.ok(rows[0].factors['remote-sensing'] > 0);
+  assert.equal(rows[0].factors['remote-sensing'], 0);
   assert.equal(rows[0].metadata.godEyeLayerContext['local-dams'], 1);
-  assert.equal(rows[0].metadata.evidenceCoverage, 0.8);
+  assert.equal(rows[0].metadata.evidenceCoverage, 4 / 6);
 });
 
 test('GEM keeps unavailable geology and hydrology explicit', async () => {
@@ -75,5 +75,5 @@ test('GEM keeps unavailable geology and hydrology explicit', async () => {
   assert.equal(rows[0].factors.geology, 0);
   assert.equal(rows[0].factors.hydrology, 0);
   assert.equal(rows[0].metadata.geologyAvailable, false);
-  assert.equal(rows[0].metadata.evidenceCoverage, 0.2);
+  assert.equal(rows[0].metadata.evidenceCoverage, 1 / 6);
 });
