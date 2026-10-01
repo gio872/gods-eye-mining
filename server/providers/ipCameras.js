@@ -87,7 +87,7 @@ async function loadStore(file) {
 async function saveStore(file, cameras) {
   await fs.mkdir(path.dirname(file), { recursive: true });
   const tmp = `${file}.tmp-${process.pid}-${Date.now()}`;
-  await fs.writeFile(tmp, JSON.stringify(cameras, null, 2) + '\\n', 'utf8');
+  await fs.writeFile(tmp, JSON.stringify(cameras, null, 2) + '\n', 'utf8');
   await fs.rename(tmp, file);
 }
 function normalizeCamera(input, existing = {}) {
@@ -237,7 +237,7 @@ export function ipCamerasProxy({
           return json(res, 201, { camera: publicCamera(camera, health.get(camera.id)) });
         }
 
-        const match = /^\\/cameras\\/([^/]+)$/.exec(url.pathname);
+        const match = /^\/cameras\/([^/]+)$/.exec(url.pathname);
         if (match) {
           const id = decodeURIComponent(match[1]);
           const index = cameras.findIndex((camera) => camera.id === id);
@@ -264,7 +264,7 @@ export function ipCamerasProxy({
           }
         }
 
-        const streamMatch = /^\\/stream\\/([^/]+)$/.exec(url.pathname);
+        const streamMatch = /^\/stream\/([^/]+)$/.exec(url.pathname);
         if (streamMatch && req.method === 'GET') {
           const id = decodeURIComponent(streamMatch[1]);
           const camera = sourceById.get(id);
@@ -284,7 +284,7 @@ export function ipCamerasProxy({
           });
         }
 
-        const hlsMatch = /^\\/hls\\/([^/]+)\\/(.+)$/.exec(url.pathname);
+        const hlsMatch = /^\/hls\/([^/]+)\/(.+)$/.exec(url.pathname);
         if (hlsMatch && req.method === 'GET') {
           const id = decodeURIComponent(hlsMatch[1]);
           const fileName = path.basename(decodeURIComponent(hlsMatch[2]));
