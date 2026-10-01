@@ -1,4 +1,5 @@
 import { calculateGrossMetalValue } from '../mining/core/economicValue.js';
+import { createEntityIntelligenceSource } from './entityIntelligenceSource.js';
 import {
   getCriticalMineralCatalog,
   getCriticalMineralRecord,
@@ -242,28 +243,167 @@ export function createCriticalMineralsLayer() {
   });
 }
 
-export function createEntityIntelligenceLayer() {
-  let query='', lastStatus='NOT_SCREENED';
+export function createEntityIntelligenceLayer({ source = createEntityIntelligenceSource() } = {}) {
+  let query = '';
+  let lastStatus = 'NOT_SCREENED';
+  let lastResult = null;
+
+  const sourceLabels = Object.freeze([
+    ['ofacSdn', 'OFAC SDN'],
+    ['ofacConsolidated', 'OFAC Consolidated'],
+    ['pep', 'PEP'],
+    ['adverseMedia', 'Adverse Media'],
+    ['ubo', 'UBO / Ownership'],
+  ]);
+
   return createPanelLayer({
-    id:'entity-intelligence', name:'Entity / AML Intelligence', icon:'◎', source:'AML · KYC · SANCTIONS · UBO',
-    buildPanel(){
-      const panel=panelShell('terraqueen-entity-intelligence','ENTITY / AML INTELLIGENCE','KYC · SANCTIONS · PEP · UBO · ADVERSE MEDIA','Provider-neutral screening framework');
-      const input=document.createElement('input'); input.placeholder='Nombre de persona o empresa…'; input.style.cssText='margin-top:12px;width:100%;box-sizing:border-box;padding:8px;background:rgba(2,12,17,.9);border:1px solid rgba(32,206,216,.2);color:#eef8fa;border-radius:5px;font:10px monospace';
-      const run=button('PREPARAR SCREENING'); run.style.marginTop='7px'; panel.append(input,run);
-      const result=document.createElement('div'); result.style.cssText='margin-top:10px;padding:10px;border:1px solid rgba(242,197,93,.2);border-radius:6px;font-size:9px;line-height:1.45'; panel.appendChild(result);
-      const render=()=>{
-        query=input.value.trim();
-        lastStatus=query?'READY_FOR_PROVIDER':'NOT_SCREENED';
-        result.innerHTML='<strong style="color:#f2c55d">'+(query?esc(query):'Sin entidad seleccionada')+'</strong><br><span style="color:#86a4a9">'+(query?'No se ejecuta un match remoto en esta versión. Conecta un proveedor y conserva evidencia de fuente/fecha antes de emitir un resultado.':'Introduce una entidad para preparar la consulta.')+'</span>';
+    id: 'entity-intelligence',
+    name: 'Entity / AML Intelligence',
+    icon: '◎',
+    source: 'AML · KYC · SANCTIONS · PEP · UBO',
+    buildPanel() {
+      const panel = panelShell(
+        'terraqueen-entity-intelligence',
+        'ENTITY / AML INTELLIGENCE',
+        'KYC · SANCTIONS · PEP · UBO · ADVERSE MEDIA',
+        'Live provider screening'
+      );
+
+      const controls = document.createElement('div');
+      controls.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:7px;margin-top:12px';
+      const input = document.createElement('input');
+      input.placeholder = 'Nombre de persona o empresa…';
+      input.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;background:rgba(2,12,17,.9);border:1px solid rgba(32,206,216,.2);color:#eef8fa;border-radius:5px;font:10px monospace';
+      const kind = document.createElement('select');
+      kind.innerHTML = '<option value="person">PERSONA</option><option value="company">EMPRESA</option>';
+      kind.style.cssText = input.style.cssText;
+      const run = button('EJECUTAR SCREENING');
+      controls.append(input, kind, run);
+      panel.appendChild(controls);
+
+      const statusLine = document.createElement('div');
+      statusLine.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;margin-top:8px';
+      panel.appendChild(statusLine);
+
+      const result = document.createElement('div');
+      result.style.cssText = 'margin-top:10px;display:grid;gap:8px';
+      panel.appendChild(result);
+
+      const renderSources = (statuses) => {
+        statusLine.replaceChildren();
+        for (const [id, label] of sourceLabels) {
+          const item = document.createElement('span');
+          const row = (statuses || []).find((s) => s.id === id);
+          const ready = row?.status === 'provider-ready';
+          item.textContent = `${label} · ${ready ? 'READY' : String(row?.status || 'UNAVAILABLE').toUpperCase()}`;
+          item.style.cssText = `padding:4px 6px;border:1px solid ${ready ? 'rgba(112,240,197,.24)' : 'rgba(242,197,93,.24)'};border-radius:4px;color:${ready ? '#70f0c5' : '#f2c55d'};font-size:7px`;
+          item.title = row?.description || '';
+          statusLine.appendChild(item);
+        }
       };
-      run.addEventListener('click',render); input.addEventListener('input',()=>{lastStatus='NOT_SCREENED';});
-      const list=document.createElement('div'); list.style.cssText='margin-top:10px;display:grid;gap:5px';
-      OFAC_SOURCES.forEach(s=>{const row=document.createElement('div'); row.style.cssText='display:flex;justify-content:space-between;gap:10px;padding:7px;border:1px solid rgba(255,255,255,.06);border-radius:4px;font-size:8px'; row.innerHTML='<span>'+esc(s.name)+'</span><span style="color:'+(s.status==='provider-ready'?'#70f0c5':'#f2c55d')+'">'+esc(s.status.toUpperCase())+'</span>'; list.appendChild(row);});
-      panel.appendChild(list);
-      const disclaimer=document.createElement('div'); disclaimer.style.cssText='margin-top:9px;color:#748f95;font-size:8px;line-height:1.4'; disclaimer.textContent='AML/KYC no produce una conclusión automática sobre culpabilidad o ilegalidad. Un posible match requiere resolución de identidad, evidencia, fecha de consulta y revisión humana.'; panel.appendChild(disclaimer);
+
+      const makeBox = (title, body, tone = '#86a4a9') => {
+        const box = document.createElement('div');
+        box.style.cssText = 'padding:9px;border:1px solid rgba(255,255,255,.07);border-radius:6px;background:rgba(2,12,17,.5);font-size:8px;line-height:1.45';
+        box.innerHTML = `<strong style="color:#f2c55d">${esc(title)}</strong><div style="margin-top:5px;color:${tone}">${body}</div>`;
+        return box;
+      };
+
+      const renderResults = (payload) => {
+        result.replaceChildren();
+        const sources = payload?.sources || {};
+        const counts = [
+          ['OFAC SDN', sources.ofacSdn?.matches?.length || 0],
+          ['OFAC Consolidated', sources.ofacConsolidated?.matches?.length || 0],
+          ['PEP', sources.pep?.matches?.length || 0],
+          ['Adverse Media', sources.adverseMedia?.matches?.length || 0],
+          ['UBO', sources.ubo?.matches?.length || 0],
+        ];
+        result.appendChild(makeBox(
+          `SCREENING · ${payload.query}`,
+          `${counts.map(([name, count]) => `${name}: <b>${count}</b>`).join(' · ')}<br>Consultado: ${esc(payload.retrievedAt || '')}`
+        ));
+
+        for (const [title, key] of [
+          ['OFAC SDN', 'ofacSdn'],
+          ['OFAC CONSOLIDATED', 'ofacConsolidated'],
+          ['PEP / RCA', 'pep'],
+          ['ADVERSE MEDIA', 'adverseMedia'],
+          ['UBO / OWNERSHIP', 'ubo'],
+        ]) {
+          const item = sources[key];
+          if (!item) continue;
+          if (item.status === 'not-configured') {
+            result.appendChild(makeBox(title, 'Proveedor no configurado. Configure OPENSANCTIONS_API_KEY para activar PEP.', '#f2c55d'));
+            continue;
+          }
+          if (item.status === 'error') {
+            result.appendChild(makeBox(title, `Error del proveedor: ${esc(item.error || 'desconocido')}`, '#ff9c8f'));
+            continue;
+          }
+          const rows = Array.isArray(item.matches) ? item.matches : [];
+          if (!rows.length) {
+            result.appendChild(makeBox(title, 'Sin candidatos devueltos por la fuente.', '#70f0c5'));
+            continue;
+          }
+          const body = rows.slice(0, 6).map((row) => {
+            if (row.url) {
+              return `<div style="margin-bottom:5px"><a href="${esc(row.url)}" target="_blank" rel="noreferrer" style="color:#67dfe6">${esc(row.title || row.url)}</a><br><span>${esc(row.domain || '')} · ${esc(row.publishedAt || '')}</span></div>`;
+            }
+            if (row.legalName) {
+              const parents = row.parent ? ` · parent: ${esc(JSON.stringify(row.parent))}` : '';
+              return `<div style="margin-bottom:5px"><b>${esc(row.legalName)}</b> · LEI ${esc(row.lei || '—')} · ${esc(row.country || '')}${parents}</div>`;
+            }
+            return `<div style="margin-bottom:5px"><b>${esc(row.name || 'candidate')}</b> · score ${Number(row.score || 0).toFixed(3)} ${row.match ? '· MATCH' : ''}<br><span>${esc((row.topics || row.programs || row.datasets || []).join(' · '))}</span></div>`;
+          }).join('');
+          result.appendChild(makeBox(title, body));
+        }
+
+        result.appendChild(makeBox(
+          'METHODOLOGY',
+          `${esc(payload.methodology || '')}<br><span style="color:#748f95">Fuente, fecha y evidencia se conservan en la respuesta de cada proveedor; un candidato no es una determinación legal.</span>`,
+          '#9eb9bd'
+        ));
+      };
+
+      input.addEventListener('input', () => {
+        query = input.value.trim();
+        lastStatus = 'NOT_SCREENED';
+      });
+      run.addEventListener('click', async () => {
+        query = input.value.trim();
+        if (query.length < 2) {
+          lastStatus = 'INVALID_QUERY';
+          result.replaceChildren(makeBox('SCREENING', 'Introduce al menos 2 caracteres.', '#ff9c8f'));
+          return;
+        }
+        lastStatus = 'SCREENING';
+        run.disabled = true;
+        result.replaceChildren(makeBox('SCREENING', 'Consultando fuentes AML…', '#67dfe6'));
+        try {
+          const payload = await source.screen({ query, entityType: kind.value });
+          lastResult = payload;
+          lastStatus = 'COMPLETE';
+          renderResults(payload);
+        } catch (error) {
+          lastStatus = 'ERROR';
+          result.replaceChildren(makeBox('SCREENING ERROR', error?.message || String(error), '#ff9c8f'));
+        } finally {
+          run.disabled = false;
+        }
+      });
+
+      source.status().then((payload) => renderSources(payload.sources)).catch(() => renderSources([]));
+
       return panel;
     },
-    stats:enabled=>({enabled,status:lastStatus,query:query||null,sources:OFAC_SOURCES.length}),
+    stats: enabled => ({
+      enabled,
+      status: lastStatus,
+      query: query || null,
+      sources: sourceLabels.length,
+      lastRetrievedAt: lastResult?.retrievedAt || null,
+    }),
   });
 }
 
