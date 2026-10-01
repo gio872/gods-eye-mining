@@ -108,7 +108,7 @@ export function createDemoIntelligenceGraph() {
     ['e1','location:sample','deposit:sample','contains'],
     ['e2','deposit:sample','commodity:gold','produces'],
     ['e3','deposit:sample','right:sample','holds-right'],
-    ['e4','right:sample','company:operator','operated-by'],
+    ['e4','right:sample','company:operator','operates'],
     ['e5','company:operator','person:ubo','owned-by'],
     ['e6','company:operator','project:sample','operates'],
     ['e7','project:sample','facility:plant','processes'],
