@@ -1,4 +1,5 @@
 import { clamp, PROSPECTIVITY_FACTORS, normalizeFactorMap } from './core/miningTypes.js';
+import { searchHls } from '../layers/recentImagery/catalog.js';
 
 const WATER_TAGS = new Set([
   'water',
@@ -230,22 +231,49 @@ export function createMiningEvidenceBridge({
     };
   }
 
-  function imageryEvidence() {
-    try {
-      const stats = imageryLayer?.getStats?.() || {};
-      const params = imageryLayer?.getParams?.() || {};
-      const count = Number(stats.count);
-      const pinned = Boolean(params.a || params.b);
-      const value = clamp((Number.isFinite(count) ? count / 30 : 0) + (pinned ? 0.25 : 0));
-      return {
-        value,
-        source: count > 0 || pinned ? 'Gods Eye · Recent Imagery' : null,
-        candidateCount: Number.isFinite(count) ? count : 0,
-        pinned,
-      };
-    } catch {
-      return { value: 0, source: null, candidateCount: 0, pinned: false };
+  async function collectImagery(points, requestSignal) {
+    const stats = imageryLayer?.getStats?.() || {};
+    const params = imageryLayer?.getParams?.() || {};
+    const layerCount = Number(stats.count);
+    const pinned = Boolean(params.a || params.b);
+    const centre = points[Math.floor(points.length / 2)];
+    let candidates = [];
+    let catalogError = null;
+    if (centre) {
+      try {
+        const delta = 0.02;
+        const result = await searchHls({
+          box: {
+            west: Math.max(-180, centre.lon - delta),
+            south: Math.max(-90, centre.lat - delta),
+            east: Math.min(180, centre.lon + delta),
+            north: Math.min(90, centre.lat + delta),
+          },
+          days: 30,
+          signal: requestSignal,
+        });
+        candidates = Array.isArray(result?.candidates) ? result.candidates : [];
+        catalogError = result?.errors?.length ? result.errors : null;
+      } catch (error) {
+        catalogError = [String(error?.message || error)];
+      }
     }
+    const count =
+      candidates.length || (Number.isFinite(layerCount) ? layerCount : 0);
+    const lowCloud = candidates.filter(
+      (candidate) =>
+        !Number.isFinite(Number(candidate?.cloud)) ||
+        Number(candidate.cloud) <= 30,
+    ).length;
+    const value = clamp(count / 20 + lowCloud / 40 + (pinned ? 0.15 : 0));
+    return {
+      value,
+      source: count > 0 || pinned ? 'NASA HLS · Gods Eye imagery' : null,
+      candidateCount: count,
+      lowCloudCount: lowCloud,
+      pinned,
+      catalogError,
+    };
   }
 
   function existingLayerContext(points) {
@@ -287,7 +315,7 @@ export function createMiningEvidenceBridge({
       collectHydrology(points, requestSignal),
       collectGeology(points, requestSignal),
     ]);
-    const imagery = imageryEvidence();
+    const imagery = await collectImagery(points, requestSignal);
     const context = existingLayerContext(points);
 
     return points.map((point, index) => {
@@ -313,6 +341,8 @@ export function createMiningEvidenceBridge({
           imagerySource: imagery.source,
           imageryCandidateCount: imagery.candidateCount,
           imageryPinned: imagery.pinned,
+          imageryLowCloudCount: imagery.lowCloudCount,
+          imageryCatalogError: imagery.catalogError,
           godEyeLayerContext: context,
           factorsCovered: PROSPECTIVITY_FACTORS.filter((factor) => {
             const value = factors[factor];
