@@ -40,6 +40,7 @@ import {
   createEntityIntelligenceLayer,
   createTradeIntelligenceLayer,
 } from '../intelligence/layers.js';
+import { createIntelligenceGraphLayer } from '../intelligence/graphLayer.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -83,6 +84,7 @@ export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'critical-minerals', disposition: 'local-only' }),
   Object.freeze({ id: 'entity-intelligence', disposition: 'local-only' }),
   Object.freeze({ id: 'mineral-trade-intelligence', disposition: 'local-only' }),
+  Object.freeze({ id: 'intelligence-graph', disposition: 'local-only' }),
 ]);
 
 /** Serialization metadata for every layer the application catalog constructs. */
@@ -199,6 +201,7 @@ export function createApplicationCatalog({
         createCriticalMineralsLayer(),
         createEntityIntelligenceLayer(),
         createTradeIntelligenceLayer(),
+        createIntelligenceGraphLayer(),
         vessels,
         installations,
         createApplicationAwareness({
