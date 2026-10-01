@@ -55,7 +55,6 @@ const LAYER_LABELS = Object.freeze({
   15: 'Banco de Área',
 });
 
-
 const ANM_CATEGORY_LAYERS = Object.freeze({
   all: DISPLAY_LAYERS,
   titles: Object.freeze([ANM_LAYERS.tituloVigente]),
@@ -88,7 +87,8 @@ const ANM_CATEGORY_LABELS = Object.freeze({
   availability: 'Disponibilidad',
 });
 
-const PRIVATE_OR_ID_FIELDS = /(^|_)(identificacion|numero_identificacion)($|_)/i;
+const PRIVATE_OR_ID_FIELDS =
+  /(^|_)(identificacion|numero_identificacion)($|_)/i;
 const DISPLAY_FIELD_LIMIT = 16;
 
 function finite(value) {
@@ -106,7 +106,8 @@ function pointFromClick(viewer, position) {
     viewer.scene?.ellipsoid || Cesium.Ellipsoid.WGS84,
   );
   if (!cartesian) return null;
-  const cartographic = viewer.scene.ellipsoid.cartesianToCartographic(cartesian);
+  const cartographic =
+    viewer.scene.ellipsoid.cartesianToCartographic(cartesian);
   if (!cartographic) return null;
   return {
     lon: Cesium.Math.toDegrees(cartographic.longitude),
@@ -161,11 +162,17 @@ async function requestJson(url, fetchImpl, signal) {
     headers: { Accept: 'application/json' },
   });
   if (!response?.ok)
-    throw new Error(`ANM mining request failed (${response.status ?? 'error'})`);
+    throw new Error(
+      `ANM mining request failed (${response.status ?? 'error'})`,
+    );
   const json = await response.json();
   if (json?.error)
     throw new Error(
-      String(json.error.message || json.error.details?.join('; ') || 'ANM service error'),
+      String(
+        json.error.message ||
+          json.error.details?.join('; ') ||
+          'ANM service error',
+      ),
     );
   return json;
 }
@@ -191,7 +198,11 @@ function formatValue(value) {
       : value.toLocaleString('es-CO', {
           maximumFractionDigits: 4,
         });
-  if (typeof value === 'string' && value.length === 13 && [...value].every((ch) => ch >= '0' && ch <= '9')) {
+  if (
+    typeof value === 'string' &&
+    value.length === 13 &&
+    [...value].every((ch) => ch >= '0' && ch <= '9')
+  ) {
     const millis = Number(value);
     if (Number.isFinite(millis))
       return new Date(millis).toLocaleDateString('es-CO');
@@ -199,31 +210,36 @@ function formatValue(value) {
   return String(value);
 }
 
-
 function layerColor(layerId) {
-  return {
-    1: '#f2c55d',
-    2: '#ffd95e',
-    3: '#ff9f43',
-    4: '#f6c85f',
-    6: '#d18cff',
-    7: '#c08cff',
-    9: '#ff6b5f',
-    10: '#ff8f55',
-    11: '#7fe3d4',
-    12: '#5fd6ff',
-    13: '#8bd450',
-    14: '#7ca7ff',
-    15: '#9fc4ff',
-  }[Number(layerId)] || '#20ced8';
+  return (
+    {
+      1: '#f2c55d',
+      2: '#ffd95e',
+      3: '#ff9f43',
+      4: '#f6c85f',
+      6: '#d18cff',
+      7: '#c08cff',
+      9: '#ff6b5f',
+      10: '#ff8f55',
+      11: '#7fe3d4',
+      12: '#5fd6ff',
+      13: '#8bd450',
+      14: '#7ca7ff',
+      15: '#9fc4ff',
+    }[Number(layerId)] || '#20ced8'
+  );
 }
 
 function geometryPoints(geometry) {
   if (!geometry || typeof geometry !== 'object') return [];
   if (Array.isArray(geometry.rings))
-    return geometry.rings.filter((ring) => Array.isArray(ring) && ring.length >= 2);
+    return geometry.rings.filter(
+      (ring) => Array.isArray(ring) && ring.length >= 2,
+    );
   if (Array.isArray(geometry.paths))
-    return geometry.paths.filter((path) => Array.isArray(path) && path.length >= 2);
+    return geometry.paths.filter(
+      (path) => Array.isArray(path) && path.length >= 2,
+    );
   return [];
 }
 
@@ -231,12 +247,20 @@ function geometryCenter(geometry) {
   if (finite(geometry?.x) !== null && finite(geometry?.y) !== null)
     return { lon: Number(geometry.x), lat: Number(geometry.y) };
   const groups = geometryPoints(geometry);
-  const points = groups.flat().filter(
-    (pair) => Array.isArray(pair) && finite(pair[0]) !== null && finite(pair[1]) !== null,
-  );
+  const points = groups
+    .flat()
+    .filter(
+      (pair) =>
+        Array.isArray(pair) &&
+        finite(pair[0]) !== null &&
+        finite(pair[1]) !== null,
+    );
   if (!points.length) return null;
   const total = points.reduce(
-    (sum, pair) => ({ lon: sum.lon + Number(pair[0]), lat: sum.lat + Number(pair[1]) }),
+    (sum, pair) => ({
+      lon: sum.lon + Number(pair[0]),
+      lat: sum.lat + Number(pair[1]),
+    }),
     { lon: 0, lat: 0 },
   );
   return {
@@ -364,8 +388,7 @@ function renderLegend(panel) {
     const item = document.createElement('div');
     item.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0';
     const swatch = document.createElement('span');
-    swatch.style.cssText =
-      `width:9px;height:9px;display:inline-block;flex:0 0 9px;border:1px solid rgba(255,255,255,.28);background:${layerColor(id)};box-shadow:0 0 8px ${layerColor(id)}55`;
+    swatch.style.cssText = `width:9px;height:9px;display:inline-block;flex:0 0 9px;border:1px solid rgba(255,255,255,.28);background:${layerColor(id)};box-shadow:0 0 8px ${layerColor(id)}55`;
     const text = document.createElement('span');
     text.textContent = label;
     text.style.color = 'rgba(241,246,247,.75)';
@@ -403,14 +426,13 @@ function renderInfo(panel, point, results) {
   header.append(titleWrap, close);
 
   const coord = document.createElement('div');
-  coord.textContent =
-    `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)} · WGS84 · OBJETOS SEÑALADOS: ${point?.resultCount ?? 0}`;
-  coord.style.cssText =
-    'font-size:10px;color:#b8cdd1;margin-bottom:9px';
+  coord.textContent = `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)} · WGS84 · OBJETOS SEÑALADOS: ${point?.resultCount ?? 0}`;
+  coord.style.cssText = 'font-size:10px;color:#b8cdd1;margin-bottom:9px';
 
   panel.replaceChildren(header, coord);
   const scope = document.createElement('div');
-  scope.textContent = 'TÍTULOS · SOLICITUDES · ZONAS MINERAS · ÁREAS ESPECIALES';
+  scope.textContent =
+    'TÍTULOS · SOLICITUDES · ZONAS MINERAS · ÁREAS ESPECIALES';
   scope.style.cssText =
     'font-size:9px;letter-spacing:.07em;color:#20ced8;margin-bottom:9px;';
   panel.appendChild(scope);
@@ -449,9 +471,9 @@ function renderInfo(panel, point, results) {
 
     const heading = document.createElement('div');
     heading.textContent =
-      LAYER_LABELS[Number(result.layerId)] || String(result.layerName || 'Capa ANM');
-    heading.style.cssText =
-      `font-size:10px;letter-spacing:.08em;color:${layerColor(result.layerId)};margin-bottom:6px;font-weight:700`;
+      LAYER_LABELS[Number(result.layerId)] ||
+      String(result.layerName || 'Capa ANM');
+    heading.style.cssText = `font-size:10px;letter-spacing:.08em;color:${layerColor(result.layerId)};margin-bottom:6px;font-weight:700`;
     card.appendChild(heading);
 
     for (const [key, value] of displayFields(result.attributes)) {
@@ -502,10 +524,7 @@ export function createAnmMiningCadastreLayer({
   let rowControlsListener = null;
 
   const clearImagery = () => {
-    if (
-      imageryLayer &&
-      viewer?.imageryLayers?.contains?.(imageryLayer)
-    ) {
+    if (imageryLayer && viewer?.imageryLayers?.contains?.(imageryLayer)) {
       viewer.imageryLayers.remove(imageryLayer, true);
     }
     imageryLayer = null;
@@ -513,7 +532,8 @@ export function createAnmMiningCadastreLayer({
 
   const installImagery = () => {
     clearImagery();
-    const selectedLayers = ANM_CATEGORY_LAYERS[activeCategory] || DISPLAY_LAYERS;
+    const selectedLayers =
+      ANM_CATEGORY_LAYERS[activeCategory] || DISPLAY_LAYERS;
     const provider = new Cesium.WebMapServiceImageryProvider({
       url: wmsUrl,
       layers: selectedLayers.join(','),
@@ -563,7 +583,11 @@ export function createAnmMiningCadastreLayer({
       lastUpdate = Date.now();
       lastError = null;
       highlightResults(highlightDataSource, results, point);
-      renderInfo(detailPanel, { ...point, resultCount: results.length }, results);
+      renderInfo(
+        detailPanel,
+        { ...point, resultCount: results.length },
+        results,
+      );
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
       if (detailPanel) {
@@ -599,8 +623,14 @@ export function createAnmMiningCadastreLayer({
       { label: 'Título vigente', color: layerColor(ANM_LAYERS.tituloVigente) },
       { label: 'Solicitud', color: layerColor(ANM_LAYERS.solicitudVigente) },
       { label: 'Subcontrato', color: layerColor(ANM_LAYERS.subcontrato) },
-      { label: 'Área especial', color: layerColor(ANM_LAYERS.areasEstrategicasMineras) },
-      { label: 'Disponibilidad cartográfica', color: layerColor(ANM_LAYERS.areasSusceptiblesMineria) },
+      {
+        label: 'Área especial',
+        color: layerColor(ANM_LAYERS.areasEstrategicasMineras),
+      },
+      {
+        label: 'Disponibilidad cartográfica',
+        color: layerColor(ANM_LAYERS.areasSusceptiblesMineria),
+      },
     ],
     info:
       activeCategory === 'all'
@@ -630,7 +660,9 @@ export function createAnmMiningCadastreLayer({
       ensureDetailPanel();
       highlightDataSource?.entities?.removeAll?.();
       if (!highlightDataSource) {
-        highlightDataSource = new Cesium.CustomDataSource('anm-mining-highlights');
+        highlightDataSource = new Cesium.CustomDataSource(
+          'anm-mining-highlights',
+        );
         viewer.dataSources.add(highlightDataSource);
       }
       clickHandler?.destroy?.();
@@ -670,7 +702,10 @@ export function createAnmMiningCadastreLayer({
       clearImagery();
       clickHandler?.destroy?.();
       clickHandler = null;
-      if (highlightDataSource && viewer?.dataSources?.contains?.(highlightDataSource))
+      if (
+        highlightDataSource &&
+        viewer?.dataSources?.contains?.(highlightDataSource)
+      )
         viewer.dataSources.remove(highlightDataSource, true);
       highlightDataSource = null;
       detailPanel?.remove?.();
@@ -693,9 +728,17 @@ export function createAnmMiningCadastreLayer({
     getParams() {
       return {
         source: 'ANM',
-        visibleLayers: [...(ANM_CATEGORY_LAYERS[activeCategory] || DISPLAY_LAYERS)],
+        visibleLayers: [
+          ...(ANM_CATEGORY_LAYERS[activeCategory] || DISPLAY_LAYERS),
+        ],
         category: activeCategory,
-        categories: ['titles', 'applications', 'subcontracts', 'special-areas', 'availability-screening'],
+        categories: [
+          'titles',
+          'applications',
+          'subcontracts',
+          'special-areas',
+          'availability-screening',
+        ],
         legalFreeArea: 'not-certified',
       };
     },

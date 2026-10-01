@@ -91,12 +91,13 @@ function populationTitle(place) {
 }
 
 function populationAccessibilityLabel(place) {
-  const type = {
-    city: 'city',
-    town: 'town',
-    village: 'village',
-    hamlet: 'hamlet',
-  }[place.placeClass] || 'settlement';
+  const type =
+    {
+      city: 'city',
+      town: 'town',
+      village: 'village',
+      hamlet: 'hamlet',
+    }[place.placeClass] || 'settlement';
   return place.name + ', ' + type;
 }
 
@@ -106,11 +107,7 @@ function entryForPlace(place) {
 
   return {
     id: place.id,
-    position: Cesium.Cartesian3.fromDegrees(
-      place.longitude,
-      place.latitude,
-      0,
-    ),
+    position: Cesium.Cartesian3.fromDegrees(place.longitude, place.latitude, 0),
     variant: 'label',
     title: populationTitle(place),
     priority: place.priority,
@@ -158,17 +155,13 @@ export function createPopulationLayer({
   let status = 'idle';
 
   function publish() {
-    overlay.setEntries(
-      OVERLAY_SOURCE_ID,
-      places.map(entryForPlace),
-      {
-        cohortLimit: MAX_LABELS * 2,
-        collisionCapacity: MAX_LABELS,
-        maxVisible: MAX_LABELS,
-        moving: false,
-        visible: enabled,
-      },
-    );
+    overlay.setEntries(OVERLAY_SOURCE_ID, places.map(entryForPlace), {
+      cohortLimit: MAX_LABELS * 2,
+      collisionCapacity: MAX_LABELS,
+      maxVisible: MAX_LABELS,
+      moving: false,
+      visible: enabled,
+    });
   }
 
   async function update() {
@@ -198,11 +191,7 @@ export function createPopulationLayer({
 
         let loaded = false;
         let lastFailure = null;
-        for (
-          let zoom = requestedZoom;
-          zoom >= 4;
-          zoom--
-        ) {
+        for (let zoom = requestedZoom; zoom >= 4; zoom--) {
           try {
             results.push(
               await source.fetchBounds(box, {
@@ -213,10 +202,7 @@ export function createPopulationLayer({
             loaded = true;
             break;
           } catch (error) {
-            if (
-              controller.signal.aborted ||
-              error?.name === 'AbortError'
-            )
+            if (controller.signal.aborted || error?.name === 'AbortError')
               throw error;
             lastFailure = error;
           }
@@ -225,11 +211,7 @@ export function createPopulationLayer({
         if (!loaded && lastFailure) throw lastFailure;
       }
 
-      if (
-        controller.signal.aborted ||
-        request !== controller ||
-        !enabled
-      )
+      if (controller.signal.aborted || request !== controller || !enabled)
         return false;
 
       places = mergePopulationTiles(results);
@@ -239,11 +221,7 @@ export function createPopulationLayer({
       publish();
       return true;
     } catch (error) {
-      if (
-        controller.signal.aborted ||
-        request !== controller ||
-        !enabled
-      )
+      if (controller.signal.aborted || request !== controller || !enabled)
         return false;
       lastError = error?.message || 'Population map unavailable';
       status = 'unavailable';

@@ -24,7 +24,6 @@
 @import './src/ui/styles/weather.css';
 @import './src/ui/styles/cyber.css';
 
-
 /* ─────────────────────────────────────────────────────────────
    TERRAQUEEN MINING INTELLIGENCE — corporate visual system
    ───────────────────────────────────────────────────────────── */
@@ -58,22 +57,26 @@
   left: -32px;
   top: -24px;
   background:
-    radial-gradient(ellipse at 30% 55%, var(--mining-gold-dim) 0%, transparent 40%),
+    radial-gradient(
+      ellipse at 30% 55%,
+      var(--mining-gold-dim) 0%,
+      transparent 40%
+    ),
     radial-gradient(ellipse at 65% 50%, var(--accent-dim) 0%, transparent 72%);
-  opacity: .9;
+  opacity: 0.9;
 }
 #title-bar h1 {
   gap: 11px;
   font-family: var(--font-sans);
   font-size: 22px;
   letter-spacing: 0;
-  text-shadow: 0 4px 22px rgba(0,0,0,.6);
+  text-shadow: 0 4px 22px rgba(0, 0, 0, 0.6);
 }
 #title-bar .title-logo {
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  filter: drop-shadow(0 0 14px rgba(242,197,93,.24));
+  filter: drop-shadow(0 0 14px rgba(242, 197, 93, 0.24));
 }
 .brand-logo {
   aspect-ratio: 1 / 1;
@@ -107,7 +110,7 @@
   margin-top: 7px;
   font-size: 8px;
   letter-spacing: 2.6px;
-  color: rgba(241,246,247,.48);
+  color: rgba(241, 246, 247, 0.48);
 }
 
 /* Corporate workspace indicator */
@@ -117,8 +120,14 @@
   padding: 10px 12px;
   border: 1px solid var(--glass-border);
   border-radius: 9px;
-  background: linear-gradient(135deg, rgba(4,17,23,.84), rgba(10,20,24,.64));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 10px 26px rgba(0,0,0,.28);
+  background: linear-gradient(
+    135deg,
+    rgba(4, 17, 23, 0.84),
+    rgba(10, 20, 24, 0.64)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 10px 26px rgba(0, 0, 0, 0.28);
 }
 #style-indicator .indicator-label {
   font-size: 8px;
@@ -139,22 +148,30 @@
 #weather-panel:not(.collapsed),
 #recent-imagery-panel:not(.collapsed),
 #global-context-panel:not(.collapsed) {
-  border-color: rgba(242,197,93,.18);
+  border-color: rgba(242, 197, 93, 0.18);
   box-shadow:
-    0 14px 36px rgba(0,0,0,.42),
-    inset 0 1px 0 rgba(255,255,255,.035),
-    0 0 0 1px rgba(18,190,199,.025);
+    0 14px 36px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 0 0 1px rgba(18, 190, 199, 0.025);
 }
 .data-layer-group-heading {
-  color: rgba(242,197,93,.72);
-  border-top-color: rgba(242,197,93,.14);
+  color: rgba(242, 197, 93, 0.72);
+  border-top-color: rgba(242, 197, 93, 0.14);
 }
 .data-toggle-row[data-layer-id='gem-prospectivity'] {
-  background: linear-gradient(90deg, rgba(242,197,93,.09), rgba(18,190,199,.04));
-  border: 1px solid rgba(242,197,93,.22);
+  background: linear-gradient(
+    90deg,
+    rgba(242, 197, 93, 0.09),
+    rgba(18, 190, 199, 0.04)
+  );
+  border: 1px solid rgba(242, 197, 93, 0.22);
 }
 .data-toggle-row[data-layer-id='gem-prospectivity']:hover {
-  background: linear-gradient(90deg, rgba(242,197,93,.14), rgba(18,190,199,.07));
+  background: linear-gradient(
+    90deg,
+    rgba(242, 197, 93, 0.14),
+    rgba(18, 190, 199, 0.07)
+  );
 }
 .data-toggle-row[data-layer-id='gem-prospectivity'] .data-name {
   color: #f5d67f;
@@ -168,24 +185,33 @@
 
 /* Top-center actions get a restrained corporate treatment */
 #top-center-actions button {
-  border-color: rgba(242,197,93,.18);
-  background: rgba(4,17,23,.78);
+  border-color: rgba(242, 197, 93, 0.18);
+  background: rgba(4, 17, 23, 0.78);
 }
 #top-center-actions button:hover {
-  border-color: rgba(242,197,93,.42);
-  box-shadow: 0 0 18px rgba(242,197,93,.10);
+  border-color: rgba(242, 197, 93, 0.42);
+  box-shadow: 0 0 18px rgba(242, 197, 93, 0.1);
 }
 
 /* Brand loading screen */
 #loading-screen {
   background:
-    radial-gradient(circle at 50% 43%, rgba(32,206,216,.09), transparent 22%),
-    radial-gradient(circle at 50% 44%, rgba(242,197,93,.07), transparent 42%),
+    radial-gradient(
+      circle at 50% 43%,
+      rgba(32, 206, 216, 0.09),
+      transparent 22%
+    ),
+    radial-gradient(
+      circle at 50% 44%,
+      rgba(242, 197, 93, 0.07),
+      transparent 42%
+    ),
     var(--bg-dark);
 }
 .loader-logo {
   width: 132px;
-  filter: drop-shadow(0 0 24px rgba(242,197,93,.22)) drop-shadow(0 0 30px rgba(32,206,216,.16));
+  filter: drop-shadow(0 0 24px rgba(242, 197, 93, 0.22))
+    drop-shadow(0 0 30px rgba(32, 206, 216, 0.16));
 }
 .loader-content h2 {
   font-family: var(--font-sans);
@@ -193,7 +219,7 @@
   font-size: 20px;
 }
 .loader-status {
-  color: rgba(242,197,93,.72);
+  color: rgba(242, 197, 93, 0.72);
   letter-spacing: 1.8px;
 }
 
@@ -203,15 +229,27 @@
     left: 16px;
     top: 16px;
   }
-  #title-bar .title-logo { width: 44px; height: 44px; }
-  .brand-company { font-size: 10px; letter-spacing: 2.7px; }
-  .brand-product { font-size: 15px; letter-spacing: 1.8px; }
+  #title-bar .title-logo {
+    width: 44px;
+    height: 44px;
+  }
+  .brand-company {
+    font-size: 10px;
+    letter-spacing: 2.7px;
+  }
+  .brand-product {
+    font-size: 15px;
+    letter-spacing: 1.8px;
+  }
   #title-bar .subtitle {
     margin-left: 55px;
     font-size: 7px;
     letter-spacing: 1.6px;
   }
-  #style-indicator { right: 16px; top: 16px; }
+  #style-indicator {
+    right: 16px;
+    top: 16px;
+  }
 }
 
 /* TerraQueen executive signature */

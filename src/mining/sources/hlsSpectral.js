@@ -46,7 +46,8 @@ function robustZ(values, value) {
   const mad = median(deviations);
   if (Number.isFinite(mad) && mad > 1e-12)
     return (value - centre) / (1.4826 * mad);
-  const mean = clean.reduce((sum, candidate) => sum + candidate, 0) / clean.length;
+  const mean =
+    clean.reduce((sum, candidate) => sum + candidate, 0) / clean.length;
   const variance =
     clean.reduce((sum, candidate) => sum + (candidate - mean) ** 2, 0) /
     clean.length;
@@ -171,7 +172,11 @@ function pickItem(items, maxCloud) {
   const eligible = items
     .filter((item) => {
       const cloud = itemCloud(item);
-      return !Number.isFinite(maxCloud) || !Number.isFinite(cloud) || cloud <= maxCloud;
+      return (
+        !Number.isFinite(maxCloud) ||
+        !Number.isFinite(cloud) ||
+        cloud <= maxCloud
+      );
     })
     .slice()
     .sort((a, b) => {
@@ -192,7 +197,9 @@ function getItemId(item) {
 async function fetchJson(url, fetchImpl, options = {}) {
   const response = await fetchImpl(url, options);
   if (!response?.ok)
-    throw new Error(`HLS spectral request failed (${response?.status ?? 'error'})`);
+    throw new Error(
+      `HLS spectral request failed (${response?.status ?? 'error'})`,
+    );
   return response.json();
 }
 
@@ -200,14 +207,7 @@ function addDays(now, days) {
   return new Date(now.getTime() - days * 86_400_000).toISOString();
 }
 
-function createSearchUrl({
-  stacUrl,
-  collection,
-  box,
-  days,
-  now,
-  maxCloud,
-}) {
+function createSearchUrl({ stacUrl, collection, box, days, now, maxCloud }) {
   const params = new URLSearchParams({
     collections: collection,
     bbox: [box.west, box.south, box.east, box.north].join(','),
@@ -254,11 +254,7 @@ export function createHlsSpectralSource({
   if (typeof fetchImpl !== 'function')
     throw new TypeError('A fetch implementation is required');
 
-  async function getEvidence({
-    points = [],
-    center,
-    signal,
-  } = {}) {
+  async function getEvidence({ points = [], center, signal } = {}) {
     const usablePoints = points.filter(validPoint);
     const centre = validPoint(center) ? center : usablePoints[0];
     if (!centre || !usablePoints.length) {
@@ -283,7 +279,10 @@ export function createHlsSpectralSource({
           maxCloud,
         }),
         fetchImpl,
-        { signal, headers: { Accept: 'application/geo+json,application/json' } },
+        {
+          signal,
+          headers: { Accept: 'application/geo+json,application/json' },
+        },
       );
     } catch (error) {
       return {
@@ -357,7 +356,9 @@ export function createHlsSpectralSource({
     const indexRows = aligned.map(computeSpectralIndices);
     const anomaly = (key) => {
       const values = indexRows.map((row) => row[key]).filter(Number.isFinite);
-      return indexRows.map((row) => clamp(Math.max(0, robustZ(values, row[key])) / 3));
+      return indexRows.map((row) =>
+        clamp(Math.max(0, robustZ(values, row[key])) / 3),
+      );
     };
 
     const ferric = anomaly('ferric');
@@ -365,17 +366,18 @@ export function createHlsSpectralSource({
     const clay = anomaly('clay');
     const values = indexRows.map((row, index) => {
       const vegetation = Number.isFinite(row.ndvi)
-        ? clamp((row.ndvi - 0.35) / 0.30)
+        ? clamp((row.ndvi - 0.35) / 0.3)
         : 0;
       const raw =
-        ferric[index] * 0.40 +
-        clay[index] * 0.35 +
-        ferrous[index] * 0.25;
-      return clamp(raw * (1 - vegetation * 0.70));
+        ferric[index] * 0.4 + clay[index] * 0.35 + ferrous[index] * 0.25;
+      return clamp(raw * (1 - vegetation * 0.7));
     });
 
     const alignedByOriginalIndex = new Map(
-      usablePoints.map((point, index) => [point.id ?? `__${index}`, values[index] ?? 0]),
+      usablePoints.map((point, index) => [
+        point.id ?? `__${index}`,
+        values[index] ?? 0,
+      ]),
     );
 
     return {
@@ -387,9 +389,7 @@ export function createHlsSpectralSource({
       spectralAvailable: aligned.length > 0,
       itemId: getItemId(item),
       itemDatetime:
-        item?.properties?.datetime ||
-        item?.properties?.start_datetime ||
-        null,
+        item?.properties?.datetime || item?.properties?.start_datetime || null,
       cloudCover: itemCloud(item),
       method:
         'Local robust anomaly of ferric/ferrous/clay spectral proxies with vegetation suppression',

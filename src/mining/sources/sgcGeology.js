@@ -85,7 +85,8 @@ function geometryPoints(geometry, output = []) {
     });
     return output;
   }
-  for (const child of coordinates) geometryPoints({ coordinates: child }, output);
+  for (const child of coordinates)
+    geometryPoints({ coordinates: child }, output);
   return output;
 }
 
@@ -123,8 +124,9 @@ function geometryContainsPoint(feature, point) {
     return Array.isArray(ring) && pointInsideRing(point, ring);
   }
   if (geometry.type === 'MultiPolygon') {
-    return (geometry.coordinates || []).some((polygon) =>
-      Array.isArray(polygon?.[0]) && pointInsideRing(point, polygon[0]),
+    return (geometry.coordinates || []).some(
+      (polygon) =>
+        Array.isArray(polygon?.[0]) && pointInsideRing(point, polygon[0]),
     );
   }
   return false;
@@ -132,9 +134,11 @@ function geometryContainsPoint(feature, point) {
 
 function pointToSegmentKm(point, a, b) {
   if (!Array.isArray(a) || !Array.isArray(b)) return Infinity;
-  const ax = (Number(a[0]) - point.lon) * Math.cos((point.lat * Math.PI) / 180) * 111.32;
+  const ax =
+    (Number(a[0]) - point.lon) * Math.cos((point.lat * Math.PI) / 180) * 111.32;
   const ay = (Number(a[1]) - point.lat) * 111.32;
-  const bx = (Number(b[0]) - point.lon) * Math.cos((point.lat * Math.PI) / 180) * 111.32;
+  const bx =
+    (Number(b[0]) - point.lon) * Math.cos((point.lat * Math.PI) / 180) * 111.32;
   const by = (Number(b[1]) - point.lat) * 111.32;
   const dx = bx - ax;
   const dy = by - ay;
@@ -154,12 +158,16 @@ function nearestGeometryDistanceKm(point, feature) {
   let nearest = Infinity;
   for (const path of paths) {
     for (let i = 1; i < path.length; i += 1) {
-      nearest = Math.min(nearest, pointToSegmentKm(point, path[i - 1], path[i]));
+      nearest = Math.min(
+        nearest,
+        pointToSegmentKm(point, path[i - 1], path[i]),
+      );
     }
   }
   if (Number.isFinite(nearest)) return nearest;
   for (const candidate of geometryPoints(geometry)) {
-    if (validPoint(candidate)) nearest = Math.min(nearest, distanceKm(point, candidate));
+    if (validPoint(candidate))
+      nearest = Math.min(nearest, distanceKm(point, candidate));
   }
   return nearest;
 }
@@ -179,8 +187,9 @@ function searchableText(feature) {
 }
 
 function matchesCommodity(feature, commodity) {
-  const patterns =
-    COMMODITY_PATTERNS[commodity] || [new RegExp(String(commodity), 'i')];
+  const patterns = COMMODITY_PATTERNS[commodity] || [
+    new RegExp(String(commodity), 'i'),
+  ];
   return patterns.some((pattern) => pattern.test(searchableText(feature)));
 }
 
@@ -217,8 +226,7 @@ function queryUrl(url, centre, radiusKm) {
 function identifyUrl(url, point, radiusKm) {
   const deltaLat = radiusKm / 111.32;
   const deltaLon =
-    radiusKm /
-    (111.32 * Math.max(0.05, Math.cos((point.lat * Math.PI) / 180)));
+    radiusKm / (111.32 * Math.max(0.05, Math.cos((point.lat * Math.PI) / 180)));
   const params = new URLSearchParams({
     f: 'json',
     geometry: `${point.lon},${point.lat}`,
@@ -246,7 +254,9 @@ async function requestJson(url, fetchImpl, signal, options = {}) {
     ...options,
   });
   if (!response?.ok)
-    throw new Error(`SGC exploration request failed (${response.status ?? 'error'})`);
+    throw new Error(
+      `SGC exploration request failed (${response.status ?? 'error'})`,
+    );
   return response.json();
 }
 
@@ -274,13 +284,20 @@ async function mapConcurrent(items, concurrency, mapper) {
   return results;
 }
 
-function weightedDistanceValue(point, features, radiusKm, { commodity, status = true } = {}) {
+function weightedDistanceValue(
+  point,
+  features,
+  radiusKm,
+  { commodity, status = true } = {},
+) {
   let best = 0;
   let nearestKm = null;
   for (const feature of features) {
     if (commodity && !matchesCommodity(feature, commodity)) continue;
     const featurePoint =
-      feature?.geometry?.type === 'Point' ? geometryPoints(feature.geometry)[0] : null;
+      feature?.geometry?.type === 'Point'
+        ? geometryPoints(feature.geometry)[0]
+        : null;
     if (!featurePoint || !validPoint(featurePoint)) continue;
     const distance = distanceKm(point, featurePoint);
     if (distance > radiusKm) continue;
@@ -308,7 +325,8 @@ function lineDistanceValue(
     const distance = nearestGeometryDistanceKm(point, feature);
     if (!Number.isFinite(distance) || distance > radiusKm) continue;
     const value =
-      Number(baseWeight(feature)) * Math.exp(-distance / Math.max(0.1, radiusKm));
+      Number(baseWeight(feature)) *
+      Math.exp(-distance / Math.max(0.1, radiusKm));
     if (value > best) {
       best = value;
       nearestKm = distance;
@@ -326,7 +344,9 @@ function geologyValue(point, features, commodity) {
     let value = 0.35;
     if (
       commodity === 'gold' &&
-      /metamorf|volcan|intrus|tonalit|granodiorit|andesit|dacita|cuarz|brecha/.test(text)
+      /metamorf|volcan|intrus|tonalit|granodiorit|andesit|dacita|cuarz|brecha/.test(
+        text,
+      )
     )
       value = 0.85;
     if (
@@ -358,13 +378,17 @@ function robustZ(values, value) {
   const ordered = [...clean].sort((a, b) => a - b);
   const middle = Math.floor(ordered.length / 2);
   const median =
-    ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+    ordered.length % 2
+      ? ordered[middle]
+      : (ordered[middle - 1] + ordered[middle]) / 2;
   const deviations = ordered.map((candidate) => Math.abs(candidate - median));
   const mad = deviations[Math.floor(deviations.length / 2)] ?? 0;
   if (mad > 1e-12) return (value - median) / (1.4826 * mad);
-  const mean = clean.reduce((sum, candidate) => sum + candidate, 0) / clean.length;
+  const mean =
+    clean.reduce((sum, candidate) => sum + candidate, 0) / clean.length;
   const std = Math.sqrt(
-    clean.reduce((sum, candidate) => sum + (candidate - mean) ** 2, 0) / clean.length,
+    clean.reduce((sum, candidate) => sum + (candidate - mean) ** 2, 0) /
+      clean.length,
   );
   return std > 1e-12 ? (value - mean) / std : 0;
 }
@@ -381,11 +405,11 @@ function positiveAnomaly(values) {
 function geochemistryComposite(commodity, au, ag, cu) {
   const weights =
     commodity === 'gold'
-      ? { au: 0.65, ag: 0.20, cu: 0.15 }
+      ? { au: 0.65, ag: 0.2, cu: 0.15 }
       : commodity === 'silver'
-        ? { ag: 0.55, au: 0.30, cu: 0.15 }
+        ? { ag: 0.55, au: 0.3, cu: 0.15 }
         : commodity === 'copper'
-          ? { cu: 0.70, au: 0.20, ag: 0.10 }
+          ? { cu: 0.7, au: 0.2, ag: 0.1 }
           : { au: 0.34, ag: 0.33, cu: 0.33 };
   const parts = [
     ['au', au, weights.au],
@@ -432,16 +456,25 @@ function drainageValue(point, simpleLines, doubleDrainage, radiusKm) {
     }
     const distance = nearestGeometryDistanceKm(point, feature);
     if (Number.isFinite(distance) && distance <= radiusKm)
-      doubleScore = Math.max(doubleScore, Math.exp(-distance / Math.max(0.1, radiusKm)));
+      doubleScore = Math.max(
+        doubleScore,
+        Math.exp(-distance / Math.max(0.1, radiusKm)),
+      );
   }
 
   return Math.min(
     1,
-    density * 0.55 + permanentFraction * 0.25 + doubleScore * 0.20,
+    density * 0.55 + permanentFraction * 0.25 + doubleScore * 0.2,
   );
 }
 
-async function identifyGeochemistry(point, radiusKm, geochemistryUrl, fetchImpl, signal) {
+async function identifyGeochemistry(
+  point,
+  radiusKm,
+  geochemistryUrl,
+  fetchImpl,
+  signal,
+) {
   const json = await optionalRequest(
     identifyUrl(geochemistryUrl, point, radiusKm),
     fetchImpl,
@@ -450,7 +483,9 @@ async function identifyGeochemistry(point, radiusKm, geochemistryUrl, fetchImpl,
   const values = { au: null, ag: null, cu: null };
   for (const row of Array.isArray(json?.results) ? json.results : []) {
     const layerId = finite(row?.layerId);
-    const value = finite(row?.value ?? row?.attributes?.value ?? row?.attributes?.Value);
+    const value = finite(
+      row?.value ?? row?.attributes?.value ?? row?.attributes?.Value,
+    );
     if (!Number.isFinite(value)) continue;
     if (layerId === GEOCHEMISTRY_LAYERS.au) values.au = value;
     if (layerId === GEOCHEMISTRY_LAYERS.ag) values.ag = value;
@@ -518,26 +553,62 @@ export function createSgcGeologySource({
       drainageSimpleJson,
       drainageDoubleJson,
     ] = await Promise.all([
-      optionalRequest(queryUrl(depositsUrl, centre, radiusKm), fetchImpl, signal),
-      optionalRequest(queryUrl(occurrencesUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(
+        queryUrl(depositsUrl, centre, radiusKm),
+        fetchImpl,
+        signal,
+      ),
+      optionalRequest(
+        queryUrl(occurrencesUrl, centre, radiusKm),
+        fetchImpl,
+        signal,
+      ),
       optionalRequest(queryUrl(faultsUrl, centre, radiusKm), fetchImpl, signal),
-      optionalRequest(queryUrl(lineamentsUrl, centre, radiusKm), fetchImpl, signal),
-      optionalRequest(queryUrl(alluvialUrl, centre, radiusKm), fetchImpl, signal),
-      optionalRequest(queryUrl(geologyUrl, centre, radiusKm), fetchImpl, signal),
-      optionalRequest(queryUrl(drainageSimpleUrl, centre, radiusKm), fetchImpl, signal),
-      optionalRequest(queryUrl(drainageDoubleUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(
+        queryUrl(lineamentsUrl, centre, radiusKm),
+        fetchImpl,
+        signal,
+      ),
+      optionalRequest(
+        queryUrl(alluvialUrl, centre, radiusKm),
+        fetchImpl,
+        signal,
+      ),
+      optionalRequest(
+        queryUrl(geologyUrl, centre, radiusKm),
+        fetchImpl,
+        signal,
+      ),
+      optionalRequest(
+        queryUrl(drainageSimpleUrl, centre, radiusKm),
+        fetchImpl,
+        signal,
+      ),
+      optionalRequest(
+        queryUrl(drainageDoubleUrl, centre, radiusKm),
+        fetchImpl,
+        signal,
+      ),
     ]);
 
-    const deposits = Array.isArray(depositsJson?.features) ? depositsJson.features : [];
+    const deposits = Array.isArray(depositsJson?.features)
+      ? depositsJson.features
+      : [];
     const occurrences = Array.isArray(occurrencesJson?.features)
       ? occurrencesJson.features
       : [];
-    const faults = Array.isArray(faultsJson?.features) ? faultsJson.features : [];
+    const faults = Array.isArray(faultsJson?.features)
+      ? faultsJson.features
+      : [];
     const lineaments = Array.isArray(lineamentsJson?.features)
       ? lineamentsJson.features
       : [];
-    const alluvial = Array.isArray(alluvialJson?.features) ? alluvialJson.features : [];
-    const geology = Array.isArray(geologyJson?.features) ? geologyJson.features : [];
+    const alluvial = Array.isArray(alluvialJson?.features)
+      ? alluvialJson.features
+      : [];
+    const geology = Array.isArray(geologyJson?.features)
+      ? geologyJson.features
+      : [];
     const drainageSimple = Array.isArray(drainageSimpleJson?.features)
       ? drainageSimpleJson.features
       : [];
@@ -566,15 +637,16 @@ export function createSgcGeologySource({
         ).value,
     );
     const structureValues = points.map((_, index) =>
-      Math.min(1, faultValues[index] * 0.70 + lineamentValues[index] * 0.30),
+      Math.min(1, faultValues[index] * 0.7 + lineamentValues[index] * 0.3),
     );
-    const alluvialValues = points.map((point) =>
-      lineDistanceValue(
-        point,
-        alluvial,
-        radiusKm * 0.9,
-        commodity === 'gold' ? 'gold' : null,
-      ).value,
+    const alluvialValues = points.map(
+      (point) =>
+        lineDistanceValue(
+          point,
+          alluvial,
+          radiusKm * 0.9,
+          commodity === 'gold' ? 'gold' : null,
+        ).value,
     );
     const geologyValues = [];
     const matchedUnits = [];
@@ -603,7 +675,10 @@ export function createSgcGeologySource({
     const geoSampleById = new Map(
       points
         .filter(validPoint)
-        .map((point, index) => [point.id ?? `__${index}`, geochemistrySamples[index]]),
+        .map((point, index) => [
+          point.id ?? `__${index}`,
+          geochemistrySamples[index],
+        ]),
     );
     const rawAu = points.map((point, index) => {
       const row = geoSampleById.get(point.id ?? `__${index}`);
@@ -635,14 +710,17 @@ export function createSgcGeologySource({
     if (lineaments.length) sourceParts.push('lineamientos');
     if (alluvial.length) sourceParts.push('aluvial');
     if (geology.length) sourceParts.push('geología');
-    if (drainageSimple.length || drainageDouble.length) sourceParts.push('drenaje');
-    if (geochemistrySamples.some((sample) =>
-      sample && Object.values(sample).some(Number.isFinite),
-    ))
+    if (drainageSimple.length || drainageDouble.length)
+      sourceParts.push('drenaje');
+    if (
+      geochemistrySamples.some(
+        (sample) => sample && Object.values(sample).some(Number.isFinite),
+      )
+    )
       sourceParts.push('geoquímica Au/Ag/Cu');
 
-    const geochemistrySampleCount = geochemistrySamples.filter((sample) =>
-      sample && Object.values(sample).some(Number.isFinite),
+    const geochemistrySampleCount = geochemistrySamples.filter(
+      (sample) => sample && Object.values(sample).some(Number.isFinite),
     ).length;
 
     return {

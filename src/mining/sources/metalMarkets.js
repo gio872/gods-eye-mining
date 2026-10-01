@@ -7,8 +7,20 @@ const REFRESH_INTERVAL_MS = 60_000;
 const METALS = Object.freeze([
   { id: 'gold', symbol: 'Au', name: 'Oro', group: 'precious', unit: 'toz' },
   { id: 'silver', symbol: 'Ag', name: 'Plata', group: 'precious', unit: 'toz' },
-  { id: 'platinum', symbol: 'Pt', name: 'Platino', group: 'precious', unit: 'toz' },
-  { id: 'palladium', symbol: 'Pd', name: 'Paladio', group: 'precious', unit: 'toz' },
+  {
+    id: 'platinum',
+    symbol: 'Pt',
+    name: 'Platino',
+    group: 'precious',
+    unit: 'toz',
+  },
+  {
+    id: 'palladium',
+    symbol: 'Pd',
+    name: 'Paladio',
+    group: 'precious',
+    unit: 'toz',
+  },
   { id: 'copper', symbol: 'Cu', name: 'Cobre', group: 'base', unit: 'mt' },
   { id: 'aluminum', symbol: 'Al', name: 'Aluminio', group: 'base', unit: 'mt' },
   { id: 'nickel', symbol: 'Ni', name: 'Níquel', group: 'base', unit: 'mt' },
@@ -20,11 +32,15 @@ const GROUPS = Object.freeze({
   all: { label: 'Todos', ids: METALS.map((metal) => metal.id) },
   precious: {
     label: 'Preciosos',
-    ids: METALS.filter((metal) => metal.group === 'precious').map((metal) => metal.id),
+    ids: METALS.filter((metal) => metal.group === 'precious').map(
+      (metal) => metal.id,
+    ),
   },
   base: {
     label: 'Base',
-    ids: METALS.filter((metal) => metal.group === 'base').map((metal) => metal.id),
+    ids: METALS.filter((metal) => metal.group === 'base').map(
+      (metal) => metal.id,
+    ),
   },
 });
 
@@ -78,11 +94,17 @@ async function fetchJson(url, fetchImpl, signal) {
     headers: { Accept: 'application/json' },
   });
   if (!response?.ok)
-    throw new Error(`Metal market request failed (HTTP ${response.status ?? 'error'})`);
+    throw new Error(
+      `Metal market request failed (HTTP ${response.status ?? 'error'})`,
+    );
   const json = await response.json();
   if (json?.status === 'failure' || json?.error)
     throw new Error(
-      String(json?.error?.message || json?.error?.info || 'Metal market provider error'),
+      String(
+        json?.error?.message ||
+          json?.error?.info ||
+          'Metal market provider error',
+      ),
     );
   return json;
 }
@@ -96,7 +118,8 @@ function marketUrl(endpoint, apiKey, currency = 'USD') {
 }
 
 function metalRows(json) {
-  const rates = json?.metals && typeof json.metals === 'object' ? json.metals : {};
+  const rates =
+    json?.metals && typeof json.metals === 'object' ? json.metals : {};
   return METALS.map((metal) => {
     const value = finite(rates[metal.id]);
     return {
@@ -278,7 +301,8 @@ function renderMarket(panel, state) {
       'Añade la variable <strong>VITE_METALS_DEV_API_KEY</strong> al entorno de TERRAQUEEN.<br>' +
       'Metals.Dev ofrece una cuenta gratuita con 100 solicitudes/mes y actualizaciones de hasta 60 s.';
     content.appendChild(key);
-    footer.textContent = 'Proveedor preparado: Metals.Dev · CORS habilitado · estado: CONFIGURACIÓN REQUERIDA';
+    footer.textContent =
+      'Proveedor preparado: Metals.Dev · CORS habilitado · estado: CONFIGURACIÓN REQUERIDA';
     return;
   }
 
@@ -289,9 +313,9 @@ function renderMarket(panel, state) {
   }
 
   if (state.error && !state.rows.length) {
-    content.innerHTML =
-      `<div class="tqm-key"><strong>ERROR DE MERCADO</strong><br>${String(state.error)}</div>`;
-    footer.textContent = 'Comprueba la API key y la conectividad del proveedor.';
+    content.innerHTML = `<div class="tqm-key"><strong>ERROR DE MERCADO</strong><br>${String(state.error)}</div>`;
+    footer.textContent =
+      'Comprueba la API key y la conectividad del proveedor.';
     return;
   }
 
@@ -306,9 +330,10 @@ function renderMarket(panel, state) {
 
   metals.forEach((metal) => {
     const row = document.createElement('tr');
-    const cop = metal.price !== null && state.usdCop !== null
-      ? metal.price * state.usdCop
-      : null;
+    const cop =
+      metal.price !== null && state.usdCop !== null
+        ? metal.price * state.usdCop
+        : null;
     const change = metal.change;
     const changeClass = change > 0 ? 'up' : change < 0 ? 'down' : '';
     const usdDigits = metal.unit === 'mt' ? 0 : 2;
@@ -327,9 +352,10 @@ function renderMarket(panel, state) {
   scroll.appendChild(table);
   content.appendChild(scroll);
 
-  const age = state.timestamp ? Math.max(0, Math.round((Date.now() - Date.parse(state.timestamp)) / 1000)) : null;
-  footer.textContent =
-    `Fuente: Metals.Dev · ${state.timestamp ? new Date(state.timestamp).toLocaleString('es-CO') : 'sin marca de tiempo'} · USD/COP ${state.usdCop === null ? '—' : formatPrice(state.usdCop, 2)} · ${age === null ? 'sin antigüedad' : age + ' s'}${state.error ? ' · actualización con error; mostrando último dato válido' : ''}`;
+  const age = state.timestamp
+    ? Math.max(0, Math.round((Date.now() - Date.parse(state.timestamp)) / 1000))
+    : null;
+  footer.textContent = `Fuente: Metals.Dev · ${state.timestamp ? new Date(state.timestamp).toLocaleString('es-CO') : 'sin marca de tiempo'} · USD/COP ${state.usdCop === null ? '—' : formatPrice(state.usdCop, 2)} · ${age === null ? 'sin antigüedad' : age + ' s'}${state.error ? ' · actualización con error; mostrando último dato válido' : ''}`;
 }
 
 export function createMetalMarketsLayer({
@@ -375,7 +401,12 @@ export function createMetalMarketsLayer({
   };
 
   const refresh = async () => {
-    if (!enabled || destroyed || signal?.aborted || !String(apiKey || '').trim()) {
+    if (
+      !enabled ||
+      destroyed ||
+      signal?.aborted ||
+      !String(apiKey || '').trim()
+    ) {
       render();
       return false;
     }
@@ -391,14 +422,14 @@ export function createMetalMarketsLayer({
       );
       const nextRows = metalRows(json).map((metal) => ({
         ...metal,
-        change: previousPrices.has(metal.id) && metal.price !== null
-          ? metal.price - previousPrices.get(metal.id)
-          : null,
+        change:
+          previousPrices.has(metal.id) && metal.price !== null
+            ? metal.price - previousPrices.get(metal.id)
+            : null,
       }));
       const usdPerCop = finite(json?.currencies?.COP);
-      const copPerUsd = usdPerCop !== null && usdPerCop > 0
-        ? 1 / usdPerCop
-        : null;
+      const copPerUsd =
+        usdPerCop !== null && usdPerCop > 0 ? 1 / usdPerCop : null;
       previousPrices = new Map(
         nextRows
           .filter((metal) => metal.price !== null)
@@ -409,7 +440,10 @@ export function createMetalMarketsLayer({
       providerTimestamp = json?.timestamp || null;
       lastUpdate = Date.now();
       lastError = null;
-      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      if (
+        typeof window !== 'undefined' &&
+        typeof window.dispatchEvent === 'function'
+      ) {
         window.__terraqueenMetalMarket = Object.freeze({
           rows: nextRows.map((row) => Object.freeze({ ...row })),
           usdCop,
@@ -468,7 +502,8 @@ export function createMetalMarketsLayer({
         info: providerTimestamp
           ? `Proveedor: Metals.Dev · ${marketStatus(providerTimestamp)} · ${new Date(providerTimestamp).toLocaleTimeString('es-CO')}`
           : 'Proveedor: Metals.Dev · configuración pendiente',
-        infoTitle: 'El módulo muestra precio spot, variación desde el último refresco y conversión USD→COP con la tasa derivada del mismo proveedor.',
+        infoTitle:
+          'El módulo muestra precio spot, variación desde el último refresco y conversión USD→COP con la tasa derivada del mismo proveedor.',
       };
     },
 
@@ -527,7 +562,9 @@ export function createMetalMarketsLayer({
         source: 'Metals.Dev',
         error: lastError,
         loading,
-        status: providerTimestamp ? marketStatus(providerTimestamp) : 'configuration-required',
+        status: providerTimestamp
+          ? marketStatus(providerTimestamp)
+          : 'configuration-required',
       };
     },
 

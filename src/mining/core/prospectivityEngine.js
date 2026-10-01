@@ -36,9 +36,7 @@ export function createProspectivityEngine({
   const normalizedWeights = Object.freeze(
     normalizeWeights(weights || selectedProfile.weights),
   );
-  const normalizedProfile = PROSPECTIVITY_PROFILES[profile]
-    ? profile
-    : 'base';
+  const normalizedProfile = PROSPECTIVITY_PROFILES[profile] ? profile : 'base';
 
   function score({
     factors = {},

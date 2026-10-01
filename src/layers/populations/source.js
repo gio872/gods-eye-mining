@@ -45,9 +45,13 @@ export function populationZoomForCameraHeight(heightM) {
 }
 
 export function populationClassAllowedAtZoom(placeClass, zoom) {
-  const klass = String(placeClass || '').trim().toLowerCase();
+  const klass = String(placeClass || '')
+    .trim()
+    .toLowerCase();
   const minZoom = CLASS_ZOOM_MIN[klass];
-  return PLACE_CLASSES.includes(klass) && Number.isFinite(zoom) && zoom >= minZoom;
+  return (
+    PLACE_CLASSES.includes(klass) && Number.isFinite(zoom) && zoom >= minZoom
+  );
 }
 
 /**
@@ -57,7 +61,8 @@ export function populationClassAllowedAtZoom(placeClass, zoom) {
  */
 export function normalizePopulationFeature(feature, { zoom = 12 } = {}) {
   const geometry = feature?.geometry || {};
-  if (geometry.type !== 'Point' || !Array.isArray(geometry.coordinates)) return null;
+  if (geometry.type !== 'Point' || !Array.isArray(geometry.coordinates))
+    return null;
 
   const [longitude, latitude] = geometry.coordinates;
   if (
@@ -69,7 +74,9 @@ export function normalizePopulationFeature(feature, { zoom = 12 } = {}) {
     return null;
 
   const properties = feature.properties || {};
-  const placeClass = String(properties.class || '').trim().toLowerCase();
+  const placeClass = String(properties.class || '')
+    .trim()
+    .toLowerCase();
   if (!populationClassAllowedAtZoom(placeClass, zoom)) return null;
 
   const name = String(

@@ -60,7 +60,9 @@ export function createApplicationData({
   // local-only and therefore do not enter share-link state.
   void dataManager
     .setEnabled('population-places', true, { origin: 'programmatic' })
-    .catch((error) => console.warn('[Data] population-places default enable failed:', error));
+    .catch((error) =>
+      console.warn('[Data] population-places default enable failed:', error),
+    );
   defer(createCyberSonarScene(viewer, dataManager));
 
   return { dataManager, catalog, presentation };

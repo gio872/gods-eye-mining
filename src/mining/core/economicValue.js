@@ -80,7 +80,7 @@ export function calculateGrossMetalValue({
     recoveryPercent: recovery * 100,
     priceUsd: price,
     containedMetalTonnes,
-    containedMetalKg: recoveredMetalTonnes * 1000 / recovery,
+    containedMetalKg: (recoveredMetalTonnes * 1000) / recovery,
     containedMetalGrams: containedMetalTonnes * 1_000_000,
     recoveredMetalTonnes,
     recoveredMetalKg: recoveredMetalTonnes * 1000,

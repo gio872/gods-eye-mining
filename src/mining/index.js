@@ -10,4 +10,7 @@ export {
 export { createProspectivityEngine } from './core/prospectivityEngine.js';
 export { createMiningEngine } from './core/miningEngine.js';
 
-export { calculateGrossMetalValue, normalizeRecoveryPercent } from './core/economicValue.js';
+export {
+  calculateGrossMetalValue,
+  normalizeRecoveryPercent,
+} from './core/economicValue.js';
