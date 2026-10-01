@@ -15,6 +15,7 @@ export function createStandaloneCatalog({
   }),
   featureSource = createApplicationRequestServices().features,
   geologySource = createSgcGeologySource(),
+  gemProfile = 'gold-alluvial',
 } = {}) {
   return createApplicationCatalog({
     nepalBoundaryResolver,
@@ -25,6 +26,7 @@ export function createStandaloneCatalog({
       ...(geologySource ? { geology: geologySource } : {}),
     },
     signal,
+    gemProfile,
     vesselOptions: {
       maxRows: import.meta.env?.VITE_AIS_LIVE_MAX_ROWS,
       maxLabels: import.meta.env?.VITE_AIS_LIVE_LABEL_MAX_ROWS,
