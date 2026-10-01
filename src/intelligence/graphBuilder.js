@@ -25,10 +25,37 @@ function addEdge(edges, edge) {
   if (!edges.some((item) => item.id === edge.id)) edges.push(edge);
 }
 
+function distanceKm(a, b) {
+  const lat1 = Number(a?.lat), lon1 = Number(a?.lon), lat2 = Number(b?.lat), lon2 = Number(b?.lon);
+  if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return Number.POSITIVE_INFINITY;
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+function addSpatialRecord(nodes, edges, record, type, source, focus, maxDistanceKm) {
+  if (!record || distanceKm(focus, record) > maxDistanceKm) return null;
+  const id = `${type}:${String(record.id || record.name || 'unknown')}`;
+  addNode(nodes, createGraphNode({
+    id, type, label: String(record.name || record.id || type).slice(0, 48),
+    subtitle: String(record.type || record.placeClass || source),
+    position: { lat: record.lat, lon: record.lon },
+    properties: { ...record }, source, observedAt: nowIso(),
+  }));
+  addEdge(edges, createGraphEdge({
+    id: `edge:focus:near:${id}`, from: 'location:focus', to: id, type: 'located-near',
+    weight: 1 / Math.max(0.1, distanceKm(focus, record)), source, observedAt: nowIso(),
+  }));
+  return id;
+}
+
 export function buildIntelligenceGraphFromLayers(layers = [], {
   includeMarkets = true,
   includeProspectivity = true,
   maxTargets = 40,
+  focusLocation = null,
+  maxDistanceKm = 75,
 } = {}) {
   const nodes = [];
   const edges = [];
@@ -155,6 +182,27 @@ export function buildIntelligenceGraphFromLayers(layers = [], {
           usdCop: market.usdCop,
         }],
       }));
+    }
+  }
+
+  if (focusLocation && Number.isFinite(Number(focusLocation.lat)) && Number.isFinite(Number(focusLocation.lon))) {
+    const focus = { lat: Number(focusLocation.lat), lon: Number(focusLocation.lon) };
+    addNode(nodes, createGraphNode({
+      id: 'location:focus', type: 'location', label: 'MAP FOCUS',
+      subtitle: `${focus.lat.toFixed(5)}, ${focus.lon.toFixed(5)}`,
+      position: focus, properties: focus, source: 'GEM Map Selection', observedAt,
+    }));
+    for (const target of targets) {
+      const record = { id: target.id, name: `GEM ${String(target.commodity || '').toUpperCase()}`, lat: target.latitude, lon: target.longitude };
+      addSpatialRecord(nodes, edges, record, 'deposit', 'GEM Prospectivity', focus, maxDistanceKm);
+    }
+    const population = layerById(layers, 'population-places');
+    for (const record of population?.getAnalystRecords?.(500) || [])
+      addSpatialRecord(nodes, edges, record, 'location', 'OpenFreeMap · OpenStreetMap', focus, maxDistanceKm);
+    for (const layer of layers) {
+      if (!String(layer?.id || '').startsWith('local-')) continue;
+      for (const record of layer?.getAnalystRecords?.(500) || [])
+        addSpatialRecord(nodes, edges, record, 'facility', layer.source || layer.id, focus, maxDistanceKm);
     }
   }
 
