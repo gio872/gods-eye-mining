@@ -235,7 +235,7 @@ function identifyUrl(url, point, radiusKm) {
     imageDisplay: '1024,1024,96',
     returnGeometry: 'false',
   });
-  return url.replace(/\/$/, '') + '/identify?' + params;
+  return `${url.replace(/\\/$/, '')}/identify?${params}`;
 }
 
 async function requestJson(url, fetchImpl, signal, options = {}) {
@@ -298,3 +298,401 @@ function lineDistanceValue(
   point,
   features,
   radiusKm,
+  commodity = null,
+  baseWeight = () => 1,
+) {
+  let best = 0;
+  let nearestKm = null;
+  for (const feature of features) {
+    if (commodity && !matchesCommodity(feature, commodity)) continue;
+    const distance = nearestGeometryDistanceKm(point, feature);
+    if (!Number.isFinite(distance) || distance > radiusKm) continue;
+    const value =
+      Number(baseWeight(feature)) * Math.exp(-distance / Math.max(0.1, radiusKm));
+    if (value > best) {
+      best = value;
+      nearestKm = distance;
+    }
+  }
+  return { value: best, nearestKm };
+}
+
+function geologyValue(point, features, commodity) {
+  let best = 0;
+  let matchedUnit = null;
+  for (const feature of features) {
+    if (!geometryContainsPoint(feature, point)) continue;
+    const text = searchableText(feature).toLowerCase();
+    let value = 0.35;
+    if (
+      commodity === 'gold' &&
+      /metamorf|volcan|intrus|tonalit|granodiorit|andesit|dacita|cuarz|brecha/.test(text)
+    )
+      value = 0.85;
+    if (
+      commodity === 'copper' &&
+      /intrus|porfir|volcan|andesit|granodiorit|dacita/.test(text)
+    )
+      value = 0.85;
+    if (
+      commodity === 'tungsten' &&
+      /intrus|granit|greis|skarn|cuarz/.test(text)
+    )
+      value = 0.85;
+    if (
+      commodity === 'rare-earth-elements' &&
+      /carbonatit|alcalin|nefelin|pegmat/.test(text)
+    )
+      value = 0.85;
+    if (value > best) {
+      best = value;
+      matchedUnit = attributes(feature).SimboloUC || null;
+    }
+  }
+  return { value: best, matchedUnit };
+}
+
+function robustZ(values, value) {
+  const clean = values.filter(Number.isFinite);
+  if (!Number.isFinite(value) || clean.length < 3) return 0;
+  const ordered = [...clean].sort((a, b) => a - b);
+  const middle = Math.floor(ordered.length / 2);
+  const median =
+    ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+  const deviations = ordered.map((candidate) => Math.abs(candidate - median));
+  const mad = deviations[Math.floor(deviations.length / 2)] ?? 0;
+  if (mad > 1e-12) return (value - median) / (1.4826 * mad);
+  const mean = clean.reduce((sum, candidate) => sum + candidate, 0) / clean.length;
+  const std = Math.sqrt(
+    clean.reduce((sum, candidate) => sum + (candidate - mean) ** 2, 0) / clean.length,
+  );
+  return std > 1e-12 ? (value - mean) / std : 0;
+}
+
+function positiveAnomaly(values) {
+  const clean = values.filter(Number.isFinite);
+  return values.map((value) =>
+    Number.isFinite(value) && clean.length >= 3
+      ? Math.min(1, Math.max(0, robustZ(clean, value) / 3))
+      : 0,
+  );
+}
+
+function geochemistryComposite(commodity, au, ag, cu) {
+  const weights =
+    commodity === 'gold'
+      ? { au: 0.65, ag: 0.20, cu: 0.15 }
+      : commodity === 'silver'
+        ? { ag: 0.55, au: 0.30, cu: 0.15 }
+        : commodity === 'copper'
+          ? { cu: 0.70, au: 0.20, ag: 0.10 }
+          : { au: 0.34, ag: 0.33, cu: 0.33 };
+  const parts = [
+    ['au', au, weights.au],
+    ['ag', ag, weights.ag],
+    ['cu', cu, weights.cu],
+  ];
+  let numerator = 0;
+  let denominator = 0;
+  for (const [, value, weight] of parts) {
+    if (!Number.isFinite(value)) continue;
+    numerator += value * weight;
+    denominator += weight;
+  }
+  return denominator > 0 ? numerator / denominator : 0;
+}
+
+function lineamentWeight(feature) {
+  const text = searchableText(feature).toLowerCase();
+  if (/magn[eé]tico/.test(text)) return 0.95;
+  if (/l[ií]mite de dominios/.test(text)) return 0.65;
+  return 0.55;
+}
+
+function drainageValue(point, simpleLines, doubleDrainage, radiusKm) {
+  const simpleNearby = [];
+  for (const feature of simpleLines) {
+    const distance = nearestGeometryDistanceKm(point, feature);
+    if (Number.isFinite(distance) && distance <= radiusKm)
+      simpleNearby.push({
+        distance,
+        permanent: String(attributes(feature).ESTADO_DRENAJE ?? '') === '5101',
+      });
+  }
+  const density = Math.min(1, simpleNearby.length / 12);
+  const permanentCount = simpleNearby.filter((row) => row.permanent).length;
+  const permanentFraction =
+    simpleNearby.length > 0 ? permanentCount / simpleNearby.length : 0;
+
+  let doubleScore = 0;
+  for (const feature of doubleDrainage) {
+    if (geometryContainsPoint(feature, point)) {
+      doubleScore = 1;
+      break;
+    }
+    const distance = nearestGeometryDistanceKm(point, feature);
+    if (Number.isFinite(distance) && distance <= radiusKm)
+      doubleScore = Math.max(doubleScore, Math.exp(-distance / Math.max(0.1, radiusKm)));
+  }
+
+  return Math.min(
+    1,
+    density * 0.55 + permanentFraction * 0.25 + doubleScore * 0.20,
+  );
+}
+
+async function identifyGeochemistry(point, radiusKm, geochemistryUrl, fetchImpl, signal) {
+  const json = await optionalRequest(
+    identifyUrl(geochemistryUrl, point, radiusKm),
+    fetchImpl,
+    signal,
+  );
+  const values = { au: null, ag: null, cu: null };
+  for (const row of Array.isArray(json?.results) ? json.results : []) {
+    const layerId = finite(row?.layerId);
+    const value = finite(row?.value ?? row?.attributes?.value ?? row?.attributes?.Value);
+    if (!Number.isFinite(value)) continue;
+    if (layerId === GEOCHEMISTRY_LAYERS.au) values.au = value;
+    if (layerId === GEOCHEMISTRY_LAYERS.ag) values.ag = value;
+    if (layerId === GEOCHEMISTRY_LAYERS.cu) values.cu = value;
+  }
+  return values;
+}
+
+/**
+ * Official Colombian SGC exploration evidence source.
+ * Combines metallogenic deposits/occurrences, mapped geology, faults,
+ * geophysical lineaments, alluvial districts, drainage, and Au/Ag/Cu
+ * sediment-geochemistry anomalies.
+ */
+export function createSgcGeologySource({
+  depositsUrl = DEFAULT_DEPOSITS_URL,
+  occurrencesUrl = DEFAULT_OCCURRENCES_URL,
+  faultsUrl = DEFAULT_FAULTS_URL,
+  lineamentsUrl = DEFAULT_LINEAMENTS_URL,
+  alluvialUrl = DEFAULT_ALLUVIAL_URL,
+  geologyUrl = DEFAULT_GEOLOGY_URL,
+  drainageSimpleUrl = DEFAULT_DRAINAGE_SIMPLE_URL,
+  drainageDoubleUrl = DEFAULT_DRAINAGE_DOUBLE_URL,
+  geochemistryUrl = DEFAULT_GEOCHEMISTRY_URL,
+  geochemistryConcurrency = 8,
+  fetchImpl = (...args) => fetch(...args),
+  radiusKm = 7,
+} = {}) {
+  if (typeof fetchImpl !== 'function')
+    throw new TypeError('A fetch implementation is required');
+
+  async function getEvidence({
+    points = [],
+    center,
+    commodity = 'gold',
+    signal,
+  } = {}) {
+    const usablePoints = points.filter(validPoint);
+    const centre = validPoint(center) ? center : usablePoints[0];
+    if (!centre) {
+      return {
+        values: points.map(() => 0),
+        geologyValues: points.map(() => 0),
+        structureValues: points.map(() => 0),
+        mineralizationValues: points.map(() => 0),
+        alluvialValues: points.map(() => 0),
+        lineamentValues: points.map(() => 0),
+        drainageValues: points.map(() => 0),
+        geochemistryValues: points.map(() => 0),
+        auAnomalyValues: points.map(() => 0),
+        agAnomalyValues: points.map(() => 0),
+        cuAnomalyValues: points.map(() => 0),
+        source: null,
+        featureCount: 0,
+      };
+    }
+
+    const [
+      depositsJson,
+      occurrencesJson,
+      faultsJson,
+      lineamentsJson,
+      alluvialJson,
+      geologyJson,
+      drainageSimpleJson,
+      drainageDoubleJson,
+    ] = await Promise.all([
+      optionalRequest(queryUrl(depositsUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(queryUrl(occurrencesUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(queryUrl(faultsUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(queryUrl(lineamentsUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(queryUrl(alluvialUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(queryUrl(geologyUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(queryUrl(drainageSimpleUrl, centre, radiusKm), fetchImpl, signal),
+      optionalRequest(queryUrl(drainageDoubleUrl, centre, radiusKm), fetchImpl, signal),
+    ]);
+
+    const deposits = Array.isArray(depositsJson?.features) ? depositsJson.features : [];
+    const occurrences = Array.isArray(occurrencesJson?.features)
+      ? occurrencesJson.features
+      : [];
+    const faults = Array.isArray(faultsJson?.features) ? faultsJson.features : [];
+    const lineaments = Array.isArray(lineamentsJson?.features)
+      ? lineamentsJson.features
+      : [];
+    const alluvial = Array.isArray(alluvialJson?.features) ? alluvialJson.features : [];
+    const geology = Array.isArray(geologyJson?.features) ? geologyJson.features : [];
+    const drainageSimple = Array.isArray(drainageSimpleJson?.features)
+      ? drainageSimpleJson.features
+      : [];
+    const drainageDouble = Array.isArray(drainageDoubleJson?.features)
+      ? drainageDoubleJson.features
+      : [];
+
+    const mineralFeatures = [...deposits, ...occurrences];
+    const mineralValues = points.map(
+      (point) =>
+        weightedDistanceValue(point, mineralFeatures, radiusKm, {
+          commodity,
+        }).value,
+    );
+    const faultValues = points.map(
+      (point) => lineDistanceValue(point, faults, radiusKm * 0.8).value,
+    );
+    const lineamentValues = points.map(
+      (point) =>
+        lineDistanceValue(
+          point,
+          lineaments,
+          radiusKm * 0.85,
+          null,
+          lineamentWeight,
+        ).value,
+    );
+    const structureValues = points.map((_, index) =>
+      Math.min(1, faultValues[index] * 0.70 + lineamentValues[index] * 0.30),
+    );
+    const alluvialValues = points.map((point) =>
+      lineDistanceValue(
+        point,
+        alluvial,
+        radiusKm * 0.9,
+        commodity === 'gold' ? 'gold' : null,
+      ).value,
+    );
+    const geologyValues = [];
+    const matchedUnits = [];
+    for (const point of points) {
+      const result = geologyValue(point, geology, commodity);
+      geologyValues.push(result.value);
+      matchedUnits.push(result.matchedUnit);
+    }
+
+    const drainageValues = points.map((point) =>
+      drainageValue(point, drainageSimple, drainageDouble, radiusKm),
+    );
+
+    const geochemistrySamples = await mapConcurrent(
+      points.filter(validPoint),
+      geochemistryConcurrency,
+      (point) =>
+        identifyGeochemistry(
+          point,
+          radiusKm,
+          geochemistryUrl,
+          fetchImpl,
+          signal,
+        ),
+    );
+    const geoSampleById = new Map(
+      points
+        .filter(validPoint)
+        .map((point, index) => [point.id ?? `__${index}`, geochemistrySamples[index]]),
+    );
+    const rawAu = points.map((point, index) => {
+      const row = geoSampleById.get(point.id ?? `__${index}`);
+      return finite(row?.au);
+    });
+    const rawAg = points.map((point, index) => {
+      const row = geoSampleById.get(point.id ?? `__${index}`);
+      return finite(row?.ag);
+    });
+    const rawCu = points.map((point, index) => {
+      const row = geoSampleById.get(point.id ?? `__${index}`);
+      return finite(row?.cu);
+    });
+    const auAnomalyValues = positiveAnomaly(rawAu);
+    const agAnomalyValues = positiveAnomaly(rawAg);
+    const cuAnomalyValues = positiveAnomaly(rawCu);
+    const geochemistryValues = points.map((_, index) =>
+      geochemistryComposite(
+        commodity,
+        auAnomalyValues[index],
+        agAnomalyValues[index],
+        cuAnomalyValues[index],
+      ),
+    );
+
+    const sourceParts = [];
+    if (deposits.length || occurrences.length) sourceParts.push('metalogénico');
+    if (faults.length) sourceParts.push('fallas');
+    if (lineaments.length) sourceParts.push('lineamientos');
+    if (alluvial.length) sourceParts.push('aluvial');
+    if (geology.length) sourceParts.push('geología');
+    if (drainageSimple.length || drainageDouble.length) sourceParts.push('drenaje');
+    if (geochemistrySamples.some((sample) =>
+      sample && Object.values(sample).some(Number.isFinite),
+    ))
+      sourceParts.push('geoquímica Au/Ag/Cu');
+
+    const geochemistrySampleCount = geochemistrySamples.filter((sample) =>
+      sample && Object.values(sample).some(Number.isFinite),
+    ).length;
+
+    return {
+      values: geologyValues,
+      geologyValues,
+      structureValues,
+      mineralizationValues: mineralValues,
+      alluvialValues,
+      lineamentValues,
+      drainageValues,
+      geochemistryValues,
+      auAnomalyValues,
+      agAnomalyValues,
+      cuAnomalyValues,
+      rawGeochemistry: {
+        au: rawAu,
+        ag: rawAg,
+        cu: rawCu,
+      },
+      source: sourceParts.length
+        ? `SGC 2016/2020/2022/2023 · ${sourceParts.join(' + ')}`
+        : null,
+      featureCount: mineralFeatures.length,
+      faultFeatureCount: faults.length,
+      lineamentFeatureCount: lineaments.length,
+      alluvialFeatureCount: alluvial.length,
+      geologyMapFeatureCount: geology.length,
+      drainageSimpleFeatureCount: drainageSimple.length,
+      drainageDoubleFeatureCount: drainageDouble.length,
+      geochemistrySampleCount,
+      geochemistrySource:
+        geochemistrySampleCount > 0
+          ? 'SGC Atlas Geoquímico 2020 · Au/Ag/Cu'
+          : null,
+      commodity,
+      searchRadiusKm: radiusKm,
+    };
+  }
+
+  return Object.freeze({ getEvidence });
+}
+
+export const SGC_GEOLOGY_ENDPOINTS = Object.freeze({
+  deposits: DEFAULT_DEPOSITS_URL,
+  occurrences: DEFAULT_OCCURRENCES_URL,
+  faults: DEFAULT_FAULTS_URL,
+  lineaments: DEFAULT_LINEAMENTS_URL,
+  alluvial: DEFAULT_ALLUVIAL_URL,
+  geologyMap: DEFAULT_GEOLOGY_URL,
+  drainageSimple: DEFAULT_DRAINAGE_SIMPLE_URL,
+  drainageDouble: DEFAULT_DRAINAGE_DOUBLE_URL,
+  geochemistry: DEFAULT_GEOCHEMISTRY_URL,
+});
