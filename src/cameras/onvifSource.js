@@ -1,6 +1,7 @@
-export function createOnvifSource({fetchImpl=(...args)=>fetch(...args)}={}) {
+export function createOnvifSource({fetchImpl=(...args)=>fetch(...args),token=()=>typeof sessionStorage==='undefined'?'':sessionStorage.getItem('gem.camera.adminToken')||''}={}) {
   async function request(path,options={}) {
-    const response=await fetchImpl(path,{cache:'no-store',...options,headers:{Accept:'application/json',...(options.headers||{})}});
+    const adminToken=String(typeof token==='function'?token():token||'').trim();
+    const response=await fetchImpl(path,{cache:'no-store',...options,headers:{Accept:'application/json',...(adminToken?{Authorization:`Bearer ${adminToken}`}:{}}),...(options.headers||{})}});
     const body=await response.json().catch(()=>({}));
     if(!response.ok) throw new Error(body?.error||`ONVIF request failed (HTTP ${response.status})`);
     return body;
