@@ -250,6 +250,25 @@
     "./layers/transit/standalone": "./src/data/transit.js",
     "./layers/transit/source": "./src/layers/transit/source.js",
     "./sources/transit-service": "./src/sources/transitService.js",
-    "./sources/map-features": "./src/sources/overpassFeatures.js"
+    "./sources/map-features": "./src/sources/overpassFeatures.js",
+    "./mining": "./src/mining/index.js",
+    "./mining/layers": "./src/mining/layers/index.js",
+    "./mining/sources/sgc": "./src/mining/sources/sgcGeology.js",
+    "./mining/sources/hls-spectral": "./src/mining/sources/hlsSpectral.js",
+    "./mining/sources/anm-cadastre": "./src/mining/sources/anmMiningCadastre.js",
+    "./mining/sources/metal-markets": "./src/mining/sources/metalMarkets.js",
+    "./mining/economic-value": "./src/mining/core/economicValue.js",
+    "./intelligence": "./src/intelligence/index.js",
+    "./intelligence/entity-source": "./src/intelligence/entityIntelligenceSource.js",
+    "./cameras": "./src/cameras/index.js",
+    "./server/providers/ip-cameras": {
+      "node": "./server/providers/ipCameras.js"
+    },
+    "./server/providers/onvif": {
+      "node": "./server/providers/onvif.js"
+    },
+    "./server/providers/aml": {
+      "node": "./server/providers/aml.js"
+    }
   }
 }

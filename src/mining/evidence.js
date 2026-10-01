@@ -1,0 +1,701 @@
+import {
+  clamp,
+  PROSPECTIVITY_FACTORS,
+  normalizeFactorMap,
+} from './core/miningTypes.js';
+import { searchHls } from '../layers/recentImagery/catalog.js';
+
+const WATER_TAGS = new Set([
+  'water',
+  'waterway',
+  'reservoir',
+  'river',
+  'stream',
+  'canal',
+  'drain',
+  'ditch',
+  'lake',
+  'pond',
+]);
+
+function finite(value) {
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
+function pointOf(value) {
+  if (!value || typeof value !== 'object') return null;
+  const lat =
+    finite(value.lat) ??
+    finite(value.latitude) ??
+    finite(value.geometry?.coordinates?.[1]) ??
+    finite(value.center?.lat);
+  const lon =
+    finite(value.lon) ??
+    finite(value.lng) ??
+    finite(value.longitude) ??
+    finite(value.center?.lon);
+  return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+}
+
+function nestedPoints(value, output = []) {
+  if (!value) return output;
+  const direct = pointOf(value);
+  if (direct) output.push(direct);
+  const coordinates = value.geometry?.coordinates ?? value.coordinates;
+  if (Array.isArray(coordinates)) {
+    if (
+      coordinates.length >= 2 &&
+      Number.isFinite(Number(coordinates[0])) &&
+      Number.isFinite(Number(coordinates[1]))
+    ) {
+      output.push({
+        lon: Number(coordinates[0]),
+        lat: Number(coordinates[1]),
+      });
+    } else {
+      for (const child of coordinates) nestedPoints(child, output);
+    }
+  }
+  if (Array.isArray(value.geometry)) {
+    for (const child of value.geometry) nestedPoints(child, output);
+  }
+  return output;
+}
+
+function haversineKm(a, b) {
+  const lat1 = (a.lat * Math.PI) / 180;
+  const lat2 = (b.lat * Math.PI) / 180;
+  const dLat = lat2 - lat1;
+  const dLon = ((b.lon - a.lon) * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(Math.max(0, 1 - h)));
+}
+
+function propertiesOf(feature) {
+  return feature?.properties && typeof feature.properties === 'object'
+    ? feature.properties
+    : feature?.tags && typeof feature.tags === 'object'
+      ? { tags: feature.tags }
+      : feature || {};
+}
+
+function tagsOf(feature) {
+  const properties = propertiesOf(feature);
+  return properties.tags && typeof properties.tags === 'object'
+    ? { ...properties.tags, ...properties }
+    : properties;
+}
+
+function isHydrologyFeature(feature) {
+  const tags = tagsOf(feature);
+  return Object.entries(tags).some(([key, value]) => {
+    if (value == null) return false;
+    const normalizedKey = String(key).toLowerCase();
+    const normalizedValue = String(value).toLowerCase();
+    return (
+      WATER_TAGS.has(normalizedKey) ||
+      WATER_TAGS.has(normalizedValue) ||
+      (normalizedKey === 'natural' && normalizedValue === 'water') ||
+      (normalizedKey === 'landuse' && normalizedValue === 'reservoir')
+    );
+  });
+}
+
+function pointInsideRing(point, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const a = ring[i];
+    const b = ring[j];
+    if (!Array.isArray(a) || !Array.isArray(b)) continue;
+    const [xi, yi] = a;
+    const [xj, yj] = b;
+    const crosses =
+      yi > point.lat !== yj > point.lat &&
+      point.lon <
+        ((xj - xi) * (point.lat - yi)) / (yj - yi || Number.EPSILON) + xi;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function featureContainsPoint(feature, point) {
+  const geometry = feature?.geometry;
+  if (!geometry || !point) return false;
+  if (geometry.type === 'Polygon') {
+    const ring = geometry.coordinates?.[0];
+    return Array.isArray(ring) && pointInsideRing(point, ring);
+  }
+  if (geometry.type === 'MultiPolygon') {
+    return (geometry.coordinates || []).some(
+      (polygon) =>
+        Array.isArray(polygon?.[0]) && pointInsideRing(point, polygon[0]),
+    );
+  }
+  return false;
+}
+
+function scoreHydrology(point, features, radiusKm) {
+  let nearest = Infinity;
+  for (const feature of features) {
+    if (!isHydrologyFeature(feature)) continue;
+    if (featureContainsPoint(feature, point)) return 1;
+    for (const candidate of nestedPoints(feature)) {
+      if (!Number.isFinite(candidate?.lat) || !Number.isFinite(candidate?.lon))
+        continue;
+      nearest = Math.min(nearest, haversineKm(point, candidate));
+    }
+  }
+  if (!Number.isFinite(nearest)) return 0;
+  return clamp(1 - nearest / radiusKm);
+}
+
+function terrainFactors(points, heights, profile, stepDegrees = 0.005) {
+  const finiteHeights = heights.filter((value) => Number.isFinite(value));
+  const globalRelief =
+    finiteHeights.length > 1
+      ? Math.max(...finiteHeights) - Math.min(...finiteHeights)
+      : 0;
+  const grid = new Map();
+  for (let index = 0; index < points.length; index += 1) {
+    const row = points[index]?.gridRow;
+    const col = points[index]?.gridCol;
+    if (Number.isInteger(row) && Number.isInteger(col))
+      grid.set(`${row}:${col}`, index);
+  }
+
+  const values = points.map((point, index) => {
+    const row = point?.gridRow;
+    const col = point?.gridCol;
+    const centre = heights[index];
+    if (
+      !Number.isFinite(centre) ||
+      !Number.isInteger(row) ||
+      !Number.isInteger(col)
+    ) {
+      return clamp(globalRelief / 300);
+    }
+
+    const northIndex = grid.get(`${row - 1}:${col}`);
+    const southIndex = grid.get(`${row + 1}:${col}`);
+    const westIndex = grid.get(`${row}:${col - 1}`);
+    const eastIndex = grid.get(`${row}:${col + 1}`);
+    const neighbours = [northIndex, southIndex, westIndex, eastIndex]
+      .map((neighbor) => (neighbor == null ? null : heights[neighbor]))
+      .filter((value) => Number.isFinite(value));
+
+    const localRelief =
+      neighbours.length > 0
+        ? Math.max(centre, ...neighbours) - Math.min(centre, ...neighbours)
+        : globalRelief;
+
+    let slopeDegrees = 0;
+    if (
+      Number.isFinite(heights[northIndex]) &&
+      Number.isFinite(heights[southIndex]) &&
+      Number.isFinite(heights[westIndex]) &&
+      Number.isFinite(heights[eastIndex])
+    ) {
+      const latScale = 111_320;
+      const lonScale =
+        111_320 * Math.max(0.01, Math.cos((point.lat * Math.PI) / 180));
+      const stepLatM = latScale * stepDegrees;
+      const stepLonM = lonScale * stepDegrees;
+      const dzDy = (heights[southIndex] - heights[northIndex]) / (2 * stepLatM);
+      const dzDx = (heights[eastIndex] - heights[westIndex]) / (2 * stepLonM);
+      slopeDegrees = (Math.atan(Math.hypot(dzDx, dzDy)) * 180) / Math.PI;
+    }
+
+    const exposure = clamp(
+      clamp(localRelief / 150) * 0.55 + clamp(slopeDegrees / 35) * 0.45,
+    );
+    const alluvialTerrain = clamp(
+      clamp(1 - slopeDegrees / 25) * 0.7 + clamp(localRelief / 100) * 0.3,
+    );
+    return profile === 'gold-alluvial' ? alluvialTerrain : exposure;
+  });
+
+  return {
+    values,
+    reliefM: globalRelief,
+    localReliefM: points.map((point, index) => {
+      const row = point?.gridRow;
+      const col = point?.gridCol;
+      if (!Number.isInteger(row) || !Number.isInteger(col)) return globalRelief;
+      const centre = heights[index];
+      const neighbors = [
+        grid.get(`${row - 1}:${col}`),
+        grid.get(`${row + 1}:${col}`),
+        grid.get(`${row}:${col - 1}`),
+        grid.get(`${row}:${col + 1}`),
+      ]
+        .filter((neighbor) => neighbor != null)
+        .map((neighbor) => heights[neighbor])
+        .filter(Number.isFinite);
+      return neighbors.length
+        ? Math.max(centre, ...neighbors) - Math.min(centre, ...neighbors)
+        : globalRelief;
+    }),
+  };
+}
+
+function readNumericEvidence(feature) {
+  const properties = propertiesOf(feature);
+  for (const key of ['prospectivity', 'evidence', 'score', 'rating', 'rank']) {
+    const value = finite(properties[key]);
+    if (Number.isFinite(value)) return clamp(value);
+    const nested = finite(properties.tags?.[key]);
+    if (Number.isFinite(nested)) return clamp(nested);
+  }
+  return null;
+}
+
+function sourceFlag(value) {
+  return typeof value === 'string' && value.length > 0;
+}
+
+/**
+ * Bridge God's Eye runtime data into GEM's normalized evidence contract.
+ */
+export function createMiningEvidenceBridge({
+  terrain,
+  featureSource = null,
+  geologySource = null,
+  imageryLayer = null,
+  imagerySource = searchHls,
+  remoteSensingSource = null,
+  getContextLayers = () => [],
+  hydrologyRadiusKm = 2,
+  signal = null,
+  gridStepDegrees = 0.005,
+} = {}) {
+  if (typeof terrain?.resolveEllipsoidalGround !== 'function')
+    throw new TypeError('GEM evidence bridge requires terrain resolution');
+
+  async function collectHydrology(points, requestSignal) {
+    if (typeof featureSource?.getFootprints !== 'function') {
+      return {
+        values: points.map(() => 0),
+        source: null,
+        featureCount: 0,
+      };
+    }
+    const centre = points[Math.floor(points.length / 2)];
+    if (!centre) return { values: [], source: null, featureCount: 0 };
+    try {
+      const response = await featureSource.getFootprints(centre, {
+        signal: requestSignal,
+      });
+      const available = Array.isArray(response);
+      const features = available ? response : [];
+      return {
+        values: points.map((point) =>
+          scoreHydrology(point, features, hydrologyRadiusKm),
+        ),
+        source: available ? 'Gods Eye GIS · Overpass' : null,
+        featureCount: features.length,
+      };
+    } catch (error) {
+      return {
+        values: points.map(() => 0),
+        source: null,
+        featureCount: 0,
+        error: String(error?.message || error),
+      };
+    }
+  }
+
+  async function collectGeology(points, requestSignal, commodity) {
+    const empty = {
+      values: points.map(() => 0),
+      structureValues: points.map(() => 0),
+      mineralizationValues: points.map(() => 0),
+      alluvialValues: points.map(() => 0),
+      lineamentValues: points.map(() => 0),
+      drainageValues: points.map(() => 0),
+      geochemistryValues: points.map(() => 0),
+      auAnomalyValues: points.map(() => 0),
+      agAnomalyValues: points.map(() => 0),
+      cuAnomalyValues: points.map(() => 0),
+      rawGeochemistry: { au: [], ag: [], cu: [] },
+      source: null,
+      geologyAvailable: false,
+      structureSource: null,
+      mineralizationSource: null,
+      alluvialSource: null,
+      lineamentSource: null,
+      drainageSource: null,
+      geochemistrySource: null,
+    };
+
+    if (
+      typeof geologySource?.getEvidence !== 'function' &&
+      typeof geologySource?.getFeatures !== 'function'
+    )
+      return empty;
+
+    const centre = points[Math.floor(points.length / 2)];
+    const raw =
+      typeof geologySource.getEvidence === 'function'
+        ? await geologySource.getEvidence({
+            points,
+            center: centre,
+            commodity,
+            signal: requestSignal,
+          })
+        : await geologySource.getFeatures({
+            points,
+            center: centre,
+            commodity,
+            signal: requestSignal,
+          });
+
+    if (Array.isArray(raw)) {
+      const values = points.map(() => {
+        let best = 0;
+        for (const feature of raw) {
+          const evidenceValue = readNumericEvidence(feature);
+          if (evidenceValue != null) best = Math.max(best, evidenceValue);
+        }
+        return best;
+      });
+      return {
+        ...empty,
+        values,
+        mineralizationValues: values,
+        source: raw.length ? 'GEM geology GIS' : null,
+        geologyAvailable: raw.length > 0,
+        mineralizationSource: raw.length ? 'GEM geology GIS' : null,
+      };
+    }
+
+    const geologyAvailable =
+      Number(raw?.geologyMapFeatureCount) > 0 ||
+      (Number(raw?.featureCount) > 0 &&
+        !Number.isFinite(raw?.geologyMapFeatureCount));
+
+    return {
+      ...empty,
+      values: points.map((_, index) =>
+        clamp(raw?.geologyValues?.[index] ?? raw?.values?.[index]),
+      ),
+      structureValues: points.map((_, index) =>
+        clamp(raw?.structureValues?.[index]),
+      ),
+      mineralizationValues: points.map((_, index) =>
+        clamp(raw?.mineralizationValues?.[index]),
+      ),
+      alluvialValues: points.map((_, index) =>
+        clamp(raw?.alluvialValues?.[index]),
+      ),
+      lineamentValues: points.map((_, index) =>
+        clamp(raw?.lineamentValues?.[index]),
+      ),
+      drainageValues: points.map((_, index) =>
+        clamp(raw?.drainageValues?.[index]),
+      ),
+      geochemistryValues: points.map((_, index) =>
+        clamp(raw?.geochemistryValues?.[index]),
+      ),
+      auAnomalyValues: points.map((_, index) =>
+        clamp(raw?.auAnomalyValues?.[index]),
+      ),
+      agAnomalyValues: points.map((_, index) =>
+        clamp(raw?.agAnomalyValues?.[index]),
+      ),
+      cuAnomalyValues: points.map((_, index) =>
+        clamp(raw?.cuAnomalyValues?.[index]),
+      ),
+      rawGeochemistry: {
+        au: Array.isArray(raw?.rawGeochemistry?.au)
+          ? raw.rawGeochemistry.au
+          : [],
+        ag: Array.isArray(raw?.rawGeochemistry?.ag)
+          ? raw.rawGeochemistry.ag
+          : [],
+        cu: Array.isArray(raw?.rawGeochemistry?.cu)
+          ? raw.rawGeochemistry.cu
+          : [],
+      },
+      source: sourceFlag(raw?.source) ? raw.source : null,
+      geologyAvailable,
+      structureSource:
+        Number(raw?.faultFeatureCount) > 0 ||
+        Number(raw?.lineamentFeatureCount) > 0
+          ? raw.source
+          : null,
+      mineralizationSource: Number(raw?.featureCount) > 0 ? raw.source : null,
+      alluvialSource: Number(raw?.alluvialFeatureCount) > 0 ? raw.source : null,
+      lineamentSource:
+        Number(raw?.lineamentFeatureCount) > 0 ? raw.source : null,
+      drainageSource:
+        Number(raw?.drainageSimpleFeatureCount) > 0 ||
+        Number(raw?.drainageDoubleFeatureCount) > 0
+          ? raw.source
+          : null,
+      geochemistrySource: sourceFlag(raw?.geochemistrySource)
+        ? raw.geochemistrySource
+        : Number(raw?.geochemistrySampleCount) > 0
+          ? raw.source
+          : null,
+      geologyMapFeatureCount: Number(raw?.geologyMapFeatureCount) || 0,
+      faultFeatureCount: Number(raw?.faultFeatureCount) || 0,
+      lineamentFeatureCount: Number(raw?.lineamentFeatureCount) || 0,
+      mineralizationFeatureCount: Number(raw?.featureCount) || 0,
+      alluvialFeatureCount: Number(raw?.alluvialFeatureCount) || 0,
+      drainageSimpleFeatureCount: Number(raw?.drainageSimpleFeatureCount) || 0,
+      drainageDoubleFeatureCount: Number(raw?.drainageDoubleFeatureCount) || 0,
+      geochemistrySampleCount: Number(raw?.geochemistrySampleCount) || 0,
+      geochemistryUnits: raw?.geochemistryUnits || null,
+      matchedUnits: Array.isArray(raw?.matchedUnits) ? raw.matchedUnits : [],
+    };
+  }
+
+  async function collectImagery(points, requestSignal, commodity) {
+    const stats = imageryLayer?.getStats?.() || {};
+    const params = imageryLayer?.getParams?.() || {};
+    const layerCount = Number(stats.count);
+    const pinned = Boolean(params.a || params.b);
+    const centre = points[Math.floor(points.length / 2)];
+    let candidates = [];
+    let catalogError = null;
+    if (centre && typeof imagerySource === 'function') {
+      try {
+        const delta = 0.02;
+        const result = await imagerySource({
+          box: {
+            west: Math.max(-180, centre.lon - delta),
+            south: Math.max(-90, centre.lat - delta),
+            east: Math.min(180, centre.lon + delta),
+            north: Math.min(90, centre.lat + delta),
+          },
+          days: 30,
+          signal: requestSignal,
+        });
+        candidates = Array.isArray(result?.candidates) ? result.candidates : [];
+        catalogError = result?.errors?.length ? result.errors : null;
+      } catch (error) {
+        catalogError = [String(error?.message || error)];
+      }
+    }
+
+    let anomalyValues = null;
+    let anomalySource = null;
+    let spectralMetadata = null;
+    const remoteSensingGetter =
+      typeof remoteSensingSource === 'function'
+        ? remoteSensingSource
+        : remoteSensingSource?.getEvidence;
+    if (typeof remoteSensingGetter === 'function' && centre) {
+      try {
+        const result = await remoteSensingGetter({
+          points,
+          center: centre,
+          commodity,
+          signal: requestSignal,
+        });
+        if (Array.isArray(result) && result.length) anomalyValues = result;
+        else if (Array.isArray(result?.values) && result.values.length)
+          anomalyValues = result.values;
+        if (anomalyValues)
+          anomalySource = result?.source || 'GEM remote sensing';
+        spectralMetadata = result || null;
+      } catch (error) {
+        catalogError = [
+          ...(catalogError || []),
+          String(error?.message || error),
+        ];
+      }
+    }
+
+    const count =
+      candidates.length || (Number.isFinite(layerCount) ? layerCount : 0);
+    const lowCloud = candidates.filter(
+      (candidate) =>
+        !Number.isFinite(Number(candidate?.cloud)) ||
+        Number(candidate.cloud) <= 30,
+    ).length;
+    const clearFraction = count > 0 ? lowCloud / count : 0;
+    const values = anomalyValues
+      ? points.map((_, index) => clamp(anomalyValues[index]))
+      : points.map(() => 0);
+
+    return {
+      value: values,
+      source: anomalySource,
+      imageryCatalogSource:
+        count > 0 || pinned ? 'NASA HLS · Gods Eye imagery' : null,
+      candidateCount: count,
+      lowCloudCount: lowCloud,
+      clearFraction,
+      pinned,
+      catalogError,
+      spectralMetadata,
+    };
+  }
+
+  function existingLayerContext(points) {
+    const context = {};
+    const centre = points[Math.floor(points.length / 2)];
+    for (const layer of getContextLayers() || []) {
+      if (!layer || layer.id === 'gem-prospectivity') continue;
+      if (typeof layer.getAnalystRecords !== 'function') continue;
+      try {
+        const rows = layer.getAnalystRecords();
+        if (!Array.isArray(rows) || rows.length === 0) continue;
+        let nearby = 0;
+        for (const row of rows) {
+          const point = pointOf(row);
+          if (point && centre && haversineKm(centre, point) <= 5) nearby += 1;
+        }
+        if (nearby) context[layer.id] = nearby;
+      } catch {
+        // One layer must not break GEM context collection.
+      }
+    }
+    return context;
+  }
+
+  async function buildEvidence(points, options = {}) {
+    const requestSignal =
+      signal && options.signal
+        ? AbortSignal.any([signal, options.signal])
+        : options.signal || signal;
+    requestSignal?.throwIfAborted();
+    if (!Array.isArray(points) || points.length === 0) return [];
+
+    const terrainResults = await terrain.resolveEllipsoidalGround(points, {
+      signal: requestSignal,
+    });
+    const heights = terrainResults.map((row) => row?.ellipsoid);
+    const terrainResult = terrainFactors(
+      points,
+      heights,
+      options.profile || 'base',
+      options.gridStepDegrees || gridStepDegrees,
+    );
+    const [hydrologyResult, geologyResult] = await Promise.all([
+      collectHydrology(points, requestSignal),
+      collectGeology(points, requestSignal, options.commodity || 'gold'),
+    ]);
+    const imagery = await collectImagery(
+      points,
+      requestSignal,
+      options.commodity || 'gold',
+    );
+    const context = existingLayerContext(points);
+
+    const evidenceSourceByFactor = {
+      terrain: Boolean(terrainResults.some((row) => row?.source)),
+      hydrology:
+        Boolean(hydrologyResult.source) ||
+        Boolean(geologyResult.drainageSource),
+      geology: Boolean(geologyResult.geologyAvailable),
+      structure: Boolean(geologyResult.structureSource),
+      mineralization: Boolean(geologyResult.mineralizationSource),
+      'remote-sensing': Boolean(imagery.source),
+      alluvial: Boolean(geologyResult.alluvialSource),
+      geochemistry: Boolean(geologyResult.geochemistrySource),
+      lineaments: Boolean(geologyResult.lineamentSource),
+      drainage: Boolean(geologyResult.drainageSource),
+      sampling: false,
+    };
+    const applicability = 10;
+    const coverage =
+      Object.values(evidenceSourceByFactor)
+        .slice(0, applicability)
+        .filter(Boolean).length / applicability;
+
+    return points.map((point, index) => {
+      const drainageValue = geologyResult.drainageValues?.[index] ?? 0;
+      const baseHydrology = hydrologyResult.values[index] ?? 0;
+      const hasDrainageEvidence = Boolean(geologyResult.drainageSource);
+      const combinedHydrology = hasDrainageEvidence
+        ? clamp(baseHydrology * 0.6 + drainageValue * 0.4)
+        : clamp(baseHydrology);
+      const factors = normalizeFactorMap({
+        terrain: terrainResult.values[index],
+        hydrology: combinedHydrology,
+        geology: geologyResult.values[index] ?? 0,
+        structure: geologyResult.structureValues?.[index] ?? 0,
+        mineralization: geologyResult.mineralizationValues?.[index] ?? 0,
+        'remote-sensing': imagery.value[index],
+        alluvial: geologyResult.alluvialValues?.[index] ?? 0,
+        geochemistry: geologyResult.geochemistryValues?.[index] ?? 0,
+        lineaments: geologyResult.lineamentValues?.[index] ?? 0,
+        drainage: drainageValue,
+        sampling: 0,
+      });
+
+      return {
+        ...point,
+        factors,
+        metadata: {
+          terrainHeightM: finite(heights[index]),
+          terrainReliefM: terrainResult.reliefM,
+          localReliefM: terrainResult.localReliefM[index],
+          terrainSource: terrainResults[index]?.source || null,
+          hydrologySource:
+            hydrologyResult.source || geologyResult.drainageSource || null,
+          hydrologyFeatureCount: hydrologyResult.featureCount,
+          geologySource: geologyResult.source,
+          geologyAvailable: geologyResult.geologyAvailable,
+          geologyMapFeatureCount: geologyResult.geologyMapFeatureCount || 0,
+          structureSource: geologyResult.structureSource,
+          faultFeatureCount: geologyResult.faultFeatureCount || 0,
+          mineralizationSource: geologyResult.mineralizationSource,
+          mineralizationFeatureCount:
+            geologyResult.mineralizationFeatureCount || 0,
+          alluvialSource: geologyResult.alluvialSource,
+          alluvialFeatureCount: geologyResult.alluvialFeatureCount || 0,
+          lineamentSource: geologyResult.lineamentSource,
+          lineamentFeatureCount: geologyResult.lineamentFeatureCount || 0,
+          drainageSource: geologyResult.drainageSource,
+          drainageSimpleFeatureCount:
+            geologyResult.drainageSimpleFeatureCount || 0,
+          drainageDoubleFeatureCount:
+            geologyResult.drainageDoubleFeatureCount || 0,
+          drainageHierarchy:
+            'SGC cartographic hierarchy + local drainage density',
+          geochemistrySource: geologyResult.geochemistrySource,
+          geochemistrySampleCount: geologyResult.geochemistrySampleCount || 0,
+          auAnomaly: geologyResult.auAnomalyValues?.[index] ?? 0,
+          agAnomaly: geologyResult.agAnomalyValues?.[index] ?? 0,
+          cuAnomaly: geologyResult.cuAnomalyValues?.[index] ?? 0,
+          geochemistryUnits: geologyResult.geochemistryUnits || {
+            au: 'µg/kg',
+            ag: 'mg/kg',
+            cu: 'mg/kg',
+          },
+          rawAu: geologyResult.rawGeochemistry?.au?.[index] ?? null,
+          rawAg: geologyResult.rawGeochemistry?.ag?.[index] ?? null,
+          rawCu: geologyResult.rawGeochemistry?.cu?.[index] ?? null,
+          matchedGeologyUnit: geologyResult.matchedUnits?.[index] || null,
+          imagerySource: imagery.imageryCatalogSource,
+          remoteSensingSource: imagery.source,
+          imageryCandidateCount: imagery.candidateCount,
+          imageryLowCloudCount: imagery.lowCloudCount,
+          imageryPinned: imagery.pinned,
+          imageryCatalogError: imagery.catalogError,
+          spectralIndices: imagery.spectralMetadata?.indices?.[index] || null,
+          spectralScene: imagery.spectralMetadata
+            ? {
+                itemId: imagery.spectralMetadata.itemId || null,
+                itemDatetime: imagery.spectralMetadata.itemDatetime || null,
+                cloudCover: imagery.spectralMetadata.cloudCover ?? null,
+                method: imagery.spectralMetadata.method || null,
+              }
+            : null,
+          godEyeLayerContext: context,
+          evidenceCoverage: coverage,
+          factorsCovered: PROSPECTIVITY_FACTORS.filter(
+            (factor) => evidenceSourceByFactor[factor],
+          ),
+        },
+      };
+    });
+  }
+
+  return Object.freeze({ buildEvidence });
+}

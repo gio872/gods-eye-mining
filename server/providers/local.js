@@ -25,6 +25,9 @@ import { weatherProxy } from './weather.js';
 import { firePerimetersProxy } from './firePerimeters.js';
 import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
+import { ipCamerasProxy } from './ipCameras.js';
+import { onvifProxy } from './onvif.js';
+import { amlProxy } from './aml.js';
 
 /** Construct the local provider plugins in their established order. */
 function localProviderPlugins() {
@@ -42,6 +45,9 @@ function localProviderPlugins() {
     geocodeProxy(),
     weatherEffectsProxy(),
     cctvProxy({ sourceRoot: defaultSourceRoot }),
+    ipCamerasProxy(),
+    onvifProxy(),
+    amlProxy(),
     radioBrowserProxy(),
     gbfsProxy(),
     localReceiversProxy(),

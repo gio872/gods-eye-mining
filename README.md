@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌐 God's Eye View
+# 🌐 God's Eye Mining
 
 [![CI](https://github.com/bilawalsidhu/gods-eye-view/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bilawalsidhu/gods-eye-view/actions/workflows/ci.yml) [![Reached #1 on GitHub Trending](https://img.shields.io/badge/%231_GitHub_Trending-thank_you!-F0A63C?style=flat-square&logo=github)](https://x.com/bilawalsidhu/status/2093798887815348521)
 
@@ -182,6 +182,52 @@ The server binds to **localhost** on both paths, and Provider Settings answers
 requests only from your machine. Browser-side keys (Google Maps, Cesium ion)
 must be restricted at their providers — [SECURITY.md](SECURITY.md) shows how,
 and it carries the LAN-sharing rules alongside [Keys & Costs](#-api-keys).
+
+---
+
+## 📹 Admin IP Cameras
+### ONVIF automatic discovery
+
+Inside **Cámaras IP**, use **BUSCAR ONVIF**. GEM sends a WS-Discovery probe on the
+local network, lists detected ONVIF devices, then lets the administrator enter
+the camera credentials. GEM queries the ONVIF device/media services, obtains
+the available media profiles and calls `GetStreamUri` to obtain the RTSP
+stream automatically. Profile T is the current ONVIF direction for advanced
+video streaming, including H.264/H.265 and RTSP; Profile S remains usable on
+existing devices but ONVIF is phasing its conformance program out in favor of
+Profile T. citeturn0search0turn0search4turn0search21
+
+Discovery is intentionally restricted to private/local IP addresses to avoid
+turning the ONVIF endpoint into a general-purpose network proxy.
+
+
+GEM includes a private **IP Camera Control** layer for cameras that you are
+authorized to operate. It is separate from the public CCTV catalog and is
+**local-only**: registered cameras are not serialized into share links.
+
+Set two server-side prerequisites before starting the application:
+
+```bash
+GEM_CAMERA_ADMIN_TOKEN="replace-with-a-long-random-token"
+GEM_FFMPEG_PATH="ffmpeg"
+```
+
+The administrator opens **Cámaras IP**, authenticates with that token, and can
+add, remove and locate cameras. Camera credentials stay on the server; the
+browser receives only a short-lived playback URL.
+
+Supported input protocols are **RTSP, RTSPS, HTTP and HTTPS**. RTSP/RTSPS is
+relayed through FFmpeg into low-latency HLS because browsers generally do not
+play RTSP natively. The project already includes `hls.js` for browser HLS
+playback.
+
+For RTSP cameras, FFmpeg is the media gateway and uses TCP transport for the
+RTSP input. FFmpeg's HLS muxer produces a rolling playlist and deletes old
+segments, keeping the relay bounded for live viewing.
+
+The registry is stored in `data/ip-cameras.json`. Do not commit real camera
+credentials to source control; keep this file private on the deployment host.
+
 
 ---
 
@@ -565,3 +611,30 @@ One heads-up from the inside: build in this space for a week and you learn that 
 **🌐 God's Eye View. No place left behind.**
 
 </div>
+
+
+## TerraQueen Metal Markets
+
+The Mining workspace includes a `Mercado de Metales` layer powered by Metals.Dev. It displays spot prices for gold, silver, platinum, palladium, aluminum, copper, nickel, lead and zinc, plus a USD/COP conversion from the provider's currency feed.
+
+Configure the Vite variable:
+
+`VITE_METALS_DEV_API_KEY=<your key>`
+
+For Pinokio, provide the same variable through the application's environment/settings and restart the app. The module reports `LIVE`, `DELAYED`, or `STALE` from the provider timestamp and does not invent a quote when the provider is unavailable.
+
+Metals.Dev documents a maximum 60-second delay for its live feed on the Free plan, with 100 requests/month. The provider also exposes LBMA/LME authority data. LME itself publishes separate Official Prices as daily reference prices.
+
+### Entity / AML Intelligence
+
+The Entity / AML Intelligence layer now runs live provider-backed screening through the local `/api/aml` proxy. It covers OFAC SDN and OFAC Consolidated sanctions data, GDELT document search for adverse-media discovery, and GLEIF LEI/ownership reference data. PEP/RCA screening is wired to OpenSanctions and requires the server-side `OPENSANCTIONS_API_KEY`; OpenSanctions states that businesses need an appropriate data license/API key for its service. Results are candidate screening evidence, not an automatic legal or risk conclusion.
+
+Server configuration:
+
+```env
+GEM_AML_ADMIN_TOKEN=replace-with-a-long-random-token
+# Optional fallback: GEM_CAMERA_ADMIN_TOKEN
+OPENSANCTIONS_API_KEY=
+```
+
+The AML proxy keeps upstream credentials server-side. OFAC is queried from its current Sanctions List Service exports, GLEIF is used for legal-entity and reported parent relationships, and GDELT is used for recent article discovery. GLEIF ownership data should be interpreted as reported Level 2 relationships and not as a complete beneficial-ownership determination.

@@ -39,7 +39,7 @@ test('catalogs construct distinct layers and classification from their supplied 
     signal: b.signal,
     surface: fixtureSurface(b.signal),
   });
-  assert.equal(first.layers.length, 29);
+  assert.equal(first.layers.length, 35);
   assert.ok(first.get('local-adsb'), 'Local ADS-B is registered');
   assert.deepEqual(
     first.metadata.find(({ id }) => id === 'local-adsb'),
@@ -59,11 +59,13 @@ test('catalogs construct distinct layers and classification from their supplied 
       '2026-09-21T12:00:00.000Z',
     );
   assert.ok(first.get('fire-perimeters'));
+  assert.ok(first.get('ip-cameras'));
+  assert.deepEqual(first.metadata.find(({ id }) => id === 'ip-cameras'), { id: 'ip-cameras', disposition: 'local-only' });
   assert.ok(first.get('transit'));
   const order = first.layers.map(({ id }) => id);
   assert.deepEqual(
     order.slice(order.indexOf('traffic'), order.indexOf('directions') + 1),
-    ['traffic', 'cctv', 'radio', 'transit', 'bikeshare', 'directions'],
+    ['traffic', 'cctv', 'ip-cameras', 'radio', 'transit', 'bikeshare', 'directions'],
   );
   assert.ok(first.get('bhote-koshi-2026'));
   assert.ok(first.get('bhote-koshi-locator'));

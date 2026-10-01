@@ -1,0 +1,101 @@
+# GEM integration
+
+GEM (Geospatial Exploration & Mining) is integrated into God's Eye as an application-owned prospectivity data layer.
+
+## Runtime flow
+
+1. God's Eye creates the shared application surface. GEM consumes `surface.terrain`, the existing terrain-height service.
+2. GEM consumes the same GIS feature source used by God's Eye operations and combines it with the official SGC vector/raster services.
+3. Hydrology is fused from existing God's Eye GIS features plus the SGC 2023 mapped drainage network.
+4. SGC exploration evidence is queried for:
+   - 2022 metallogenic deposits and occurrences;
+   - mapped geology;
+   - faults;
+   - geophysical lineaments;
+   - alluvial districts;
+   - 2023 single and double drainage;
+   - 2020 sediment geochemistry for Au, Ag and Cu.
+5. GEM selects a current HLS-S30 scene from the Microsoft Planetary Computer STAC catalog and samples Sentinel-2-derived surface reflectance for B02, B04, B8A, B11 and B12. The resulting ferric, ferrous and SWIR-clay proxies are converted into local robust anomalies and vegetation-suppressed remote-sensing evidence.
+6. GEM inspects existing God's Eye layers that expose `getAnalystRecords()` and records nearby layer context.
+7. The prospectivity engine combines all available evidence into the same weighted score and `gem-prospectivity` renders the cell score plus high-score target markers.
+
+## Prospectivity factors
+
+The score now uses:
+
+`terrain`, `hydrology`, `geology`, `structure`, `mineralization`, `remote-sensing`, `alluvial`, `geochemistry`, `lineaments`, `drainage`, `sampling`.
+
+`remote-sensing` is the spectral-alteration channel. It is populated only when a real HLS sampling source returns spectral measurements.
+
+The geochemistry channel keeps the three pathfinder anomalies separately in target metadata as `auAnomaly`, `agAnomaly` and `cuAnomaly`, while the weighted `geochemistry` factor is a commodity-aware composite:
+- gold: Au-dominant, with Ag and Cu as secondary pathfinders;
+- silver: Ag-dominant, with Au and Cu as secondary pathfinders;
+- copper: Cu-dominant, with Au and Ag as secondary pathfinders.
+
+Anomaly scores are local to the GEM analysis window and use robust median/MAD normalization. This is intentionally different from treating one national concentration threshold as a universal cutoff.
+
+## SGC sources
+
+The default SGC connector is read-only and uses official ArcGIS services for the Colombian geological and metallogenic products. In particular, the 2022 metallogenic service exposes the `LineamientosGeofisicos` layer as polyline geometry, while the 2020 geochemical atlas exposes separate Au, Ag and Cu concentration layers. The 2023 geological atlas exposes mapped drainage layers.
+
+The current connector uses exact point-to-line segment distance for linear features rather than nearest-vertex distance. Drainage “hierarchy” is cartographic: SGC single versus double drainage, permanence coding where present, local mapped-drainage density and proximity. It is not a computed Horton-Strahler stream order.
+
+## Sentinel-2 / HLS spectral model
+
+The spectral source uses HLS-S30 from the Microsoft Planetary Computer. HLS-S30 is the Sentinel-2 member of HLS v2 and is distributed at 30 m with bands including blue (B02), red (B04), narrow NIR (B8A), SWIR1 (B11) and SWIR2 (B12).
+
+GEM computes:
+- ferric proxy = B04 / B02;
+- ferrous proxy = B11 / B8A;
+- SWIR-clay proxy = B11 / B12;
+- NDVI = (B8A - B04) / (B8A + B04).
+
+The three alteration proxies are converted to positive local robust anomalies, combined, and down-weighted in strongly vegetated cells. These indices are screening proxies for alteration/exposure patterns; they are not mineral-species identification or laboratory-grade spectroscopy.
+
+The Planetary Computer statistics API is called with a GeoJSON FeatureCollection so a GEM grid can be sampled in one scene request.
+
+## Coverage and confidence
+
+GEM tracks source availability explicitly. The coverage denominator is the ten currently modelled evidence channels: terrain, hydrology, geology, structure, mineralization, remote-sensing, alluvial, geochemistry, lineaments and drainage. Sampling remains reserved for a future field-sample ingestion contract.
+
+When a source is unavailable, the factor is zero and the score receives the coverage multiplier instead of silently treating missing data as evidence.
+
+## Profiles
+
+The default standalone profile is `gold-alluvial`. The core also provides `gold-lode` and `base`. Profiles alter factor weights without changing the underlying observations.
+
+## Analytical boundary
+
+GEM outputs are heuristic prospectivity scores. They are not mineral reserves, mineral resources, assay grades, economic valuations or proof of a deposit. SGC observations are authoritative source data, but the weighting, anomaly normalization and spectral interpretation are GEM analytical assumptions that require calibration against the exploration program, commodity and field validation.
+
+
+## ANM Mining Cadastre
+
+GEM is complemented by an official Colombian mining-cadastre overlay from the Agencia Nacional de Minería (ANM). The application consumes the public ANM WMS at:
+
+`https://geo.anm.gov.co/webgis/services/ANM/ServiciosGeograficosANM/MapServer/WMSServer`
+
+and click-identification through the public ANM `ServiciosANM` MapServer.
+
+The visible cadastre set includes: current mining requests represented by the ANM geoservice, mining titles, subcontracts, special-reserve requests, restricted indigenous areas, ethnic mining zones, strategic mining areas, state-investment areas, declared/in-process special reserves, areas susceptible to mining, reserved-potential zones, and area banks.
+
+Important legal boundary: **“Sin título/solicitud identificado” is not equivalent to a legally certified free area.** The ANM states that a Certificado de Área Libre considers titles and/or current applications, mining-excluded zones, overlap percentages and the corresponding boundary information. Use the in-app status as a cartographic screening aid and verify legal availability through ANM before filing or acquiring mining rights.
+
+Source metadata is shown in the map interface as ANM official geoservices. The WMS/WFS endpoints are publicly offered by ANM for consultation, interoperability and transparency.
+
+
+## Economic Scenario
+
+When `Mercado de Metales` has a valid market snapshot, a selected GEM target exposes an editable `Escenario económico` panel. The operator supplies mineral tonnes, grade and recovery; GEM reads the selected commodity price from the market module and calculates a gross scenario only.
+
+For gold/silver/platinum/palladium the grade convention is g/t and the conversion uses 31.1034768 grams per troy ounce. For industrial metals the grade convention is percent by mass and the price convention is USD per metric tonne.
+
+The calculation intentionally excludes mining costs, dilution, metallurgical recoveries beyond the entered scenario, payability, royalties, taxes, treatment/refining charges, cut-off grade, smelter terms and any reserve/resource classification. It is a scenario calculator, not a JORC/NI 43-101/CRIRSCO resource or reserve estimate.
+
+## Settlement context
+
+The Mining workspace includes a default-on local-only `population-places` layer for cartographic orientation. It reads the OpenFreeMap/OpenMapTiles `place` vector layer without replacing the active satellite or Google 3D basemap.
+
+Only settlement classes useful for mining context are rendered by default: `city`, `town`, `village` and `hamlet`. The request zoom is derived from camera height, so broad views stay sparse and closer views progressively expose smaller settlements. The overlay host performs screen-space decluttering and keeps the labels independent from Cesium's native label API.
+
+The source uses OpenMapTiles `rank` as its cartographic importance signal; it does not invent or infer population counts. Labels are local-only and are not stored in share-link layer state.

@@ -53,6 +53,14 @@ export function createStandaloneApplication({
           ),
         signal: context.signal,
         surface: scene.operations.surface,
+        featureSource: scene.operations.requests.features,
+        ...(geospatial.geologySource
+          ? { geologySource: geospatial.geologySource }
+          : {}),
+        gemProfile: geospatial.gemProfile || 'gold-alluvial',
+        ...(geospatial.remoteSensingSource
+          ? { remoteSensingSource: geospatial.remoteSensingSource }
+          : {}),
       });
       return scene;
     },

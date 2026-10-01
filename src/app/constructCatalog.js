@@ -29,6 +29,19 @@ import { createInfrastructureLayers } from '../data/infrastructure.js';
 import { localGeoJsonServices } from './localGeojsonServices.js';
 import { createBhoteKoshiEventLayer } from '../data/bhoteKoshiEvent.js';
 import { createBhoteKoshiLocatorLayer } from '../data/bhoteKoshiLocator.js';
+import { createProspectivityLayer } from '../mining/layers/prospectivity.js';
+import { createAnmMiningCadastreLayer } from '../mining/sources/anmMiningCadastre.js';
+import { createMetalMarketsLayer } from '../mining/sources/metalMarkets.js';
+import { createApplicationPopulations } from './layers/populations.js';
+import { overlayHost } from './layers/overlayHost.js';
+import {
+  createProjectEconomicsLayer,
+  createCriticalMineralsLayer,
+  createEntityIntelligenceLayer,
+  createTradeIntelligenceLayer,
+} from '../intelligence/layers.js';
+import { createIntelligenceGraphLayer } from '../intelligence/graphLayer.js';
+import { createIpCamerasLayer } from '../cameras/ipCameras.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -55,6 +68,7 @@ const SOURCE_METHODS = Object.freeze({
   earthquakes: ['getSnapshot'],
   'fire-perimeters': ['getSnapshot'],
   cables: ['fetch'],
+  populations: ['fetchBounds'],
 });
 
 /**
@@ -63,6 +77,16 @@ const SOURCE_METHODS = Object.freeze({
  */
 export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'local-adsb', disposition: 'local-only' }),
+  Object.freeze({ id: 'gem-prospectivity', disposition: 'local-only' }),
+  Object.freeze({ id: 'anm-mining-cadastre', disposition: 'local-only' }),
+  Object.freeze({ id: 'metal-markets', disposition: 'local-only' }),
+  Object.freeze({ id: 'population-places', disposition: 'local-only' }),
+  Object.freeze({ id: 'mining-economics', disposition: 'local-only' }),
+  Object.freeze({ id: 'critical-minerals', disposition: 'local-only' }),
+  Object.freeze({ id: 'entity-intelligence', disposition: 'local-only' }),
+  Object.freeze({ id: 'mineral-trade-intelligence', disposition: 'local-only' }),
+  Object.freeze({ id: 'intelligence-graph', disposition: 'local-only' }),
+  Object.freeze({ id: 'ip-cameras', disposition: 'local-only' }),
 ]);
 
 /** Serialization metadata for every layer the application catalog constructs. */
@@ -83,6 +107,8 @@ export function createApplicationCatalog({
   vesselOptions,
   resolveAsset,
   nepalBoundaryResolver,
+  gemProfile = 'gold-alluvial',
+  remoteSensingSource = null,
 }) {
   if (!signal?.addEventListener)
     throw new TypeError('An application lifetime signal is required');
@@ -129,7 +155,19 @@ export function createApplicationCatalog({
     const satellites = createApplicationSatellites({
       source: sources.satellites,
     });
-    const catalog = createLayerCatalog(
+    const recentImagery = createApplicationRecentImagery();
+    let catalog = null;
+    const gemProspectivity = createProspectivityLayer({
+      surface,
+      featureSource: sources.features,
+      geologySource: sources.geology,
+      imageryLayer: recentImagery,
+      remoteSensingSource,
+      getContextLayers: () => catalog?.layers || [],
+      signal,
+      profile: gemProfile,
+    });
+    catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
         createBhoteKoshiLocatorLayer({
@@ -152,11 +190,21 @@ export function createApplicationCatalog({
         createApplicationLaunches({ source: sources.launches, satellites }),
         createApplicationTraffic({ source: sources.traffic, surface }),
         createApplicationCctv({ surface, source: sources.cctv }),
+        createIpCamerasLayer(),
         createApplicationRadio({ surface, source: sources.radio }),
         createApplicationTransit({ surface, source: sources.transit }),
         createApplicationBikeshare({ source: sources.bikeshare }),
         createApplicationDirections(),
-        createApplicationRecentImagery(),
+        recentImagery,
+        gemProspectivity,
+        createAnmMiningCadastreLayer({ signal, overlayHost }),
+        createMetalMarketsLayer({ signal }),
+        createApplicationPopulations({ source: sources.populations }),
+        createProjectEconomicsLayer(),
+        createCriticalMineralsLayer(),
+        createEntityIntelligenceLayer(),
+        createTradeIntelligenceLayer(),
+        createIntelligenceGraphLayer(),
         vessels,
         installations,
         createApplicationAwareness({
@@ -195,6 +243,8 @@ export function createApplicationCatalog({
       ],
       metadata,
     );
+    const intelligenceGraphLayer = catalog.layers.find((layer) => layer?.id === 'intelligence-graph');
+    intelligenceGraphLayer?.setSourceLayers?.(catalog.layers);
     return Object.freeze({
       ...catalog,
       militaryRegistry,

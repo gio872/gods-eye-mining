@@ -56,6 +56,13 @@ export function createApplicationData({
   }
   presentation.mount(document.getElementById('data-toggles'));
   styleManager.attachDataManager(dataManager);
+  // Settlement labels are core cartographic context in Mining Mode. They are
+  // local-only and therefore do not enter share-link state.
+  void dataManager
+    .setEnabled('population-places', true, { origin: 'programmatic' })
+    .catch((error) =>
+      console.warn('[Data] population-places default enable failed:', error),
+    );
   defer(createCyberSonarScene(viewer, dataManager));
 
   return { dataManager, catalog, presentation };

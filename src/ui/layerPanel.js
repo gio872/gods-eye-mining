@@ -18,6 +18,14 @@ const FEED_STATE_LABELS = Object.freeze({
 // Presentation order is independent of catalog registration and startup order.
 const PANEL_GROUPS = [
   {
+    label: 'Cartography',
+    ids: ['population-places'],
+  },
+  {
+    label: 'Mining',
+    ids: ['metal-markets', 'anm-mining-cadastre', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
+  },
+  {
     label: 'Movement',
     ids: [
       'satellites',
@@ -32,7 +40,7 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Cameras',
-    ids: ['cctv', 'recent-imagery'],
+    ids: ['cctv', 'ip-cameras', 'recent-imagery'],
   },
   {
     label: 'Infrastructure',
@@ -63,6 +71,7 @@ const PANEL_GROUPS = [
     ids: ['directions', 'radio'],
   },
 ];
+
 const PANEL_ORDER = PANEL_GROUPS.flatMap(({ label, ids }) =>
   ids.map((id) => ({ id, label })),
 );
@@ -74,6 +83,7 @@ const PANEL_LABELS = {
   bikeshare: 'Bike Share',
   cctv: 'Cameras',
   'alpr-cameras': 'Mapped ALPR Cameras',
+  'ip-cameras': 'Cámaras IP',
   'local-datacenters': 'Data Centers',
   'local-firms': 'Active Fires',
 };
