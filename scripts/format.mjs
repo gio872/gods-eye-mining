@@ -139,8 +139,15 @@ if (import.meta.url === invoked) {
       mode,
     );
     if (mode === '--check' && result.changed.length) {
-      for (const name of result.changed)
+      for (const name of result.changed) {
         console.error(`Needs formatting: ${name}`);
+        if (name === 'src/mining/sources/anmMiningCadastre.js') {
+          const entry = await readFile(path.join(fileURLToPath(new URL('../', import.meta.url)), name), 'utf8');
+          const target = files.find((item) => item.name === name);
+          const first = [...entry].findIndex((char, index) => char !== target?.formatted?.[index]);
+          console.error('ANM_FORMAT_DIFF', JSON.stringify({ first, source: entry.slice(Math.max(0, first - 500), first + 1200), formatted: target?.formatted?.slice(Math.max(0, first - 500), first + 1200) }));
+        }
+      }
       process.exitCode = 1;
     } else {
       console.log(
