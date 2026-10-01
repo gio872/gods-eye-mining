@@ -16,6 +16,7 @@ export {
   createDemoIntelligenceGraph,
 } from './graph.js';
 export { createIntelligenceGraphLayer } from './graphLayer.js';
+export { createEntityIntelligenceSource } from './entityIntelligenceSource.js';
 
 export { buildIntelligenceGraphFromLayers } from './graphBuilder.js';
 
