@@ -1,4 +1,5 @@
 import { createDemoIntelligenceGraph } from './graph.js';
+import { buildIntelligenceGraphFromLayers } from './graphBuilder.js';
 
 const TYPE_SYMBOLS=Object.freeze({
   location:'⌖',deposit:'◆',commodity:'◈','mining-right':'▣',company:'●',person:'◎',
@@ -39,7 +40,7 @@ function shell(){
 }
 
 function renderGraphSvg(container, graph, seedId, onSelect){
-  const {nodes,edges}=graph.subgraph(seedId,2);
+  const {nodes,edges}=activeGraph.subgraph(seedId,2);
   const width=container.clientWidth||900, height=container.clientHeight||500;
   const cx=width/2, cy=height/2;
   const seed=nodes.find(n=>n.id===seedId)||nodes[0];
@@ -80,7 +81,9 @@ function renderGraphSvg(container, graph, seedId, onSelect){
   container.appendChild(svg);
 }
 
-export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph() }={}) {
+export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph(), sourceLayers=null }={}) {
+  let activeGraph=graph;
+  let layersSource=sourceLayers;
   let viewer=null,panel=null,enabled=false,selectedId='location:sample',selected=null;
   return {
     id:'intelligence-graph',name:"God's Eye Intelligence Graph",icon:'◎',source:'GEM · GRAPH',updateInterval:0,
@@ -94,19 +97,19 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
         this._body=body;
         this._render();
       }
-      panel.hidden=false;this._render();return true;
+      panel.hidden=false;this._refreshGraph();return true;
     },
     attachDataManager(manager){this._manager=manager||null;},
     _render(){
       if(!this._body)return;
       const summary=panel?.querySelector('#gem-graph-summary');
-      const stats=graph.stats();if(summary)summary.textContent=`${stats.nodes} NODES · ${stats.edges} RELATIONSHIPS · DEPTH 2 · EVIDENCE-AWARE`;
+      const stats=activeGraph.stats();if(summary)summary.textContent=`${stats.nodes} NODES · ${stats.edges} RELATIONSHIPS · DEPTH 2 · EVIDENCE-AWARE`;
       renderGraphSvg(this._body,graph,selectedId,(node)=>{selectedId=node.id;selected=node;this._render();});
     },
     disable(){enabled=false;if(panel)panel.hidden=true;return true;},
-    update(){return enabled;},
+    update(){if(!enabled)return true;this._refreshGraph();return true;},
     destroy(){enabled=false;panel?.remove?.();panel=null;viewer=null;this._manager=null;},
-    getStats(){return {enabled,nodes:graph.nodes.length,edges:graph.edges.length,selected:selected?.id||selectedId};},
-    getRowControls(){return {readout:`${graph.nodes.length} nodes / ${graph.edges.length} edges`};},
+    getStats(){return {enabled,nodes:activeGraph.nodes.length,edges:activeGraph.edges.length,selected:selected?.id||selectedId,live:Boolean(layersSource)};},
+    getRowControls(){return {readout:`${activeGraph.nodes.length} nodes / ${activeGraph.edges.length} edges`};},
   };
 }
