@@ -14,7 +14,10 @@ test('GEM exposes stable mining domain primitives', () => {
     'terrain',
     'hydrology',
     'geology',
+    'structure',
+    'mineralization',
     'remote-sensing',
+    'alluvial',
     'sampling',
   ]);
 });
@@ -120,4 +123,56 @@ test('core remains deterministic for explicit target identifiers', () => {
   });
 
   assert.deepEqual(first, second);
+});
+
+
+test('gold-alluvial profile prioritizes alluvial and drainage evidence', () => {
+  const engine = createProspectivityEngine({ profile: 'gold-alluvial' });
+  const alluvial = engine.score({
+    id: 'alluvial',
+    latitude: 4.45,
+    longitude: -75.2,
+    confidence: 1,
+    factors: {
+      hydrology: 1,
+      alluvial: 1,
+      mineralization: 0.5,
+    },
+  });
+  const hardRock = engine.score({
+    id: 'hard-rock',
+    latitude: 4.45,
+    longitude: -75.2,
+    confidence: 1,
+    factors: {
+      structure: 1,
+      geology: 1,
+    },
+  });
+  assert.ok(alluvial.score > hardRock.score);
+  assert.equal(alluvial.profile, 'gold-alluvial');
+});
+
+test('coverage lowers score when channels are unavailable', () => {
+  const engine = createProspectivityEngine({
+    profile: 'base',
+    weights: {
+      geology: 1,
+    },
+  });
+  const full = engine.score({
+    id: 'full',
+    latitude: 4.45,
+    longitude: -75.2,
+    confidence: 1,
+    factors: { geology: 1 },
+  });
+  const partial = engine.score({
+    id: 'partial',
+    latitude: 4.45,
+    longitude: -75.2,
+    confidence: 0.25,
+    factors: { geology: 1 },
+  });
+  assert.ok(partial.score < full.score);
 });
