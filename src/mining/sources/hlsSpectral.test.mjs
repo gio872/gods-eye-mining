@@ -104,6 +104,8 @@ test('HLS spectral source selects a scene and returns local anomaly scores', asy
   });
 
   assert.equal(calls.length, 2);
+  assert.match(calls[1].url, /assets=B02/);
+  assert.match(calls[1].options.body, /\"geojson\"/);
   assert.equal(result.source, 'Microsoft Planetary Computer · HLS S30 (Sentinel-2)');
   assert.equal(result.itemId, 'hls-test-001');
   assert.equal(result.featureCount, 3);
