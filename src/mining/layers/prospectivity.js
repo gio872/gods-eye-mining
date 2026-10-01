@@ -5,6 +5,7 @@ import {
   clamp,
   PROSPECTIVITY_PROFILES,
 } from '../core/miningTypes.js';
+import { calculateGrossMetalValue } from '../core/economicValue.js';
 
 const GRID_RADIUS = 3;
 const GRID_STEP_DEGREES = 0.005;
@@ -44,6 +45,131 @@ function formatFactor(value) {
   return Number.isFinite(numeric) ? numeric.toFixed(2) : '—';
 }
 
+function marketSnapshot() {
+  if (typeof window === 'undefined') return null;
+  return window.__terraqueenMetalMarket || null;
+}
+
+function formatMoney(value, currency = 'USD') {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return '—';
+  return `${currency === 'COP' ? '$ ' : 'US$ '}${numeric.toLocaleString('es-CO', {
+    maximumFractionDigits: 0,
+  })}`;
+}
+
+function showEconomicScenario(container, entity, onMarketUpdate = null) {
+  if (!container || !entity) return;
+  const commodity = String(propertyValue(entity, 'commodity', 'gold'));
+  const market = marketSnapshot();
+  const marketRow = market?.rows?.find((row) => row.id === commodity) || null;
+  const priceUsd = Number.isFinite(Number(marketRow?.price))
+    ? Number(marketRow.price)
+    : null;
+  const usdCop = Number.isFinite(Number(market?.usdCop))
+    ? Number(market.usdCop)
+    : null;
+
+  const section = document.createElement('section');
+  section.style.cssText =
+    'margin-top:12px;padding-top:10px;border-top:1px solid rgba(242,197,93,.18)';
+
+  const heading = document.createElement('div');
+  heading.textContent = 'ESCENARIO ECONÓMICO';
+  heading.style.cssText =
+    'font-size:10px;letter-spacing:.14em;color:#f2c55d;font-weight:700;margin-bottom:7px';
+  section.appendChild(heading);
+
+  const note = document.createElement('div');
+  note.textContent =
+    'Simulación paramétrica. No representa recurso, reserva, ley de corte ni valor económico certificado.';
+  note.style.cssText =
+    'font-size:9px;line-height:1.35;color:#88a2a7;margin-bottom:8px';
+  section.appendChild(note);
+
+  const grid = document.createElement('div');
+  grid.style.cssText =
+    'display:grid;grid-template-columns:1fr 1fr;gap:7px 9px';
+
+  const makeField = (label, value, step = '0.01') => {
+    const wrap = document.createElement('label');
+    wrap.style.cssText = 'display:grid;gap:3px';
+    const caption = document.createElement('span');
+    caption.textContent = label;
+    caption.style.cssText = 'font-size:8px;letter-spacing:.08em;color:#6fa0a7';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.step = step;
+    input.min = '0';
+    input.value = String(value);
+    input.style.cssText =
+      'width:100%;box-sizing:border-box;background:rgba(5,18,24,.9);border:1px solid rgba(32,206,216,.2);' +
+      'color:#eef8fa;border-radius:5px;padding:6px 7px;font:10px monospace;outline:none';
+    wrap.append(caption, input);
+    return { wrap, input };
+  };
+
+  const tonnesField = makeField('TONELADAS DE MINERAL', 1000, '1');
+  const gradeLabel = commodity === 'gold' || commodity === 'silver' || commodity === 'platinum' || commodity === 'palladium'
+    ? 'LEY (g/t)'
+    : 'LEY (%)';
+  const gradeField = makeField(gradeLabel, 1, '0.01');
+  const recoveryField = makeField('RECUPERACIÓN (%)', 90, '0.1');
+  grid.append(tonnesField.wrap, gradeField.wrap, recoveryField.wrap);
+
+  const priceWrap = document.createElement('div');
+  priceWrap.style.cssText = 'grid-column:1 / -1;display:flex;justify-content:space-between;gap:10px;padding:7px 8px;border:1px solid rgba(242,197,93,.16);background:rgba(242,197,93,.04);border-radius:5px;';
+  const priceLabel = document.createElement('span');
+  priceLabel.textContent = 'PRECIO DE MERCADO';
+  priceLabel.style.color = '#9dbfc4';
+  const priceValue = document.createElement('strong');
+  priceValue.textContent = priceUsd === null ? '—' : `US$ ${formatMoney(priceUsd).replace('US$ ', '')} / ${marketRow?.unit === 'mt' ? 't' : 'oz troy'}`;
+  priceValue.style.color = '#f2c55d';
+  priceWrap.append(priceLabel, priceValue);
+  grid.appendChild(priceWrap);
+  section.appendChild(grid);
+
+  const output = document.createElement('div');
+  output.style.cssText =
+    'margin-top:8px;padding:9px;border:1px solid rgba(32,206,216,.2);background:rgba(32,206,216,.04);border-radius:6px';
+
+  const render = () => {
+    const calc = calculateGrossMetalValue({
+      commodity,
+      tonnes: tonnesField.input.value,
+      grade: gradeField.input.value,
+      recoveryPercent: recoveryField.input.value,
+      priceUsd,
+    });
+    output.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 10px">' +
+      `<div><span style="color:#7c9ca1">METAL RECUPERADO</span><br><strong>${calc.recoveredTroyOz.toLocaleString('es-CO',{maximumFractionDigits:2})} oz troy</strong></div>` +
+      `<div><span style="color:#7c9ca1">VALOR BRUTO USD</span><br><strong style="color:#f2c55d">${formatMoney(calc.grossValueUsd)}</strong></div>` +
+      `<div><span style="color:#7c9ca1">METAL RECUPERADO</span><br><strong>${calc.recoveredMetalGrams.toLocaleString('es-CO',{maximumFractionDigits:0})} g</strong></div>` +
+      `<div><span style="color:#7c9ca1">VALOR BRUTO COP</span><br><strong style="color:#67dfe6">${usdCop === null || calc.grossValueUsd === null ? '—' : formatMoney(calc.grossValueUsd * usdCop, 'COP')}</strong></div>` +
+      '</div>';
+  };
+
+  [tonnesField.input, gradeField.input, recoveryField.input].forEach((input) =>
+    input.addEventListener('input', render),
+  );
+  render();
+  section.appendChild(output);
+
+  if (priceUsd === null) {
+    const marketNote = document.createElement('div');
+    marketNote.textContent =
+      'Precio no disponible. Activa «Mercado de Metales» y configura VITE_METALS_DEV_API_KEY para enlazar la cotización.';
+    marketNote.style.cssText =
+      'margin-top:7px;font-size:9px;color:#b6ced1;line-height:1.35';
+    section.appendChild(marketNote);
+  }
+
+  container.appendChild(section);
+  if (typeof onMarketUpdate === 'function') onMarketUpdate();
+}
+
+
 function showTargetDetail(container, entity) {
   if (!container || !entity) return;
   const score = Number(propertyValue(entity, 'score', 0));
@@ -72,7 +198,9 @@ function showTargetDetail(container, entity) {
         '</strong></div>',
     )
     .join('');
-  container.innerHTML =
+  container.replaceChildren();
+  const header = document.createElement('div');
+  header.innerHTML =
     '<div style="font-size:12px;letter-spacing:.16em;color:#55e8ff;margin-bottom:8px">GEM TARGET</div>' +
     '<div style="font-size:24px;font-weight:700;margin-bottom:4px">Score ' +
     formatFactor(score) +
@@ -83,10 +211,13 @@ function showTargetDetail(container, entity) {
     lat.toFixed(5) +
     ', ' +
     lon.toFixed(5) +
-    '</div>' +
-    '<div style="border-top:1px solid rgba(85,232,255,.25);padding-top:7px">' +
-    rows +
     '</div>';
+  container.appendChild(header);
+  const factorBox = document.createElement('div');
+  factorBox.style.cssText = 'border-top:1px solid rgba(85,232,255,.25);padding-top:7px';
+  factorBox.innerHTML = rows;
+  container.appendChild(factorBox);
+  showEconomicScenario(container, entity);
   container.hidden = false;
 }
 
@@ -254,6 +385,8 @@ export function createProspectivityLayer({
   let removeMoveEnd = null;
   let clickHandler = null;
   let detailPanel = null;
+  let selectedEntity = null;
+  let marketUpdateListener = null;
 
   async function refresh() {
     if (!enabled || destroyed || refreshing || !viewer) return false;
@@ -332,11 +465,20 @@ export function createProspectivityLayer({
           const picked = viewer.scene.pick(movement.position);
           const entity = picked?.id;
           if (!entity || typeof entity.id !== 'string' || !entity.id.startsWith('gem-')) {
+            selectedEntity = null;
             if (detailPanel) detailPanel.hidden = true;
             return;
           }
+          selectedEntity = entity;
           showTargetDetail(detailPanel, entity);
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      }
+      marketUpdateListener = () => {
+        if (enabled && selectedEntity && detailPanel && !detailPanel.hidden)
+          showTargetDetail(detailPanel, selectedEntity);
+      };
+      if (typeof window !== 'undefined') {
+        window.addEventListener('terraqueen:metal-market-updated', marketUpdateListener);
       }
       removeMoveEnd?.();
       removeMoveEnd = null;
@@ -375,6 +517,10 @@ export function createProspectivityLayer({
       removeMoveEnd = null;
       clickHandler?.destroy?.();
       clickHandler = null;
+      if (typeof window !== 'undefined' && marketUpdateListener)
+        window.removeEventListener('terraqueen:metal-market-updated', marketUpdateListener);
+      marketUpdateListener = null;
+      selectedEntity = null;
       detailPanel?.remove?.();
       detailPanel = null;
       if (dataSource && viewer?.dataSources?.contains?.(dataSource))
