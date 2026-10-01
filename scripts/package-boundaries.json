@@ -2250,8 +2250,7 @@
       "src/sources/requestDeadline.js",
       "src/data/local_data/osm_military_names/names.json",
       "src/layers/installations/namedMarkers.js",
-      "src/data/infrastructureOverlayEntry.js",
-      "src/mining/sources/sgcGeology.js"
+      "src/data/infrastructureOverlayEntry.js"
     ],
     "external": [
       "hls.js",
