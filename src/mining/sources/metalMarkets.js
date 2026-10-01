@@ -369,6 +369,7 @@ export function createMetalMarketsLayer({
     throw new TypeError('A fetch implementation is required');
 
   let viewer = null;
+  let dataManager = null;
   let panel = null;
   let timer = null;
   let clickHandler = null;
@@ -507,13 +508,26 @@ export function createMetalMarketsLayer({
       };
     },
 
+    attachDataManager(manager) {
+      dataManager = manager || null;
+    },
+
     init(nextViewer) {
       viewer = nextViewer || null;
       if (!viewer) return false;
       if (!panel) panel = createPanel(viewer, apiKey);
       const close = panel.querySelector('.tqm-close');
       close?.addEventListener('click', () => {
-        panel.hidden = true;
+        // Closing the market panel is an explicit OFF intent. Do not leave the
+        // layer logically enabled behind a hidden panel; otherwise the next
+        // lifecycle refresh can reopen it and the UI appears stuck ON.
+        if (dataManager) {
+          void dataManager.setEnabled('metal-markets', false, {
+            origin: 'user',
+          });
+        } else {
+          panel.hidden = true;
+        }
       });
       clickHandler?.destroy?.();
       clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -552,6 +566,7 @@ export function createMetalMarketsLayer({
       panel?.remove?.();
       panel = null;
       viewer = null;
+      dataManager = null;
       destroyed = true;
     },
 
