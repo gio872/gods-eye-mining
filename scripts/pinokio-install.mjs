@@ -21,11 +21,36 @@ export function runChecked(command, args, { shell = false } = {}) {
   if (result.status !== 0) process.exit(result.status || 1);
 }
 
+function releaseWindowsNativeLocks() {
+  if (process.platform !== 'win32') return;
+  // npm ci may need to replace esbuild's native executable. Pinokio/Vite can
+  // leave a detached esbuild child alive briefly after the previous session.
+  // Killing only esbuild.exe is safe here because this installer itself is
+  // running under node.exe.
+  spawnSync('taskkill', ['/F', '/T', '/IM', 'esbuild.exe'], {
+    cwd: ROOT,
+    windowsHide: true,
+    stdio: 'ignore',
+  });
+}
+
 export function installPinokioDependencies() {
   applyPinokioEnvironment();
   rmSync(READY_FILE, { force: true });
   const npm = npmProcessSpec();
-  runChecked(npm.command, ['ci'], { shell: npm.shell });
+  releaseWindowsNativeLocks();
+  try {
+    runChecked(npm.command, ['ci', '--no-audit', '--no-fund'], { shell: npm.shell });
+  } catch (error) {
+    // A Windows antivirus/editor race can briefly keep esbuild.exe open.
+    // Release the native lock once more, wait a moment, then retry npm ci.
+    releaseWindowsNativeLocks();
+    if (process.platform === 'win32') {
+      const waitUntil = Date.now() + 1500;
+      while (Date.now() < waitUntil) {}
+    }
+    runChecked(npm.command, ['ci', '--no-audit', '--no-fund'], { shell: npm.shell });
+  }
 
   // Pinokio starts Vite directly and loads only its ENVIRONMENT file plus the
   // normal dotenv ladder. Unlike dev-fresh.sh, it does not import macOS
