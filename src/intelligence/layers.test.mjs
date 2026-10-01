@@ -72,3 +72,16 @@ test('criticality analytics are transparent and never fabricate missing metrics'
   assert.equal(shock.shortfall,30);
   assert.equal(shock.shortfallPercent,33.33333333333333);
 });
+
+test('critical mineral submodules expose source-aware risk structures', async () => {
+  const { calculateCountryMineralRisk } = await import('./criticalMinerals/countryRisk.js');
+  const { calculateMarketRisk } = await import('./criticalMinerals/marketRisk.js');
+  const { createSupplyChainSnapshot } = await import('./criticalMinerals/supplyChain.js');
+  const country=calculateCountryMineralRisk({country:'CO',mineral:'tungsten',politicalRisk:40});
+  const market=calculateMarketRisk({mineral:'tungsten',marketConcentration:80});
+  const chain=createSupplyChainSnapshot({mineral:'tungsten',stages:{mining:{countries:['CO']}}});
+  assert.equal(country.status,'PARTIAL');
+  assert.equal(market.status,'PARTIAL');
+  assert.equal(chain.stages.length,9);
+  assert.equal(chain.status,'SOURCE_REQUIRED');
+});
