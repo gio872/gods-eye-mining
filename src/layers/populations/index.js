@@ -199,10 +199,10 @@ export function createPopulationLayer({
         for (let zoom = requestedZoom; zoom >= 4; zoom--) {
           try {
             const batch = await source.fetchBounds(box, {
-            zoom,
-            signal: controller.signal,
-          });
-          results.push(...(batch?.tiles || []));
+              zoom,
+              signal: controller.signal,
+            });
+            results.push(...(batch?.tiles || []));
             loaded = true;
             break;
           } catch (error) {
