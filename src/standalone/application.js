@@ -58,6 +58,7 @@ export function createStandaloneApplication({
           ? { geologySource: geospatial.geologySource }
           : {}),
         gemProfile: geospatial.gemProfile || 'gold-alluvial',
+        remoteSensingSource: geospatial.remoteSensingSource || null,
       });
       return scene;
     },
