@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import { overlayHost } from '../../app/layers/overlayHost.js';
 
 const DEFAULT_WMS_URL =
   'https://geo.anm.gov.co/webgis/services/ANM/ServiciosGeograficosANM/MapServer/WMSServer';
@@ -271,6 +272,7 @@ function geometryCenter(geometry) {
 
 function clearHighlights(dataSource) {
   dataSource?.entities?.removeAll?.();
+  overlayHost.clearSource('anm-mining-cadastre');
 }
 
 function highlightResults(dataSource, results, clickPoint) {
@@ -286,19 +288,19 @@ function highlightResults(dataSource, results, clickPoint) {
       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
     },
-    label: {
-      text: 'OBJETO SEÑALADO',
-      font: '600 12px JetBrains Mono, monospace',
-      fillColor: Cesium.Color.WHITE,
-      outlineColor: Cesium.Color.BLACK.withAlpha(0.9),
-      outlineWidth: 4,
-      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-      pixelOffset: new Cesium.Cartesian2(0, -18),
-      disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    },
+
   });
   pointEntity.show = true;
+
+  const overlayEntries = [{
+    id: 'anm-clicked-point',
+    position: Cesium.Cartesian3.fromDegrees(clickPoint.lon, clickPoint.lat, 0),
+    variant: 'label',
+    title: 'OBJETO SEÑALADO',
+    priority: 1000,
+    protected: true,
+    collisionGroup: 'anm-mining',
+  }];
 
   results.forEach((result, resultIndex) => {
     const colorHex = layerColor(result.layerId);
@@ -350,25 +352,27 @@ function highlightResults(dataSource, results, clickPoint) {
       });
 
       if (groupIndex === 0) {
-        dataSource.entities.add({
+        overlayEntries.push({
+          id: `anm-result-${resultIndex}`,
           position: Cesium.Cartesian3.fromDegrees(
             labelCenter.lon,
             labelCenter.lat,
             0,
           ),
-          label: {
-            text: String(labelValue),
-            font: '700 11px JetBrains Mono, monospace',
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: color.withAlpha(0.95),
-            outlineWidth: 5,
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            verticalOrigin: Cesium.VerticalOrigin.CENTER,
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          },
+          variant: 'label',
+          title: String(labelValue),
+          priority: 500 - resultIndex,
+          accent: colorHex,
+          collisionGroup: 'anm-mining',
         });
       }
     });
+  });
+
+  overlayHost.setEntries('anm-mining-cadastre', overlayEntries, {
+    visible: true,
+    maxVisible: 24,
+    collisionCapacity: 32,
   });
 }
 
