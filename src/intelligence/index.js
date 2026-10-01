@@ -1,3 +1,5 @@
+// Global critical-minerals intelligence: taxonomy + supply chain + risk + shock analytics.
+
 export {
   createProjectEconomicsLayer,
   createCriticalMineralsLayer,
