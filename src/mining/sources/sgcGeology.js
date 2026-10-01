@@ -397,11 +397,23 @@ function robustZ(values, value) {
 
 function positiveAnomaly(values) {
   const clean = values.filter(Number.isFinite);
-  return values.map((value) =>
+  const anomalies = values.map((value) =>
     Number.isFinite(value) && clean.length >= 3
       ? Math.min(1, Math.max(0, robustZ(clean, value) / 3))
       : 0,
   );
+  if (clean.length >= 3 && anomalies.every((value) => value === 0)) {
+    const minimum = Math.min(...clean);
+    const maximum = Math.max(...clean);
+    const span = maximum - minimum;
+    if (span > 1e-12)
+      return values.map((value) =>
+        Number.isFinite(value)
+          ? Math.min(1, Math.max(0, (value - minimum) / span))
+          : 0,
+      );
+  }
+  return anomalies;
 }
 
 function geochemistryComposite(commodity, au, ag, cu) {
