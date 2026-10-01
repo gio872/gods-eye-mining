@@ -205,11 +205,11 @@ browser receives only a short-lived playback URL.
 Supported input protocols are **RTSP, RTSPS, HTTP and HTTPS**. RTSP/RTSPS is
 relayed through FFmpeg into low-latency HLS because browsers generally do not
 play RTSP natively. The project already includes `hls.js` for browser HLS
-playback. citeturn2search4turn2search7
+playback.
 
 For RTSP cameras, FFmpeg is the media gateway and uses TCP transport for the
 RTSP input. FFmpeg's HLS muxer produces a rolling playlist and deletes old
-segments, keeping the relay bounded for live viewing. citeturn3search0turn1search0
+segments, keeping the relay bounded for live viewing.
 
 The registry is stored in `data/ip-cameras.json`. Do not commit real camera
 credentials to source control; keep this file private on the deployment host.
