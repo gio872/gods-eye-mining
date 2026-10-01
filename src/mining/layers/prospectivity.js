@@ -243,7 +243,7 @@ export function createProspectivityLayer({
       viewer = nextViewer || viewer;
       if (!viewer || !dataSource) return false;
       enabled = true;
-      void refresh();
+      // LayerLifecycle owns the first update; do not start a concurrent refresh here.
       return true;
     },
 
