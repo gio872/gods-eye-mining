@@ -263,6 +263,7 @@ export function createMiningEvidenceBridge({
   geologySource = null,
   imageryLayer = null,
   imagerySource = searchHls,
+  remoteSensingSource = null,
   getContextLayers = () => [],
   hydrologyRadiusKm = 2,
   signal = null,
@@ -380,7 +381,7 @@ export function createMiningEvidenceBridge({
     };
   }
 
-  async function collectImagery(points, requestSignal) {
+  async function collectImagery(points, requestSignal, commodity) {
     const stats = imageryLayer?.getStats?.() || {};
     const params = imageryLayer?.getParams?.() || {};
     const layerCount = Number(stats.count);
@@ -407,6 +408,28 @@ export function createMiningEvidenceBridge({
         catalogError = [String(error?.message || error)];
       }
     }
+
+    let anomalyValues = null;
+    let anomalySource = null;
+    if (typeof remoteSensingSource === 'function' && centre) {
+      try {
+        const result = await remoteSensingSource({
+          points,
+          center: centre,
+          commodity,
+          signal: requestSignal,
+        });
+        if (Array.isArray(result)) anomalyValues = result;
+        else if (Array.isArray(result?.values)) anomalyValues = result.values;
+        anomalySource = result?.source || 'GEM remote sensing';
+      } catch (error) {
+        catalogError = [
+          ...(catalogError || []),
+          String(error?.message || error),
+        ];
+      }
+    }
+
     const count =
       candidates.length || (Number.isFinite(layerCount) ? layerCount : 0);
     const lowCloud = candidates.filter(
@@ -414,12 +437,19 @@ export function createMiningEvidenceBridge({
         !Number.isFinite(Number(candidate?.cloud)) ||
         Number(candidate.cloud) <= 30,
     ).length;
-    const value = clamp(count / 20 + lowCloud / 40 + (pinned ? 0.15 : 0));
+    const clearFraction = count > 0 ? lowCloud / count : 0;
+    const values = anomalyValues
+      ? points.map((_, index) => clamp(anomalyValues[index]))
+      : points.map(() => 0);
+
     return {
-      value,
-      source: count > 0 || pinned ? 'NASA HLS · Gods Eye imagery' : null,
+      value: values,
+      source: anomalySource,
+      imageryCatalogSource:
+        count > 0 || pinned ? 'NASA HLS · Gods Eye imagery' : null,
       candidateCount: count,
       lowCloudCount: lowCloud,
+      clearFraction,
       pinned,
       catalogError,
     };
@@ -468,7 +498,11 @@ export function createMiningEvidenceBridge({
       collectHydrology(points, requestSignal),
       collectGeology(points, requestSignal, options.commodity || 'gold'),
     ]);
-    const imagery = await collectImagery(points, requestSignal);
+    const imagery = await collectImagery(
+      points,
+      requestSignal,
+      options.commodity || 'gold',
+    );
     const context = existingLayerContext(points);
 
     return points.map((point, index) => {
@@ -478,7 +512,7 @@ export function createMiningEvidenceBridge({
         geology: geologyResult.values[index] ?? 0,
         structure: geologyResult.structureValues?.[index] ?? 0,
         mineralization: geologyResult.mineralizationValues?.[index] ?? 0,
-        'remote-sensing': imagery.value,
+        'remote-sensing': imagery.value[index],
         alluvial: geologyResult.alluvialValues?.[index] ?? 0,
         sampling: 0,
       });
@@ -489,10 +523,9 @@ export function createMiningEvidenceBridge({
         Boolean(geologyResult.geologyAvailable),
         Boolean(geologyResult.structureSource),
         Boolean(geologyResult.mineralizationSource),
-        Boolean(imagery.source),
         Boolean(geologyResult.alluvialSource),
       ];
-      const applicability = 7;
+      const applicability = 6;
 
       return {
         ...point,
@@ -514,7 +547,8 @@ export function createMiningEvidenceBridge({
           alluvialSource: geologyResult.alluvialSource,
           alluvialFeatureCount: geologyResult.alluvialFeatureCount || 0,
           matchedGeologyUnit: geologyResult.matchedUnits?.[index] || null,
-          imagerySource: imagery.source,
+          imagerySource: imagery.imageryCatalogSource,
+          remoteSensingSource: imagery.source,
           imageryCandidateCount: imagery.candidateCount,
           imageryLowCloudCount: imagery.lowCloudCount,
           imageryPinned: imagery.pinned,
@@ -528,8 +562,8 @@ export function createMiningEvidenceBridge({
               geology: 2,
               structure: 3,
               mineralization: 4,
-              'remote-sensing': 5,
-              alluvial: 6,
+              alluvial: 5,
+              'remote-sensing': 6,
             };
             return Boolean(covered[indexByFactor[factor]]);
           }),
