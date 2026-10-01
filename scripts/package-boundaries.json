@@ -1902,6 +1902,7 @@
       "src/layers/perimeters/records.js",
       "src/layers/perimeters/cards.js",
       "src/layers/perimeters/inciweb.js",
+      "src/layers/populations/index.js",
       "src/layers/populations/source.js",
       "src/layers/cctv/sourcePolicy.js",
       "src/sources/reference.js",
