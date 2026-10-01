@@ -232,10 +232,11 @@ function createStatsUrl({ statsUrl, collection, item }) {
   const params = new URLSearchParams({
     collection,
     item,
-    assets: 'B02,B04,B8A,B11,B12',
     unscale: 'true',
     resampling: 'bilinear',
   });
+  for (const asset of ['B02', 'B04', 'B8A', 'B11', 'B12'])
+    params.append('assets', asset);
   return `${statsUrl}?${params.toString()}`;
 }
 
@@ -333,9 +334,9 @@ export function createHlsSpectralSource({
           signal,
           headers: {
             Accept: 'application/geo+json,application/json',
-            'Content-Type': 'application/geo+json',
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ geojson: body }),
         },
       );
     } catch (error) {
