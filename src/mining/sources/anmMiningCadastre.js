@@ -344,18 +344,38 @@ function renderLegend(panel) {
 
 function renderInfo(panel, point, results) {
   if (!panel) return;
+  const header = document.createElement('div');
+  header.style.cssText =
+    'display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:7px;';
+  const titleWrap = document.createElement('div');
   const title = document.createElement('div');
   title.textContent = 'CENTRO MINERO COLOMBIA · ANM';
   title.style.cssText =
-    'font-size:12px;letter-spacing:.13em;color:#f2c55d;margin-bottom:7px;font-weight:700';
+    'font-size:12px;letter-spacing:.13em;color:#f2c55d;font-weight:700';
+  const subtitle = document.createElement('div');
+  subtitle.textContent = 'INFORMACIÓN CARTOGRÁFICA OFICIAL';
+  subtitle.style.cssText =
+    'font-size:8px;letter-spacing:.1em;color:#6fe3e8;margin-top:3px;';
+  titleWrap.append(title, subtitle);
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.textContent = '×';
+  close.title = 'Cerrar ficha';
+  close.style.cssText =
+    'width:26px;height:26px;border:1px solid rgba(242,197,93,.24);background:rgba(242,197,93,.06);' +
+    'color:#f2c55d;border-radius:6px;cursor:pointer;font-size:18px;line-height:1;';
+  close.addEventListener('click', () => {
+    panel.hidden = true;
+  });
+  header.append(titleWrap, close);
 
   const coord = document.createElement('div');
   coord.textContent =
-    `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)} · WGS84`;
+    `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)} · WGS84 · OBJETOS SEÑALADOS: ${point?.resultCount ?? 0}`;
   coord.style.cssText =
-    'font-size:11px;color:#b8cdd1;margin-bottom:9px';
+    'font-size:10px;color:#b8cdd1;margin-bottom:9px';
 
-  panel.replaceChildren(title, coord);
+  panel.replaceChildren(header, coord);
   const scope = document.createElement('div');
   scope.textContent = 'TÍTULOS · SOLICITUDES · ZONAS MINERAS · ÁREAS ESPECIALES';
   scope.style.cssText =
@@ -507,7 +527,7 @@ export function createAnmMiningCadastreLayer({
       lastUpdate = Date.now();
       lastError = null;
       highlightResults(highlightDataSource, results, point);
-      renderInfo(detailPanel, point, results);
+      renderInfo(detailPanel, { ...point, resultCount: results.length }, results);
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
       if (detailPanel) {
