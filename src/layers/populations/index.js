@@ -67,14 +67,14 @@ export function mergePopulationTiles(results) {
     for (const tile of tiles) {
       for (const place of tile?.places || []) {
         const key =
-        place.placeClass +
-        '|' +
-        place.name.toLowerCase() +
-        '|' +
-        place.latitude.toFixed(5) +
-        '|' +
-        place.longitude.toFixed(5);
-      const existing = byKey.get(key);
+          place.placeClass +
+          '|' +
+          place.name.toLowerCase() +
+          '|' +
+          place.latitude.toFixed(5) +
+          '|' +
+          place.longitude.toFixed(5);
+        const existing = byKey.get(key);
         if (!existing || place.priority > existing.priority)
           byKey.set(key, place);
       }
