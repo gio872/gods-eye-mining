@@ -14,3 +14,5 @@ export {
   createDemoIntelligenceGraph,
 } from './graph.js';
 export { createIntelligenceGraphLayer } from './graphLayer.js';
+
+export { buildIntelligenceGraphFromLayers } from './graphBuilder.js';
