@@ -25,7 +25,7 @@ test('spectral indices use HLS Sentinel-2 blue/red/NIR/SWIR bands', () => {
   assert.ok(indices.ferric > 0);
   assert.ok(indices.ferrous > 0);
   assert.equal(indices.clay, 1.5);
-  assert.equal(indices.ndvi, 0.4285714285714286);
+  assert.ok(Math.abs(indices.ndvi - 0.4285714285714286) < 1e-12);
 });
 
 test('HLS spectral source selects a scene and returns local anomaly scores', async () => {
