@@ -58,7 +58,7 @@ function robustZ(values, value) {
 function safeRatio(numerator, denominator) {
   if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) return null;
   if (Math.abs(denominator) < 1e-9) return null;
-  return numerator / denominator;
+  return Number((numerator / denominator).toPrecision(15));
 }
 
 /**

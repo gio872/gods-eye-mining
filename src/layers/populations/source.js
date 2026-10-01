@@ -165,3 +165,18 @@ export function createPopulationSource({
     maxCacheBytes,
   });
 }
+
+export function mergePopulationTiles(results, maxLabels = 140) {
+  const byKey = new Map();
+  for (const result of results || []) {
+    const tiles = Array.isArray(result?.tiles) ? result.tiles : [result];
+    for (const tile of tiles) {
+      for (const place of tile?.places || []) {
+        const key = place.placeClass + '|' + place.name.toLowerCase() + '|' + place.latitude.toFixed(5) + '|' + place.longitude.toFixed(5);
+        const existing = byKey.get(key);
+        if (!existing || place.priority > existing.priority) byKey.set(key, place);
+      }
+    }
+  }
+  return [...byKey.values()].sort((a, b) => b.priority - a.priority || a.placeClass.localeCompare(b.placeClass) || a.name.localeCompare(b.name)).slice(0, maxLabels);
+}

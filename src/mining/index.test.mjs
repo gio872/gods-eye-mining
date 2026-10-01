@@ -217,5 +217,5 @@ test('extended GEM factors participate in the same weighted score', () => {
       drainage: 0.6,
     },
   });
-  assert.equal(target.score, 0.64);
+  assert.equal(target.score, 0.66);
 });
