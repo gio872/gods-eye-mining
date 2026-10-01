@@ -207,7 +207,10 @@ export function createProspectivityLayer({
       return true;
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
-      return false;
+      // Evidence-source failures must not tear down the GEM layer. Keep the
+      // layer enabled and expose the failure through getStats() so the operator
+      // can distinguish degraded evidence from a lifecycle failure.
+      return true;
     } finally {
       refreshing = false;
     }
