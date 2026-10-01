@@ -50,6 +50,15 @@ test('graph builder consumes live GEM snapshots and market state', () => {
       }),
     },
     {
+      id: 'population-places',
+      getAnalystRecords: () => [{ id: 'ibague', name: 'Ibagué', type: 'city', lat: 4.4389, lon: -75.2322, rank: 1 }],
+    },
+    {
+      id: 'local-dams',
+      source: 'USACE',
+      getAnalystRecords: () => [{ id: 'dam-1', name: 'Dam 1', lat: 4.45, lon: -75.24, river: 'Test River' }],
+    },
+    {
       id: 'anm-mining-cadastre',
       getStats: () => ({ count: 1, categoryLabel: 'Todos', lastUpdate: Date.now() }),
     },
@@ -60,5 +69,9 @@ test('graph builder consumes live GEM snapshots and market state', () => {
   assert.ok(graph.getNode('market:gold'));
   assert.ok(graph.getNode('document:anm-cadastre'));
   assert.ok(graph.stats().edges >= 3);
+  const focused = buildIntelligenceGraphFromLayers(layers, { focusLocation: { lat: 4.44, lon: -75.23 }, maxDistanceKm: 10 });
+  assert.ok(focused.getNode('location:focus'));
+  assert.ok(focused.getNode('deposit:gem:target-1'));
+  assert.ok(focused.edges.some((edge) => edge.type === 'located-near'));
   delete globalThis.window;
 });
