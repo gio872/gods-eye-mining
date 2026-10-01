@@ -185,6 +185,38 @@ and it carries the LAN-sharing rules alongside [Keys & Costs](#-api-keys).
 
 ---
 
+## 📹 Admin IP Cameras
+
+GEM includes a private **IP Camera Control** layer for cameras that you are
+authorized to operate. It is separate from the public CCTV catalog and is
+**local-only**: registered cameras are not serialized into share links.
+
+Set two server-side prerequisites before starting the application:
+
+```bash
+GEM_CAMERA_ADMIN_TOKEN="replace-with-a-long-random-token"
+GEM_FFMPEG_PATH="ffmpeg"
+```
+
+The administrator opens **Cámaras IP**, authenticates with that token, and can
+add, remove and locate cameras. Camera credentials stay on the server; the
+browser receives only a short-lived playback URL.
+
+Supported input protocols are **RTSP, RTSPS, HTTP and HTTPS**. RTSP/RTSPS is
+relayed through FFmpeg into low-latency HLS because browsers generally do not
+play RTSP natively. The project already includes `hls.js` for browser HLS
+playback. citeturn2search4turn2search7
+
+For RTSP cameras, FFmpeg is the media gateway and uses TCP transport for the
+RTSP input. FFmpeg's HLS muxer produces a rolling playlist and deletes old
+segments, keeping the relay bounded for live viewing. citeturn3search0turn1search0
+
+The registry is stored in `data/ip-cameras.json`. Do not commit real camera
+credentials to source control; keep this file private on the deployment host.
+
+
+---
+
 ## 🕐 The First Five Minutes
 
 Choose a first-run mission, or try these in order. The GIFs show Google Photorealistic 3D; your starting basemap depends on the keys you've added.
