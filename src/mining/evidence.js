@@ -365,8 +365,8 @@ export function createMiningEvidenceBridge({
       ),
       source: sourceFlag(raw?.source) ? raw.source : null,
       geologyAvailable:
-        Number(raw?.geologyMapFeatureCount) > 0 ||
-        Boolean(raw?.geologySource),
+        Boolean(raw?.source) || Number(raw?.geologyMapFeatureCount) > 0 ||
+        Number(raw?.featureCount) > 0,
       structureSource:
         Number(raw?.faultFeatureCount) > 0 ? raw.source : null,
       mineralizationSource:
@@ -419,9 +419,10 @@ export function createMiningEvidenceBridge({
           commodity,
           signal: requestSignal,
         });
-        if (Array.isArray(result)) anomalyValues = result;
-        else if (Array.isArray(result?.values)) anomalyValues = result.values;
-        anomalySource = result?.source || 'GEM remote sensing';
+        if (Array.isArray(result) && result.length) anomalyValues = result;
+        else if (Array.isArray(result?.values) && result.values.length)
+          anomalyValues = result.values;
+        if (anomalyValues) anomalySource = result?.source || 'GEM remote sensing';
       } catch (error) {
         catalogError = [
           ...(catalogError || []),
