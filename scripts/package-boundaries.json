@@ -652,8 +652,7 @@
       "src/ui/styles/first-run.css",
       "src/ui/styles/provider-settings.css",
       "src/ui/styles/weather.css",
-      "src/ui/styles/recent-imagery.css",
-      "src/ui/styles/terraqueen-mining.css"
+      "src/ui/styles/recent-imagery.css"
     ],
     "external": []
   },
@@ -3148,10 +3147,7 @@
     "exports": ["./mining/sources/anm-cadastre"],
     "modules": [
       "src/mining/sources/anmMiningCadastre.js"
-    ],ining-cadastre-source": {
-    "exports": ["./mining/sources/anm-cadastre"],
-    "modules": ["src/mining/sources/anmMiningCadastre.js"],
-    "external": ["cesium"]
+    ],    "external": ["cesium"]
   },
   "gem-metal-markets": {
     "exports": ["./mining/sources/metal-markets"],
