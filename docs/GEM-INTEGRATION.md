@@ -25,8 +25,8 @@ Target confidence is the fraction of the five evidence channels that are actuall
 
 ## Geological source
 
-The repository currently contains no authoritative geological dataset, so the default geology factor remains zero.
-A production application can provide `geospatial.geologySource` when creating the standalone application.
+The standalone application now uses the official Servicio Geológico Colombiano (SGC) read-only services by default. GEM combines SGC metallogenic deposits/occurrences with the 2023 geological map as contextual evidence.
+A production application can still replace or augment this source by providing `geospatial.geologySource` when creating the standalone application.
 
 Example contract:
 
@@ -49,3 +49,8 @@ The numeric value in this example is only illustrative; production values must c
 
 GEM outputs are heuristic evidence scores. They are not mineral reserves, resources, grades, economic valuations, or proof of a deposit.
 Authoritative geological and sampling data should be connected before using GEM for field targeting or economic decisions.
+## Default SGC source
+
+The default connector queries the SGC's public ArcGIS services for the Colombian metallogenic map and the 2023 geological map. The metallogenic evidence is commodity-aware and decays with distance from matching deposits/occurrences. Statuses such as producer/past producer, prospect, occurrence/manifestation and anomaly receive different heuristic weights.
+
+These weights are an analytical model implemented by GEM; they are not SGC classifications and should be calibrated against the exploration program and target commodity.
