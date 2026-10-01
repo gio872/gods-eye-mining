@@ -252,6 +252,8 @@
     "./sources/transit-service": "./src/sources/transitService.js",
     "./sources/map-features": "./src/sources/overpassFeatures.js",
     "./mining": "./src/mining/index.js",
-    "./mining/layers": "./src/mining/layers/index.js"
+    "./mining/layers": "./src/mining/layers/index.js",
+    "./mining/sources/sgc": "./src/mining/sources/sgcGeology.js",
+    "./mining/sources/hls-spectral": "./src/mining/sources/hlsSpectral.js"
   }
 }
