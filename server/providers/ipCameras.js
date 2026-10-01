@@ -53,6 +53,18 @@ function signPlaybackToken(secret, cameraId, expiresAt) {
   const sig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   return `${expiresAt}.${sig}`;
 }
+async function waitForFile(file, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const stat = await fs.stat(file);
+      if (stat.isFile() && stat.size > 0) return true;
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return false;
+}
+
 function verifyPlaybackToken(secret, cameraId, token) {
   const [expires, sig] = String(token || '').split('.');
   if (!/^\\d+$/.test(expires) || !/^[a-f0-9]{64}$/i.test(sig)) return false;
@@ -258,6 +270,11 @@ export function ipCamerasProxy({
           const camera = sourceById.get(id);
           if (!camera || camera.enabled === false) return json(res, 404, { error: 'Camera unavailable' });
           const entry = await ensureStream(camera);
+          if (!(await waitForFile(entry.playlist))) {
+            health.set(id, { status: 'error', message: 'No HLS playlist produced by FFmpeg', lastErrorAt: Date.now(), updatedAt: Date.now() });
+            return json(res, 503, { error: 'Camera stream did not become ready' });
+          }
+          health.set(id, { status: 'online', message: 'Live HLS relay active', updatedAt: Date.now() });
           const expiresAt = Date.now() + TOKEN_TTL_MS;
           const playbackToken = signPlaybackToken(adminToken, id, expiresAt);
           return json(res, 200, {
