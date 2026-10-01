@@ -119,6 +119,7 @@ function identifyUrl(url, viewer, point) {
   });
   const normalizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
   return normalizedUrl + '?' + params.toString();
+}
 
 async function requestJson(url, fetchImpl, signal) {
   const response = await fetchImpl(url, {
