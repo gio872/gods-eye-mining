@@ -3127,6 +3127,7 @@
       "src/mining/core/miningTypes.js",
       "src/mining/core/prospectivityEngine.js",
       "src/mining/core/miningEngine.js",
+      "src/mining/core/economicValue.js",
       "src/layers/recentImagery/catalog.js",
       "src/layers/recentImagery/model.js"
     ],
