@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  mergePopulationTiles,
   normalizePopulationFeature,
   populationClassAllowedAtZoom,
   populationZoomForCameraHeight,
@@ -23,6 +24,31 @@ test('settlement classes appear progressively with zoom detail', () => {
   assert.equal(populationClassAllowedAtZoom('village', 9), true);
   assert.equal(populationClassAllowedAtZoom('hamlet', 10), false);
   assert.equal(populationClassAllowedAtZoom('hamlet', 11), true);
+});
+
+test('population batches are flattened before label selection', () => {
+  const merged = mergePopulationTiles([
+    {
+      tiles: [
+        {
+          places: [
+            {
+              id: 'ibague',
+              name: 'Ibagué',
+              placeClass: 'city',
+              rank: 5,
+              capital: '6',
+              latitude: 4.438,
+              longitude: -75.244,
+              priority: 1000,
+            },
+          ],
+        },
+      ],
+    },
+  ]);
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].name, 'Ibagué');
 });
 
 test('normalization preserves names and documented rank importance', () => {
