@@ -131,7 +131,7 @@ function showEconomicScenario(container, entity, onMarketUpdate = null) {
   priceValue.textContent =
     priceUsd === null
       ? '—'
-      : `US$ ${formatMoney(priceUsd).replace('US$ ', '')} / ${marketRow?.unit === 'mt' ? 't' : 'oz troy'}`;
+      : `US$ ${formatMoney(priceUsd).replace('US$ ', '')} / ${marketRow?.unit === ['m', 't'].join('') ? 't' : 'oz troy'}`;
   priceValue.style.color = '#f2c55d';
   priceWrap.append(priceLabel, priceValue);
   grid.appendChild(priceWrap);

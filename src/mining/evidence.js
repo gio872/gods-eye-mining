@@ -610,9 +610,10 @@ export function createMiningEvidenceBridge({
     return points.map((point, index) => {
       const drainageValue = geologyResult.drainageValues?.[index] ?? 0;
       const baseHydrology = hydrologyResult.values[index] ?? 0;
-      const combinedHydrology = clamp(
-        baseHydrology * 0.6 + drainageValue * 0.4,
-      );
+      const hasDrainageEvidence = Boolean(geologyResult.drainageSource);
+      const combinedHydrology = hasDrainageEvidence
+        ? clamp(baseHydrology * 0.6 + drainageValue * 0.4)
+        : clamp(baseHydrology);
       const factors = normalizeFactorMap({
         terrain: terrainResult.values[index],
         hydrology: combinedHydrology,
