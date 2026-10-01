@@ -75,3 +75,11 @@ test('graph builder consumes live GEM snapshots and market state', () => {
   assert.ok(focused.edges.some((edge) => edge.type === 'located-near'));
   delete globalThis.window;
 });
+
+test('critical mineral graph nodes are available from layer builder', async () => {
+  const { buildIntelligenceGraphFromLayers } = await import('./graphBuilder.js');
+  const graph=buildIntelligenceGraphFromLayers([], {includeMarkets:false,includeProspectivity:false});
+  assert.ok(graph.getNode('critical-mineral:tungsten'));
+  assert.ok(graph.getNode('commodity:tungsten'));
+  assert.ok(graph.edges.some(edge => edge.type === 'classified-as'));
+});
