@@ -91,7 +91,7 @@ async function deviceService(endpoint, credentials) {
 async function mediaProfiles(media, credentials) {
   const xml=await callOnvif(media,'trt:GetProfiles','',credentials);
   return all(xml,'Profiles').map((raw,index)=>({
-    token:(/<(?:[\\w-]+:)?Profiles[^>]*token="([^"]+)"/i.exec(raw)?.[1]) || `profile-${index+1}`,
+    token:(/<(?:[\w-]+:)?Profiles[^>]*token="([^"]+)"/i.exec(raw)?.[1]) || `profile-${index+1}`,
     name:text(raw,'Name') || `Profile ${index+1}`,
     raw,
   }));
@@ -164,7 +164,7 @@ async function ptzStatus(ptz, profileToken, credentials) {
 async function ptzPresets(ptz, profileToken, credentials) {
   const xml=await callPtz(ptz,'tptz:GetPresets',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken>`,credentials);
   return all(xml,'Preset').map((raw,index)=>({
-    token:(/<(?:[\\w-]+:)?Preset[^>]*token="([^"]+)"/i.exec(raw)?.[1]) || `preset-${index+1}`,
+    token:(/<(?:[\w-]+:)?Preset[^>]*token="([^"]+)"/i.exec(raw)?.[1]) || `preset-${index+1}`,
     name:text(raw,'Name') || `Preset ${index+1}`,
   }));
 }
@@ -200,7 +200,7 @@ async function discover(timeoutMs=DISCOVERY_TIMEOUT_MS) {
     socket.on('error',(error)=>{clearTimeout(timer);reject(error);});
     socket.on('message',(msg,rinfo)=>{
       const xml=msg.toString('utf8');
-      const xaddrs=all(xml,'XAddrs').flatMap((value)=>value.split(/\\s+/)).filter(Boolean);
+      const xaddrs=all(xml,'XAddrs').flatMap((value)=>value.split(/\s+/)).filter(Boolean);
       const endpoint=xaddrs.find((x)=>/^https?:/i.test(x));
       if(endpoint) found.set(endpoint,{endpoint,address:rinfo.address,types:all(xml,'Types')});
     });
