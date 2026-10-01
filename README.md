@@ -186,6 +186,20 @@ and it carries the LAN-sharing rules alongside [Keys & Costs](#-api-keys).
 ---
 
 ## 📹 Admin IP Cameras
+### ONVIF automatic discovery
+
+Inside **Cámaras IP**, use **BUSCAR ONVIF**. GEM sends a WS-Discovery probe on the
+local network, lists detected ONVIF devices, then lets the administrator enter
+the camera credentials. GEM queries the ONVIF device/media services, obtains
+the available media profiles and calls `GetStreamUri` to obtain the RTSP
+stream automatically. Profile T is the current ONVIF direction for advanced
+video streaming, including H.264/H.265 and RTSP; Profile S remains usable on
+existing devices but ONVIF is phasing its conformance program out in favor of
+Profile T. citeturn0search0turn0search4turn0search21
+
+Discovery is intentionally restricted to private/local IP addresses to avoid
+turning the ONVIF endpoint into a general-purpose network proxy.
+
 
 GEM includes a private **IP Camera Control** layer for cameras that you are
 authorized to operate. It is separate from the public CCTV catalog and is
