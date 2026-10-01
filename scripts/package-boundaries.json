@@ -3601,6 +3601,26 @@
     ],
     "external": []
   },
+  "aml-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/aml"
+    ],
+    "modules": [
+      "server/providers/aml.js"
+    ],
+    "external": []
+  },
+  "entity-intelligence-source": {
+    "exports": [
+      "./intelligence/entity-source"
+    ],
+    "modules": [
+      "src/intelligence/entityIntelligenceSource.js"
+    ],
+    "external": []
+  },
+
   "ip-cameras": {
     "exports": [
       "./cameras"
