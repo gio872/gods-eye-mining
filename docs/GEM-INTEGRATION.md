@@ -91,3 +91,11 @@ When `Mercado de Metales` has a valid market snapshot, a selected GEM target exp
 For gold/silver/platinum/palladium the grade convention is g/t and the conversion uses 31.1034768 grams per troy ounce. For industrial metals the grade convention is percent by mass and the price convention is USD per metric tonne.
 
 The calculation intentionally excludes mining costs, dilution, metallurgical recoveries beyond the entered scenario, payability, royalties, taxes, treatment/refining charges, cut-off grade, smelter terms and any reserve/resource classification. It is a scenario calculator, not a JORC/NI 43-101/CRIRSCO resource or reserve estimate.
+
+## Settlement context
+
+The Mining workspace includes a default-on local-only `population-places` layer for cartographic orientation. It reads the OpenFreeMap/OpenMapTiles `place` vector layer without replacing the active satellite or Google 3D basemap.
+
+Only settlement classes useful for mining context are rendered by default: `city`, `town`, `village` and `hamlet`. The request zoom is derived from camera height, so broad views stay sparse and closer views progressively expose smaller settlements. The overlay host performs screen-space decluttering and keeps the labels independent from Cesium's native label API.
+
+The source uses OpenMapTiles `rank` as its cartographic importance signal; it does not invent or infer population counts. Labels are local-only and are not stored in share-link layer state.
