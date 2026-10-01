@@ -283,7 +283,34 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
         setMessage(error?.message || 'No se pudo activar el preset', true);
       }
     });
-    presetRow.append(select, load, go);
+    const savePreset = document.createElement('button');
+    savePreset.type = 'button';
+    savePreset.textContent = 'GUARDAR';
+    savePreset.addEventListener('click', async () => {
+      const name = window.prompt('Nombre del preset ONVIF', `GEM ${new Date().toLocaleTimeString('es-CO')}`);
+      if (!name) return;
+      try {
+        const result = await ptzRequest(camera, { action: 'setPreset', name });
+        await load.click();
+        setMessage(`Preset guardado: ${name}${result.presetToken ? '' : ''}`);
+      } catch (error) {
+        setMessage(error?.message || 'No se pudo guardar el preset', true);
+      }
+    });
+    const removePreset = document.createElement('button');
+    removePreset.type = 'button';
+    removePreset.textContent = 'BORRAR';
+    removePreset.addEventListener('click', async () => {
+      if (!select.value) return;
+      try {
+        await ptzRequest(camera, { action: 'removePreset', presetToken: select.value });
+        await load.click();
+        setMessage('Preset eliminado');
+      } catch (error) {
+        setMessage(error?.message || 'No se pudo eliminar el preset', true);
+      }
+    });
+    presetRow.append(select, load, go, savePreset, removePreset);
     wrap.appendChild(presetRow);
     void refreshPtzStatus(camera, status);
     return wrap;
