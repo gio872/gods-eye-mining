@@ -121,6 +121,7 @@ export function createProspectivityLayer({
           longitude: row.lon,
           commodity: 'gold',
           factors: row.factors,
+          confidence: row.metadata?.evidenceCoverage ?? 0,
           metadata: row.metadata,
           source: 'GEM',
         });
@@ -215,6 +216,7 @@ export function createProspectivityLayer({
         lat: target.latitude,
         lon: target.longitude,
         score: target.score,
+        confidence: target.confidence,
         commodity: target.commodity,
       }));
     },
