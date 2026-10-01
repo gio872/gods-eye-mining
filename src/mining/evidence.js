@@ -165,12 +165,13 @@ export function createMiningEvidenceBridge({
     const response = await featureSource.getFootprints(centre, {
       signal: requestSignal,
     });
-    const features = Array.isArray(response) ? response : [];
+    const available = Array.isArray(response);
+    const features = available ? response : [];
     return {
       values: points.map((point) =>
         scoreHydrology(point, features, hydrologyRadiusKm),
       ),
-      source: 'Gods Eye GIS · Overpass',
+      source: available ? 'Gods Eye GIS · Overpass' : null,
       featureCount: features.length,
     };
   }
@@ -345,9 +346,20 @@ export function createMiningEvidenceBridge({
           imageryCatalogError: imagery.catalogError,
           godEyeLayerContext: context,
           factorsCovered: PROSPECTIVITY_FACTORS.filter((factor) => {
-            const value = factors[factor];
-            return factor !== 'sampling' && value > 0;
+            if (factor === 'sampling') return false;
+            if (factor === 'terrain') return Boolean(terrainResults[index]?.source);
+            if (factor === 'hydrology') return Boolean(hydrologyResult.source);
+            if (factor === 'geology') return Boolean(geologyResult.source);
+            if (factor === 'remote-sensing') return Boolean(imagery.source);
+            return false;
           }),
+          evidenceCoverage: [
+            Boolean(terrainResults[index]?.source),
+            Boolean(hydrologyResult.source),
+            Boolean(geologyResult.source),
+            Boolean(imagery.source),
+            false,
+          ].filter(Boolean).length / PROSPECTIVITY_FACTORS.length,
         },
       };
     });
