@@ -11,35 +11,29 @@ function response(features) {
   };
 }
 
-test('SGC geology source scores nearby commodity evidence and keeps metadata', async () => {
+test('SGC source fuses geology, structures, drainage and Au/Ag/Cu anomalies', async () => {
   const calls = [];
   const source = createSgcGeologySource({
     fetchImpl: async (url) => {
       calls.push(url);
-      if (url.includes('/MapServer/0/')) {
+      if (url.includes('/1700/query'))
         return response([
           {
             geometry: { type: 'Point', coordinates: [-75.2, 4.45] },
             properties: {
-              MMC_SIM_ST: 'Au, Depositos de placer, Deposito (productor o productor pasado)',
-              MMC_SYMB: 'Au, Depositos de placer',
+              MMC_SIM_ST: 'Au, Deposito (productor o productor pasado)',
               ID_NOM_DEP: 'Test gold deposit',
             },
           },
         ]);
-      }
-      if (url.includes('/MapServer/1/')) {
+      if (url.includes('/1/query'))
         return response([
           {
             geometry: { type: 'Point', coordinates: [-75.205, 4.45] },
-            properties: {
-              MMC_SYMB: 'Au, Depositos de placer',
-              ID_NOM_DEP: 'Test gold occurrence',
-            },
+            properties: { MMC_SYMB: 'Au, ocurrencia' },
           },
         ]);
-      }
-      if (url.includes('/MapServer/1704/')) {
+      if (url.includes('/1704/query'))
         return response([
           {
             geometry: {
@@ -49,11 +43,23 @@ test('SGC geology source scores nearby commodity evidence and keeps metadata', a
                 [-75.201, 4.46],
               ],
             },
-            properties: { Tipo: 'Falla' },
+            properties: { Tipo_Estru: 'Falla' },
           },
         ]);
-      }
-      if (url.includes('/MapServer/1709/')) {
+      if (url.includes('/1708/query'))
+        return response([
+          {
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [-75.199, 4.44],
+                [-75.199, 4.46],
+              ],
+            },
+            properties: { Leyenda: 'Lineamiento magnético' },
+          },
+        ]);
+      if (url.includes('/1709/query'))
         return response([
           {
             geometry: {
@@ -66,65 +72,101 @@ test('SGC geology source scores nearby commodity evidence and keeps metadata', a
             properties: { METAL: 'Au', Style_2022: 'Au' },
           },
         ]);
+      if (url.includes('/733/query'))
+        return response([
+          {
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [-75.21, 4.44],
+                [-75.19, 4.44],
+                [-75.19, 4.46],
+                [-75.21, 4.46],
+                [-75.21, 4.44],
+              ]],
+            },
+            properties: {
+              SimboloUC: 'K1-Sm',
+              Descripcion: 'Unidad volcanica y metamorfica',
+            },
+          },
+        ]);
+      if (url.includes('/728/query'))
+        return response([
+          {
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [-75.202, 4.44],
+                [-75.202, 4.46],
+              ],
+            },
+            properties: { ESTADO_DRENAJE: '5101' },
+          },
+        ]);
+      if (url.includes('/729/query'))
+        return response([
+          {
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [-75.203, 4.44],
+                [-75.201, 4.44],
+                [-75.201, 4.46],
+                [-75.203, 4.46],
+                [-75.203, 4.44],
+              ]],
+            },
+            properties: {},
+          },
+        ]);
+      if (url.includes('/identify?')) {
+        const n = calls.filter((item) => item.includes('/identify?')).length;
+        return {
+          ok: true,
+          async json() {
+            const values = [
+              [10, 5, 20],
+              [20, 10, 40],
+              [100, 50, 80],
+            ][n] || [10, 5, 20];
+            return {
+              results: [
+                { layerId: 3, value: String(values[0]) },
+                { layerId: 0, value: String(values[1]) },
+                { layerId: 13, value: String(values[2]) },
+              ],
+            };
+          },
+        };
       }
-      return response([
-        {
-          geometry: {
-            type: 'Polygon',
-            coordinates: [[
-              [-75.21, 4.44],
-              [-75.19, 4.44],
-              [-75.19, 4.46],
-              [-75.21, 4.46],
-              [-75.21, 4.44],
-            ]],
-          },
-          properties: {
-            SimboloUC: 'K1-Sm',
-            Descripcion: 'Unidad geológica de prueba',
-          },
-        },
-      ]);
+      throw new Error(`unexpected url: ${url}`);
     },
   });
 
+  const points = [
+    { id: 'a', lat: 4.45, lon: -75.20 },
+    { id: 'b', lat: 4.451, lon: -75.201 },
+    { id: 'c', lat: 4.452, lon: -75.202 },
+  ];
   const result = await source.getEvidence({
-    points: [{ lat: 4.45, lon: -75.2 }],
-    center: { lat: 4.45, lon: -75.2 },
+    points,
+    center: points[1],
     commodity: 'gold',
   });
 
-  assert.equal(calls.length, 5);
-  assert.equal(result.commodity, 'gold');
+  assert.equal(calls.length, 11);
   assert.equal(result.featureCount, 2);
   assert.equal(result.geologyMapFeatureCount, 1);
-  assert.ok(result.mineralizationValues[0] > 0.9);
-  assert.ok(result.structureValues[0] > 0.9);
-  assert.ok(result.alluvialValues[0] > 0.9);
-  assert.ok(result.values[0] > 0);
-  assert.match(result.source, /SGC/);
-});
-
-test('SGC geology source does not assign evidence to unrelated commodities', async () => {
-  const source = createSgcGeologySource({
-    fetchImpl: async () =>
-      response([
-        {
-          geometry: { type: 'Point', coordinates: [-75.2, 4.45] },
-          properties: { MMC_SYMB: 'Au, Depositos de placer' },
-        },
-      ]),
-    occurrencesUrl: 'https://example.test/occurrences',
-    geologyUrl: 'https://example.test/geology',
-    depositsUrl: 'https://example.test/deposits',
-  });
-
-  const result = await source.getEvidence({
-    points: [{ lat: 4.45, lon: -75.2 }],
-    center: { lat: 4.45, lon: -75.2 },
-    commodity: 'copper',
-  });
-
-  assert.equal(result.values[0], 0);
-  assert.equal(result.featureCount, 0);
+  assert.equal(result.lineamentFeatureCount, 1);
+  assert.equal(result.drainageSimpleFeatureCount, 1);
+  assert.equal(result.drainageDoubleFeatureCount, 1);
+  assert.equal(result.geochemistrySampleCount, 3);
+  assert.ok(result.lineamentValues[1] > 0);
+  assert.ok(result.drainageValues[1] > 0);
+  assert.ok(result.geochemistryValues[2] > result.geochemistryValues[0]);
+  assert.ok(result.auAnomalyValues[2] > 0);
+  assert.ok(result.agAnomalyValues[2] > 0);
+  assert.ok(result.cuAnomalyValues[2] > 0);
+  assert.match(result.source, /geoquímica Au\/Ag\/Cu/);
 });
