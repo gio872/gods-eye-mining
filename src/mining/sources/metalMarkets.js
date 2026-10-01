@@ -396,13 +396,16 @@ export function createMetalMarketsLayer({
           : null,
       }));
       const usdPerCop = finite(json?.currencies?.COP);
+      const copPerUsd = usdPerCop !== null && usdPerCop > 0
+        ? 1 / usdPerCop
+        : null;
       previousPrices = new Map(
         nextRows
           .filter((metal) => metal.price !== null)
           .map((metal) => [metal.id, metal.price]),
       );
       rows = nextRows;
-      usdCop = usdPerCop;
+      usdCop = copPerUsd;
       providerTimestamp = json?.timestamp || null;
       lastUpdate = Date.now();
       lastError = null;
@@ -465,7 +468,7 @@ export function createMetalMarketsLayer({
         info: providerTimestamp
           ? `Proveedor: Metals.Dev · ${marketStatus(providerTimestamp)} · ${new Date(providerTimestamp).toLocaleTimeString('es-CO')}`
           : 'Proveedor: Metals.Dev · configuración pendiente',
-        infoTitle: 'El módulo muestra precio spot, variación desde el último refresco y conversión aproximada a COP con el tipo USD/COP del mismo proveedor.',
+        infoTitle: 'El módulo muestra precio spot, variación desde el último refresco y conversión USD→COP con la tasa derivada del mismo proveedor.',
       };
     },
 
