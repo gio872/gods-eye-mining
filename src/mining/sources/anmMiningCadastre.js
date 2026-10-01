@@ -55,6 +55,39 @@ const LAYER_LABELS = Object.freeze({
   15: 'Banco de Área',
 });
 
+
+const ANM_CATEGORY_LAYERS = Object.freeze({
+  all: DISPLAY_LAYERS,
+  titles: Object.freeze([ANM_LAYERS.tituloVigente]),
+  applications: Object.freeze([
+    ANM_LAYERS.solicitudAreaReservaEspecial,
+    ANM_LAYERS.solicitudVigente,
+  ]),
+  subcontracts: Object.freeze([ANM_LAYERS.subcontrato]),
+  special: Object.freeze([
+    ANM_LAYERS.areaIndigenaRestringida,
+    ANM_LAYERS.zonasMinerasEtnicas,
+    ANM_LAYERS.areasEstrategicasMineras,
+    ANM_LAYERS.areasInversionEstado,
+    ANM_LAYERS.areaReservaEspecialDeclarada,
+    ANM_LAYERS.areaReservaEspecialEnTramite,
+  ]),
+  availability: Object.freeze([
+    ANM_LAYERS.areasSusceptiblesMineria,
+    ANM_LAYERS.zonaReservadaPotencial,
+    ANM_LAYERS.bancoArea,
+  ]),
+});
+
+const ANM_CATEGORY_LABELS = Object.freeze({
+  all: 'Todo',
+  titles: 'Títulos',
+  applications: 'Solicitudes',
+  subcontracts: 'Subcontratos',
+  special: 'Áreas especiales',
+  availability: 'Disponibilidad',
+});
+
 const PRIVATE_OR_ID_FIELDS = /(^|_)(identificacion|numero_identificacion)($|_)/i;
 const DISPLAY_FIELD_LIMIT = 16;
 
@@ -465,6 +498,8 @@ export function createAnmMiningCadastreLayer({
   let lastUpdate = null;
   let lastFeatureCount = 0;
   let highlightDataSource = null;
+  let activeCategory = 'all';
+  let rowControlsListener = null;
 
   const clearImagery = () => {
     if (
@@ -478,9 +513,10 @@ export function createAnmMiningCadastreLayer({
 
   const installImagery = () => {
     clearImagery();
+    const selectedLayers = ANM_CATEGORY_LAYERS[activeCategory] || DISPLAY_LAYERS;
     const provider = new Cesium.WebMapServiceImageryProvider({
       url: wmsUrl,
-      layers: DISPLAY_LAYERS.join(','),
+      layers: selectedLayers.join(','),
       parameters: {
         service: 'WMS',
         version: '1.3.0',
@@ -537,6 +573,43 @@ export function createAnmMiningCadastreLayer({
     }
   };
 
+  const notifyRowControls = () => {
+    try {
+      rowControlsListener?.();
+    } catch (error) {
+      console.warn('[ANM] row controls listener error:', error);
+    }
+  };
+
+  const setCategory = (category) => {
+    if (!Object.hasOwn(ANM_CATEGORY_LAYERS, category)) return;
+    activeCategory = category;
+    if (enabled && viewer) installImagery();
+    notifyRowControls();
+  };
+
+  const getRowControls = () => ({
+    chips: Object.keys(ANM_CATEGORY_LAYERS).map((id) => ({
+      id,
+      label: ANM_CATEGORY_LABELS[id],
+      active: id === activeCategory,
+      onClick: () => setCategory(id),
+    })),
+    legend: [
+      { label: 'Título vigente', color: layerColor(ANM_LAYERS.tituloVigente) },
+      { label: 'Solicitud', color: layerColor(ANM_LAYERS.solicitudVigente) },
+      { label: 'Subcontrato', color: layerColor(ANM_LAYERS.subcontrato) },
+      { label: 'Área especial', color: layerColor(ANM_LAYERS.areasEstrategicasMineras) },
+      { label: 'Disponibilidad cartográfica', color: layerColor(ANM_LAYERS.areasSusceptiblesMineria) },
+    ],
+    info:
+      activeCategory === 'all'
+        ? 'Mostrando todas las figuras ANM disponibles en el servicio.'
+        : `Filtro activo: ${ANM_CATEGORY_LABELS[activeCategory]}.`,
+    infoTitle:
+      'El filtro controla la cartografía ANM dibujada. La identificación por clic consulta las figuras visibles.',
+  });
+
   const layer = {
     id: 'anm-mining-cadastre',
     name: 'Centro Minero Colombia · ANM',
@@ -544,6 +617,12 @@ export function createAnmMiningCadastreLayer({
     source: 'ANM · Títulos · Solicitudes · Zonas Mineras Oficiales',
     updateInterval: 0,
     showInTogglePanel: true,
+
+    setRowControlsListener(listener) {
+      rowControlsListener = typeof listener === 'function' ? listener : null;
+    },
+
+    getRowControls,
 
     init(nextViewer) {
       viewer = nextViewer || null;
@@ -596,6 +675,7 @@ export function createAnmMiningCadastreLayer({
       highlightDataSource = null;
       detailPanel?.remove?.();
       detailPanel = null;
+      rowControlsListener = null;
       viewer = null;
       destroyed = true;
     },
@@ -605,13 +685,16 @@ export function createAnmMiningCadastreLayer({
         count: lastFeatureCount,
         lastUpdate,
         error: lastError,
+        category: activeCategory,
+        categoryLabel: ANM_CATEGORY_LABELS[activeCategory],
       };
     },
 
     getParams() {
       return {
         source: 'ANM',
-        visibleLayers: [...DISPLAY_LAYERS],
+        visibleLayers: [...(ANM_CATEGORY_LAYERS[activeCategory] || DISPLAY_LAYERS)],
+        category: activeCategory,
         categories: ['titles', 'applications', 'subcontracts', 'special-areas', 'availability-screening'],
         legalFreeArea: 'not-certified',
       };
