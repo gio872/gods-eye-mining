@@ -63,8 +63,10 @@ export function cameraPopulationBoxes(viewer) {
 export function mergePopulationTiles(results) {
   const byKey = new Map();
   for (const result of results || []) {
-    for (const place of result?.places || []) {
-      const key =
+    const tiles = Array.isArray(result?.tiles) ? result.tiles : [result];
+    for (const tile of tiles) {
+      for (const place of tile?.places || []) {
+        const key =
         place.placeClass +
         '|' +
         place.name.toLowerCase() +
@@ -73,8 +75,9 @@ export function mergePopulationTiles(results) {
         '|' +
         place.longitude.toFixed(5);
       const existing = byKey.get(key);
-      if (!existing || place.priority > existing.priority)
-        byKey.set(key, place);
+        if (!existing || place.priority > existing.priority)
+          byKey.set(key, place);
+      }
     }
   }
 
