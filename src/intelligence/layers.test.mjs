@@ -85,3 +85,18 @@ test('critical mineral submodules expose source-aware risk structures', async ()
   assert.equal(chain.stages.length,9);
   assert.equal(chain.status,'SOURCE_REQUIRED');
 });
+
+test('authoritative source pipeline normalizes and measures world production', async () => {
+  const { getCriticalMineralSources, normalizeWorldProductionRow } = await import('./criticalMinerals/sources.js');
+  const { ingestWorldProduction, concentrationShare } = await import('./criticalMinerals/dataPipeline.js');
+  assert.ok(getCriticalMineralSources().some(source => source.id === 'usgs-mcs-2026'));
+  assert.ok(getCriticalMineralSources().some(source => source.id === 'iea-gcmo-2026'));
+  const rows=ingestWorldProduction([
+    {mineral:'tungsten',country:'Bolivia',production:100,unit:'t',year:2025},
+    {mineral:'tungsten',country:'Colombia',production:50,unit:'t',year:2025},
+  ]);
+  assert.equal(rows.length,2);
+  assert.equal(normalizeWorldProductionRow({}).value,undefined);
+  assert.equal(concentrationShare(rows,'tungsten').topCountry,'Bolivia');
+  assert.equal(concentrationShare(rows,'tungsten').topShare,66.66666666666666);
+});
