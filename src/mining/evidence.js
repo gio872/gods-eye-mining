@@ -242,6 +242,17 @@ function terrainFactors(points, heights, profile, stepDegrees = 0.005) {
   };
 }
 
+function readNumericEvidence(feature) {
+  const properties = propertiesOf(feature);
+  for (const key of ['prospectivity', 'evidence', 'score', 'rating', 'rank']) {
+    const value = finite(properties[key]);
+    if (Number.isFinite(value)) return clamp(value);
+    const nested = finite(properties.tags?.[key]);
+    if (Number.isFinite(nested)) return clamp(nested);
+  }
+  return null;
+}
+
 function sourceFlag(value) {
   return typeof value === 'string' && value.length > 0;
 }
@@ -334,10 +345,18 @@ export function createMiningEvidenceBridge({
           });
 
     if (Array.isArray(raw)) {
-      const values = points.map(() => 0);
+      const values = points.map(() => {
+        let best = 0;
+        for (const feature of raw) {
+          const evidenceValue = readNumericEvidence(feature);
+          if (evidenceValue != null) best = Math.max(best, evidenceValue);
+        }
+        return best;
+      });
       return {
         ...empty,
         values,
+        mineralizationValues: values,
         source: raw.length ? 'GEM geology GIS' : null,
         geologyAvailable: raw.length > 0,
         mineralizationSource: raw.length ? 'GEM geology GIS' : null,
@@ -425,6 +444,7 @@ export function createMiningEvidenceBridge({
       drainageDoubleFeatureCount:
         Number(raw?.drainageDoubleFeatureCount) || 0,
       geochemistrySampleCount: Number(raw?.geochemistrySampleCount) || 0,
+      matchedUnits: Array.isArray(raw?.matchedUnits) ? raw.matchedUnits : [],
     };
   }
 
@@ -637,7 +657,7 @@ export function createMiningEvidenceBridge({
           rawAu: geologyResult.rawGeochemistry?.au?.[index] ?? null,
           rawAg: geologyResult.rawGeochemistry?.ag?.[index] ?? null,
           rawCu: geologyResult.rawGeochemistry?.cu?.[index] ?? null,
-          matchedGeologyUnit: null,
+          matchedGeologyUnit: geologyResult.matchedUnits?.[index] || null,
           imagerySource: imagery.imageryCatalogSource,
           remoteSensingSource: imagery.source,
           imageryCandidateCount: imagery.candidateCount,
