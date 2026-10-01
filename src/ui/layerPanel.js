@@ -40,7 +40,7 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Cameras',
-    ids: ['cctv', 'recent-imagery'],
+    ids: ['cctv', 'ip-cameras', 'recent-imagery'],
   },
   {
     label: 'Infrastructure',
@@ -83,6 +83,7 @@ const PANEL_LABELS = {
   bikeshare: 'Bike Share',
   cctv: 'Cameras',
   'alpr-cameras': 'Mapped ALPR Cameras',
+  'ip-cameras': 'Cámaras IP',
   'local-datacenters': 'Data Centers',
   'local-firms': 'Active Fires',
 };
