@@ -1761,6 +1761,7 @@
       "src/standalone/catalog.js",
       "src/mining/sources/sgcGeology.js",
       "src/mining/sources/hlsSpectral.js",
+      "src/mining/sources/anmMiningCadastre.js",
       "src/standalone/layerSources.js",
       "src/styles/anime.js",
       "src/styles/noir.js",
