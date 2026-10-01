@@ -82,3 +82,12 @@ The visible cadastre set includes: current mining requests represented by the AN
 Important legal boundary: **“Sin título/solicitud identificado” is not equivalent to a legally certified free area.** The ANM states that a Certificado de Área Libre considers titles and/or current applications, mining-excluded zones, overlap percentages and the corresponding boundary information. Use the in-app status as a cartographic screening aid and verify legal availability through ANM before filing or acquiring mining rights.
 
 Source metadata is shown in the map interface as ANM official geoservices. The WMS/WFS endpoints are publicly offered by ANM for consultation, interoperability and transparency.
+
+
+## Economic Scenario
+
+When `Mercado de Metales` has a valid market snapshot, a selected GEM target exposes an editable `Escenario económico` panel. The operator supplies mineral tonnes, grade and recovery; GEM reads the selected commodity price from the market module and calculates a gross scenario only.
+
+For gold/silver/platinum/palladium the grade convention is g/t and the conversion uses 31.1034768 grams per troy ounce. For industrial metals the grade convention is percent by mass and the price convention is USD per metric tonne.
+
+The calculation intentionally excludes mining costs, dilution, metallurgical recoveries beyond the entered scenario, payability, royalties, taxes, treatment/refining charges, cut-off grade, smelter terms and any reserve/resource classification. It is a scenario calculator, not a JORC/NI 43-101/CRIRSCO resource or reserve estimate.
