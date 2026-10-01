@@ -190,6 +190,8 @@ function publishTargets(dataSource, targets) {
       properties: new Cesium.PropertyBag({
         commodity: target.commodity,
         profile: target.profile,
+        latitude: target.latitude,
+        longitude: target.longitude,
         score: target.score,
         confidence: target.confidence,
         terrain: target.factors.terrain,
