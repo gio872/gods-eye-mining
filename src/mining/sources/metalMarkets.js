@@ -406,6 +406,18 @@ export function createMetalMarketsLayer({
       providerTimestamp = json?.timestamp || null;
       lastUpdate = Date.now();
       lastError = null;
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.__terraqueenMetalMarket = Object.freeze({
+          rows: nextRows.map((row) => Object.freeze({ ...row })),
+          usdCop,
+          timestamp: providerTimestamp,
+        });
+        window.dispatchEvent(
+          new CustomEvent('terraqueen:metal-market-updated', {
+            detail: window.__terraqueenMetalMarket,
+          }),
+        );
+      }
       return true;
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
