@@ -381,7 +381,9 @@ function robustZ(values, value) {
     ordered.length % 2
       ? ordered[middle]
       : (ordered[middle - 1] + ordered[middle]) / 2;
-  const deviations = ordered.map((candidate) => Math.abs(candidate - median)).sort((a, b) => a - b);
+  const deviations = ordered
+    .map((candidate) => Math.abs(candidate - median))
+    .sort((a, b) => a - b);
   const mad = deviations[Math.floor(deviations.length / 2)] ?? 0;
   if (mad > 1e-12) return (value - median) / (1.4826 * mad);
   const mean =
