@@ -49,6 +49,10 @@ const PANEL_GROUPS = [
     ids: ['rocket-launches', 'earthquakes', 'local-firms', 'fire-perimeters'],
   },
   {
+    label: 'Mining',
+    ids: ['metal-markets', 'anm-mining-cadastre', 'gem-prospectivity'],
+  },
+  {
     label: 'Weather',
     ids: [
       'wind',
