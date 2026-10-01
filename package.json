@@ -258,6 +258,10 @@
     "./mining/sources/anm-cadastre": "./src/mining/sources/anmMiningCadastre.js",
     "./mining/sources/metal-markets": "./src/mining/sources/metalMarkets.js",
     "./mining/economic-value": "./src/mining/core/economicValue.js",
-    "./intelligence": "./src/intelligence/index.js"
+    "./intelligence": "./src/intelligence/index.js",
+    "./cameras": "./src/cameras/index.js",
+    "./server/providers/ip-cameras": {
+      "node": "./server/providers/ipCameras.js"
+    }
   }
 }
