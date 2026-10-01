@@ -164,7 +164,7 @@ export function createIpCamerasLayer({
         try { await source.remove(camera.id); await refresh(); setMessage(`Cámara ${camera.name} eliminada`); } catch (error) { setMessage(error?.message || 'No se pudo eliminar', true); }
       });
       actions.append(live, locate, remove); body.appendChild(actions); card.append(video, body); grid.appendChild(card);
-      void play(camera, video);
+      // Live relay starts only when the operator presses LIVE; this avoids spawning one FFmpeg process per registered camera.
     }
     rowControlsListener?.();
   };
