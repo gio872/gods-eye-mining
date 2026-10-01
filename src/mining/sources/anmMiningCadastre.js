@@ -114,7 +114,7 @@ function identifyUrl(url, viewer, point) {
       1,
       Number(canvas.clientHeight) || 1024,
     )},96`,
-    returnGeometry: 'false',
+    returnGeometry: 'true',
     returnFieldName: 'true',
   });
   const normalizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
@@ -166,12 +166,188 @@ function formatValue(value) {
   return String(value);
 }
 
+
+function layerColor(layerId) {
+  return {
+    1: '#f2c55d',
+    2: '#ffd95e',
+    3: '#ff9f43',
+    4: '#f6c85f',
+    6: '#d18cff',
+    7: '#c08cff',
+    9: '#ff6b5f',
+    10: '#ff8f55',
+    11: '#7fe3d4',
+    12: '#5fd6ff',
+    13: '#8bd450',
+    14: '#7ca7ff',
+    15: '#9fc4ff',
+  }[Number(layerId)] || '#20ced8';
+}
+
+function geometryPoints(geometry) {
+  if (!geometry || typeof geometry !== 'object') return [];
+  if (Array.isArray(geometry.rings))
+    return geometry.rings.filter((ring) => Array.isArray(ring) && ring.length >= 2);
+  if (Array.isArray(geometry.paths))
+    return geometry.paths.filter((path) => Array.isArray(path) && path.length >= 2);
+  return [];
+}
+
+function geometryCenter(geometry) {
+  if (finite(geometry?.x) !== null && finite(geometry?.y) !== null)
+    return { lon: Number(geometry.x), lat: Number(geometry.y) };
+  const groups = geometryPoints(geometry);
+  const points = groups.flat().filter(
+    (pair) => Array.isArray(pair) && finite(pair[0]) !== null && finite(pair[1]) !== null,
+  );
+  if (!points.length) return null;
+  const total = points.reduce(
+    (sum, pair) => ({ lon: sum.lon + Number(pair[0]), lat: sum.lat + Number(pair[1]) }),
+    { lon: 0, lat: 0 },
+  );
+  return {
+    lon: total.lon / points.length,
+    lat: total.lat / points.length,
+  };
+}
+
+function clearHighlights(dataSource) {
+  dataSource?.entities?.removeAll?.();
+}
+
+function highlightResults(dataSource, results, clickPoint) {
+  if (!dataSource) return;
+  clearHighlights(dataSource);
+  const pointEntity = dataSource.entities.add({
+    position: Cesium.Cartesian3.fromDegrees(clickPoint.lon, clickPoint.lat, 0),
+    point: {
+      pixelSize: 13,
+      color: Cesium.Color.WHITE.withAlpha(0.98),
+      outlineColor: Cesium.Color.fromCssColorString('#20ced8'),
+      outlineWidth: 3,
+      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
+    label: {
+      text: 'OBJETO SEÑALADO',
+      font: '600 12px JetBrains Mono, monospace',
+      fillColor: Cesium.Color.WHITE,
+      outlineColor: Cesium.Color.BLACK.withAlpha(0.9),
+      outlineWidth: 4,
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+      pixelOffset: new Cesium.Cartesian2(0, -18),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
+  });
+  pointEntity.show = true;
+
+  results.forEach((result, resultIndex) => {
+    const colorHex = layerColor(result.layerId);
+    const color = Cesium.Color.fromCssColorString(colorHex);
+    const geometry = result?.geometry;
+    const groups = geometryPoints(geometry);
+    const labelValue =
+      result?.attributes?.CODIGO_EXPEDIENTE ||
+      result?.attributes?.NOMBRE_DE_TITULAR ||
+      result?.attributes?.NOMBRE_SOLICITANTE ||
+      `OBJETO ANM ${resultIndex + 1}`;
+    const labelCenter = geometryCenter(geometry) || clickPoint;
+
+    groups.forEach((group, groupIndex) => {
+      const cleaned = group.filter(
+        (pair) =>
+          Array.isArray(pair) &&
+          finite(pair[0]) !== null &&
+          finite(pair[1]) !== null,
+      );
+      if (cleaned.length < 2) return;
+      const positions = cleaned.map(([lon, lat]) =>
+        Cesium.Cartesian3.fromDegrees(Number(lon), Number(lat), 0),
+      );
+      if (
+        Number(result?.geometry?.rings ? 1 : 0) &&
+        positions.length > 2 &&
+        !Cesium.Cartesian3.equals(positions[0], positions[positions.length - 1])
+      )
+        positions.push(positions[0]);
+
+      dataSource.entities.add({
+        polyline: {
+          positions,
+          width: 9,
+          clampToGround: true,
+          material: color.withAlpha(0.28),
+          depthFailMaterial: color.withAlpha(0.28),
+        },
+      });
+      dataSource.entities.add({
+        polyline: {
+          positions,
+          width: 3,
+          clampToGround: true,
+          material: color.withAlpha(0.98),
+          depthFailMaterial: color.withAlpha(0.98),
+        },
+      });
+
+      if (groupIndex === 0) {
+        dataSource.entities.add({
+          position: Cesium.Cartesian3.fromDegrees(
+            labelCenter.lon,
+            labelCenter.lat,
+            0,
+          ),
+          label: {
+            text: String(labelValue),
+            font: '700 11px JetBrains Mono, monospace',
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: color.withAlpha(0.95),
+            outlineWidth: 5,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
+      }
+    });
+  });
+}
+
+function renderLegend(panel) {
+  const legend = document.createElement('div');
+  legend.style.cssText =
+    'display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;padding:9px;margin-bottom:10px;' +
+    'border:1px solid rgba(32,206,216,.16);background:rgba(4,17,23,.55);font-size:9px;';
+  [
+    [4, 'Títulos vigentes'],
+    [2, 'Solicitudes vigentes'],
+    [3, 'Subcontratos'],
+    [11, 'Reserva especial declarada'],
+    [12, 'Reserva especial en trámite'],
+    [9, 'Áreas estratégicas'],
+  ].forEach(([id, label]) => {
+    const item = document.createElement('div');
+    item.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0';
+    const swatch = document.createElement('span');
+    swatch.style.cssText =
+      `width:9px;height:9px;display:inline-block;flex:0 0 9px;border:1px solid rgba(255,255,255,.28);background:${layerColor(id)};box-shadow:0 0 8px ${layerColor(id)}55`;
+    const text = document.createElement('span');
+    text.textContent = label;
+    text.style.color = 'rgba(241,246,247,.75)';
+    item.append(swatch, text);
+    legend.appendChild(item);
+  });
+  panel.appendChild(legend);
+}
+
 function renderInfo(panel, point, results) {
   if (!panel) return;
   const title = document.createElement('div');
-  title.textContent = 'ANM · CATASTRO MINERO';
+  title.textContent = 'CENTRO MINERO COLOMBIA · ANM';
   title.style.cssText =
-    'font-size:11px;letter-spacing:.15em;color:#f2c55d;margin-bottom:7px;font-weight:700';
+    'font-size:12px;letter-spacing:.13em;color:#f2c55d;margin-bottom:7px;font-weight:700';
 
   const coord = document.createElement('div');
   coord.textContent =
@@ -180,6 +356,12 @@ function renderInfo(panel, point, results) {
     'font-size:11px;color:#b8cdd1;margin-bottom:9px';
 
   panel.replaceChildren(title, coord);
+  const scope = document.createElement('div');
+  scope.textContent = 'TÍTULOS · SOLICITUDES · ZONAS MINERAS · ÁREAS ESPECIALES';
+  scope.style.cssText =
+    'font-size:9px;letter-spacing:.07em;color:#20ced8;margin-bottom:9px;';
+  panel.appendChild(scope);
+  renderLegend(panel);
 
   if (!results.length) {
     const empty = document.createElement('div');
@@ -216,7 +398,7 @@ function renderInfo(panel, point, results) {
     heading.textContent =
       LAYER_LABELS[Number(result.layerId)] || String(result.layerName || 'Capa ANM');
     heading.style.cssText =
-      'font-size:10px;letter-spacing:.08em;color:#20ced8;margin-bottom:6px;font-weight:700';
+      `font-size:10px;letter-spacing:.08em;color:${layerColor(result.layerId)};margin-bottom:6px;font-weight:700`;
     card.appendChild(heading);
 
     for (const [key, value] of displayFields(result.attributes)) {
@@ -262,6 +444,7 @@ export function createAnmMiningCadastreLayer({
   let lastError = null;
   let lastUpdate = null;
   let lastFeatureCount = 0;
+  let highlightDataSource = null;
 
   const clearImagery = () => {
     if (
@@ -298,10 +481,11 @@ export function createAnmMiningCadastreLayer({
     detailPanel.id = 'anm-cadastre-detail';
     detailPanel.hidden = true;
     detailPanel.style.cssText =
-      'position:absolute;top:120px;right:24px;width:360px;max-height:52vh;overflow:auto;' +
-      'box-sizing:border-box;padding:14px 16px;border:1px solid rgba(242,197,93,.34);' +
-      'background:rgba(4,17,23,.94);color:#eef8fa;font-family:monospace;font-size:11px;' +
-      'line-height:1.35;z-index:49;box-shadow:0 14px 32px rgba(0,0,0,.42);backdrop-filter:blur(8px);';
+      'position:absolute;top:92px;right:calc(var(--right-rail-x, 52px) + 350px);' +
+      'width:min(390px, calc(100vw - 430px));max-height:calc(100vh - 128px);overflow:auto;' +
+      'box-sizing:border-box;padding:14px 16px;border:1px solid rgba(242,197,93,.38);' +
+      'background:rgba(4,17,23,.96);color:#eef8fa;font-family:monospace;font-size:11px;' +
+      'line-height:1.35;z-index:160;box-shadow:0 16px 40px rgba(0,0,0,.52);backdrop-filter:blur(10px);';
     viewer.container.appendChild(detailPanel);
   };
 
@@ -322,6 +506,7 @@ export function createAnmMiningCadastreLayer({
       lastFeatureCount = results.length;
       lastUpdate = Date.now();
       lastError = null;
+      highlightResults(highlightDataSource, results, point);
       renderInfo(detailPanel, point, results);
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
@@ -334,9 +519,9 @@ export function createAnmMiningCadastreLayer({
 
   const layer = {
     id: 'anm-mining-cadastre',
-    name: 'Catastro Minero ANM',
+    name: 'Centro Minero Colombia · ANM',
     icon: '⛏',
-    source: 'ANM · Servicios Geográficos Oficiales',
+    source: 'ANM · Títulos · Solicitudes · Zonas Mineras Oficiales',
     updateInterval: 0,
     showInTogglePanel: true,
 
@@ -344,6 +529,11 @@ export function createAnmMiningCadastreLayer({
       viewer = nextViewer || null;
       if (!viewer) return false;
       ensureDetailPanel();
+      highlightDataSource?.entities?.removeAll?.();
+      if (!highlightDataSource) {
+        highlightDataSource = new Cesium.CustomDataSource('anm-mining-highlights');
+        viewer.dataSources.add(highlightDataSource);
+      }
       clickHandler?.destroy?.();
       clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       clickHandler.setInputAction(
@@ -367,6 +557,7 @@ export function createAnmMiningCadastreLayer({
     disable() {
       enabled = false;
       clearImagery();
+      clearHighlights(highlightDataSource);
       if (detailPanel) detailPanel.hidden = true;
       return true;
     },
@@ -380,6 +571,9 @@ export function createAnmMiningCadastreLayer({
       clearImagery();
       clickHandler?.destroy?.();
       clickHandler = null;
+      if (highlightDataSource && viewer?.dataSources?.contains?.(highlightDataSource))
+        viewer.dataSources.remove(highlightDataSource, true);
+      highlightDataSource = null;
       detailPanel?.remove?.();
       detailPanel = null;
       viewer = null;
@@ -398,6 +592,7 @@ export function createAnmMiningCadastreLayer({
       return {
         source: 'ANM',
         visibleLayers: [...DISPLAY_LAYERS],
+        categories: ['titles', 'applications', 'subcontracts', 'special-areas', 'availability-screening'],
         legalFreeArea: 'not-certified',
       };
     },
