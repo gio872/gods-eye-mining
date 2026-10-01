@@ -240,6 +240,8 @@ export function createApplicationCatalog({
       ],
       metadata,
     );
+    const intelligenceGraphLayer = catalog.layers.find((layer) => layer?.id === 'intelligence-graph');
+    intelligenceGraphLayer?.setSourceLayers?.(catalog.layers);
     return Object.freeze({
       ...catalog,
       militaryRegistry,
