@@ -195,12 +195,11 @@ export function createPopulationLayer({
         let lastFailure = null;
         for (let zoom = requestedZoom; zoom >= 4; zoom--) {
           try {
-            results.push(
-              await source.fetchBounds(box, {
-                zoom,
-                signal: controller.signal,
-              }),
-            );
+            const batch = await source.fetchBounds(box, {
+            zoom,
+            signal: controller.signal,
+          });
+          results.push(...(batch?.tiles || []));
             loaded = true;
             break;
           } catch (error) {
