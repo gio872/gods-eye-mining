@@ -106,7 +106,7 @@ function isHydrologyFeature(feature) {
 
 function pointInsideRing(point, ring) {
   let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i += 1) {
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
     const a = ring[i];
     const b = ring[j];
     if (!Array.isArray(a) || !Array.isArray(b)) continue;
