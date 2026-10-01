@@ -141,11 +141,17 @@ function showEconomicScenario(container, entity, onMarketUpdate = null) {
       recoveryPercent: recoveryField.input.value,
       priceUsd,
     });
+    const recoveredText = calc.priceUnit === 'USD/toz'
+      ? `${calc.recoveredTroyOz.toLocaleString('es-CO', { maximumFractionDigits: 2 })} oz troy`
+      : `${calc.recoveredMetalTonnes.toLocaleString('es-CO', { maximumFractionDigits: 4 })} t`;
+    const recoveredSecondary = calc.priceUnit === 'USD/toz'
+      ? `${calc.recoveredMetalGrams.toLocaleString('es-CO', { maximumFractionDigits: 0 })} g`
+      : `${calc.recoveredMetalKg.toLocaleString('es-CO', { maximumFractionDigits: 1 })} kg`;
     output.innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 10px">' +
-      `<div><span style="color:#7c9ca1">METAL RECUPERADO</span><br><strong>${calc.recoveredTroyOz.toLocaleString('es-CO',{maximumFractionDigits:2})} oz troy</strong></div>` +
+      `<div><span style="color:#7c9ca1">METAL RECUPERADO</span><br><strong>${recoveredText}</strong></div>` +
       `<div><span style="color:#7c9ca1">VALOR BRUTO USD</span><br><strong style="color:#f2c55d">${formatMoney(calc.grossValueUsd)}</strong></div>` +
-      `<div><span style="color:#7c9ca1">METAL RECUPERADO</span><br><strong>${calc.recoveredMetalGrams.toLocaleString('es-CO',{maximumFractionDigits:0})} g</strong></div>` +
+      `<div><span style="color:#7c9ca1">EQUIVALENTE MASIVO</span><br><strong>${recoveredSecondary}</strong></div>` +
       `<div><span style="color:#7c9ca1">VALOR BRUTO COP</span><br><strong style="color:#67dfe6">${usdCop === null || calc.grossValueUsd === null ? '—' : formatMoney(calc.grossValueUsd * usdCop, 'COP')}</strong></div>` +
       '</div>';
   };
