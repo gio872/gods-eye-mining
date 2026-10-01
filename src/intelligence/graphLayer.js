@@ -1,3 +1,4 @@
+import * as Cesium from 'cesium';
 import { createDemoIntelligenceGraph } from './graph.js';
 import { buildIntelligenceGraphFromLayers } from './graphBuilder.js';
 
