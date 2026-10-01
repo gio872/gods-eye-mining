@@ -292,15 +292,21 @@ function highlightResults(dataSource, results, clickPoint) {
   });
   pointEntity.show = true;
 
-  const overlayEntries = [{
-    id: 'anm-clicked-point',
-    position: Cesium.Cartesian3.fromDegrees(clickPoint.lon, clickPoint.lat, 0),
-    variant: 'label',
-    title: 'OBJETO SEÑALADO',
-    priority: 1000,
-    protected: true,
-    collisionGroup: 'anm-mining',
-  }];
+  const overlayEntries = [
+    {
+      id: 'anm-clicked-point',
+      position: Cesium.Cartesian3.fromDegrees(
+        clickPoint.lon,
+        clickPoint.lat,
+        0,
+      ),
+      variant: 'label',
+      title: 'OBJETO SEÑALADO',
+      priority: 1000,
+      protected: true,
+      collisionGroup: 'anm-mining',
+    },
+  ];
 
   results.forEach((result, resultIndex) => {
     const colorHex = layerColor(result.layerId);
