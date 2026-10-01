@@ -1,28 +1,10 @@
 import { calculateGrossMetalValue } from '../mining/core/economicValue.js';
-
-const CRITICAL_MINERALS_2025 = Object.freeze([
-  ['aluminum','Aluminio','base'],['antimony','Antimonio','technology'],['arsenic','Arsénico','technology'],
-  ['barite','Barita','industrial'],['beryllium','Berilio','technology'],['bismuth','Bismuto','technology'],
-  ['boron','Boro','industrial'],['cerium','Cerio','rare-earth'],['cesium','Cesio','technology'],
-  ['chromium','Cromo','industrial'],['cobalt','Cobalto','battery'],['copper','Cobre','base'],
-  ['dysprosium','Disprosio','rare-earth'],['erbium','Erbio','rare-earth'],['europium','Europio','rare-earth'],
-  ['fluorspar','Fluorita','industrial'],['gadolinium','Gadolinio','rare-earth'],['gallium','Galio','technology'],
-  ['germanium','Germanio','technology'],['graphite','Grafito','battery'],['hafnium','Hafnio','technology'],
-  ['holmium','Holmio','rare-earth'],['indium','Indio','technology'],['iridium','Iridio','pgm'],
-  ['lanthanum','Lantano','rare-earth'],['lead','Plomo','base'],['lithium','Litio','battery'],
-  ['lutetium','Lutecio','rare-earth'],['magnesium','Magnesio','industrial'],['manganese','Manganeso','battery'],
-  ['metallurgical-coal','Carbón metalúrgico','industrial'],['neodymium','Neodimio','rare-earth'],
-  ['nickel','Níquel','battery'],['niobium','Niobio','industrial'],['palladium','Paladio','pgm'],
-  ['phosphate','Fosfato','fertilizer'],['platinum','Platino','pgm'],['potash','Potasa','fertilizer'],
-  ['praseodymium','Praseodimio','rare-earth'],['rhenium','Renio','technology'],['rhodium','Rodio','pgm'],
-  ['rubidium','Rubidio','technology'],['ruthenium','Rutenio','pgm'],['samarium','Samario','rare-earth'],
-  ['scandium','Escandio','technology'],['silicon','Silicio','technology'],['silver','Plata','precious'],
-  ['tantalum','Tantalio','technology'],['tellurium','Telurio','technology'],['terbium','Terbio','rare-earth'],
-  ['thulium','Tulio','rare-earth'],['tin','Estaño','technology'],['titanium','Titanio','industrial'],
-  ['tungsten','Tungsteno','industrial'],['uranium','Uranio','energy'],['vanadium','Vanadio','battery'],
-  ['ytterbium','Iterbio','rare-earth'],['yttrium','Itrio','rare-earth'],['zinc','Zinc','base'],
-  ['zirconium','Circonio','industrial'],
-]);
+import {
+  getCriticalMineralCatalog,
+  getCriticalMineralRecord,
+  getTaxonomyStats,
+  calculateCriticalityCoverage,
+} from './criticalMinerals/index.js';
 
 const TRADE_CORRIDORS = Object.freeze([
   { id:'andes-pacific', name:'Andes → Pacífico', origin:'Andes', destination:'Asia-Pacífico', mode:'marítimo', status:'MODELO' },
@@ -179,27 +161,82 @@ export function createProjectEconomicsLayer() {
 
 export function createCriticalMineralsLayer() {
   let selected='tungsten';
+  const catalog=getCriticalMineralCatalog();
   return createPanelLayer({
-    id:'critical-minerals', name:'Minerales Críticos', icon:'◆', source:'USGS · 2025 LIST',
+    id:'critical-minerals', name:'Minerales Críticos', icon:'◆',
+    source:'GEM · GLOBAL CRITICAL MINERALS INTELLIGENCE',
     buildPanel(){
-      const panel=panelShell('terraqueen-critical-minerals','MINERALES CRÍTICOS','SUPPLY CHAIN · TECHNOLOGY · STRATEGIC MATERIALS','USGS Final 2025 · 60 commodities');
-      const filter=document.createElement('input'); filter.placeholder='Filtrar mineral…'; filter.style.cssText='margin-top:11px;width:100%;box-sizing:border-box;padding:7px;background:rgba(2,12,17,.9);border:1px solid rgba(32,206,216,.2);color:#eef8fa;border-radius:5px;font:10px monospace'; panel.appendChild(filter);
-      const body=document.createElement('div'); body.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px'; panel.appendChild(body);
+      const panel=panelShell(
+        'terraqueen-critical-minerals',
+        'GLOBAL CRITICAL MINERALS INTELLIGENCE',
+        'TAXONOMY · SUPPLY CHAIN · CRITICALITY · OPPORTUNITY',
+        'USGS 2025 · EU CRMA 2024 · IEA 2026'
+      );
+      const toolbar=document.createElement('div');
+      toolbar.style.cssText='display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:11px';
+      const filter=document.createElement('input');
+      filter.placeholder='Buscar mineral…';
+      filter.style.cssText='width:100%;box-sizing:border-box;padding:7px;background:rgba(2,12,17,.9);border:1px solid rgba(32,206,216,.2);color:#eef8fa;border-radius:5px;font:10px monospace';
+      const status=button('USGS 60');
+      status.disabled=true; status.style.opacity='.8';
+      toolbar.append(filter,status); panel.appendChild(toolbar);
+      const meta=document.createElement('div');
+      meta.style.cssText='margin-top:8px;color:#78989e;font-size:8px;line-height:1.4';
+      panel.appendChild(meta);
+      const body=document.createElement('div');
+      body.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px';
+      panel.appendChild(body);
+      const detail=document.createElement('div');
+      detail.style.cssText='margin-top:10px;padding:10px;border:1px solid rgba(242,197,93,.2);border-radius:6px;font-size:8px;line-height:1.5';
+      panel.appendChild(detail);
+
+      const renderDetail=(record)=>{
+        const classes=record.classifications;
+        const coverage=calculateCriticalityCoverage();
+        detail.innerHTML='<strong style="color:#f2c55d">'+esc(record.name)+'</strong>'+
+          '<br>ID: '+esc(record.id)+
+          '<br>Grupo GEM: '+esc(record.group)+
+          '<br>USGS: 2025 · '+esc(classes.usgs)+
+          '<br>EU CRM: '+esc(classes.eu||'—')+
+          '<br>EU Strategic: '+esc(classes.euStrategic||'—')+
+          '<br>IEA: '+esc(classes.iea||'—')+
+          '<br>Criticality coverage: '+coverage.coveragePercent+'% · '+coverage.status+
+          '<br><span style="color:#78989e">Producción, reservas, refinación, demanda, comercio, precios y restricciones no se inventan: requieren una fuente fechada y trazable.</span>';
+      };
+
       const render=()=>{
         body.replaceChildren();
         const q=filter.value.trim().toLowerCase();
-        CRITICAL_MINERALS_2025.filter(([id,name])=>!q||id.includes(q)||name.toLowerCase().includes(q)).forEach(([id,name,group])=>{
-          const b=button(name); b.style.textAlign='left'; b.title=group;
-          b.addEventListener('click',()=>{selected=id; [...body.children].forEach(x=>x.style.borderColor='rgba(32,206,216,.28)'); b.style.borderColor='#f2c55d';});
-          if(id===selected) b.style.borderColor='#f2c55d';
+        const rows=catalog.filter(r=>!q||r.id.includes(q)||r.name.toLowerCase().includes(q));
+        for(const record of rows){
+          const b=button(record.name);
+          b.style.textAlign='left';
+          b.title=record.group;
+          if(record.id===selected) b.style.borderColor='#f2c55d';
+          b.addEventListener('click',()=>{
+            selected=record.id;
+            [...body.children].forEach(x=>x.style.borderColor='rgba(32,206,216,.28)');
+            b.style.borderColor='#f2c55d';
+            renderDetail(record);
+          });
           body.appendChild(b);
-        });
+        }
+        meta.textContent=rows.length+' minerales visibles · '+catalog.length+' USGS · '+getTaxonomyStats().euCrma2024+' EU CRM · '+getTaxonomyStats().euStrategic2024+' EU strategic · métricas dinámicas: provider-required';
+        renderDetail(getCriticalMineralRecord(selected)||catalog[0]);
       };
-      filter.addEventListener('input',render); render();
-      const note=document.createElement('div'); note.style.cssText='margin-top:11px;padding:9px;border-top:1px solid rgba(255,255,255,.08);font-size:8px;line-height:1.45;color:#86a4a9'; note.textContent='La lista se usa como clasificación de inteligencia, no como pronóstico de precio ni como recomendación de inversión. Los datos de producción/comercio deben entrar desde fuentes específicas antes de calcular dependencia o concentración.'; panel.appendChild(note);
+      filter.addEventListener('input',render);
+      render();
       return panel;
     },
-    stats:enabled=>({enabled,count:CRITICAL_MINERALS_2025.length,selected,source:'USGS 2025'}),
+    stats:enabled=>({
+      enabled,
+      count:catalog.length,
+      selected,
+      source:'USGS 2025',
+      taxonomies:getTaxonomyStats(),
+      metricStatus:'NOT_CONNECTED',
+      temporalVersion:'2026.10',
+    }),
   });
 }
 
