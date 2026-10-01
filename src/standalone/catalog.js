@@ -12,11 +12,17 @@ export function createStandaloneCatalog({
     terrainSource: createApplicationRequestServices().terrain,
     signal,
   }),
+  featureSource = createApplicationRequestServices().features,
+  geologySource = null,
 } = {}) {
   return createApplicationCatalog({
     nepalBoundaryResolver,
     surface,
-    sources: createStandaloneLayerSources(),
+    sources: {
+      ...createStandaloneLayerSources(),
+      features: featureSource,
+      ...(geologySource ? { geology: geologySource } : {}),
+    },
     signal,
     vesselOptions: {
       maxRows: import.meta.env?.VITE_AIS_LIVE_MAX_ROWS,
