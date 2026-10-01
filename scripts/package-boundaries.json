@@ -3073,7 +3073,7 @@
       "src/layers/perimeters/source.js"
     ],
     "external": []
-  }  ,
+  },
   "gem-mining-core": {
     "exports": [
       "./mining"
