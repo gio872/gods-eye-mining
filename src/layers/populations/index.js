@@ -10,6 +10,8 @@ const OVERLAY_SOURCE_ID = 'population-places';
 const MAX_LABELS = 140;
 const VIEWBOX_MARGIN_DEG = 0.12;
 
+// Keep the population overlay bounded to a predictable label budget.
+
 /** Convert the visible Cesium rectangle into one or two non-wrapping boxes. */
 export function cameraPopulationBoxes(viewer) {
   const camera = viewer?.camera;
