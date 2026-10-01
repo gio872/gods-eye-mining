@@ -29,6 +29,7 @@ import { createInfrastructureLayers } from '../data/infrastructure.js';
 import { localGeoJsonServices } from './localGeojsonServices.js';
 import { createBhoteKoshiEventLayer } from '../data/bhoteKoshiEvent.js';
 import { createBhoteKoshiLocatorLayer } from '../data/bhoteKoshiLocator.js';
+import { createProspectivityLayer } from '../mining/layers/prospectivity.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -63,6 +64,7 @@ const SOURCE_METHODS = Object.freeze({
  */
 export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'local-adsb', disposition: 'local-only' }),
+  Object.freeze({ id: 'gem-prospectivity', disposition: 'local-only' }),
 ]);
 
 /** Serialization metadata for every layer the application catalog constructs. */
@@ -129,7 +131,17 @@ export function createApplicationCatalog({
     const satellites = createApplicationSatellites({
       source: sources.satellites,
     });
-    const catalog = createLayerCatalog(
+    const recentImagery = createApplicationRecentImagery();
+    let catalog = null;
+    const gemProspectivity = createProspectivityLayer({
+      surface,
+      featureSource: sources.features,
+      geologySource: sources.geology,
+      imageryLayer: recentImagery,
+      getContextLayers: () => catalog?.layers || [],
+      signal,
+    });
+    catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
         createBhoteKoshiLocatorLayer({
@@ -156,7 +168,8 @@ export function createApplicationCatalog({
         createApplicationTransit({ surface, source: sources.transit }),
         createApplicationBikeshare({ source: sources.bikeshare }),
         createApplicationDirections(),
-        createApplicationRecentImagery(),
+        recentImagery,
+        gemProspectivity,
         vessels,
         installations,
         createApplicationAwareness({
