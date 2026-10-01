@@ -159,6 +159,7 @@ test('GEM places SGC geochemistry, lineaments and drainage plus real spectral an
   assert.equal(rows[0].factors.lineaments, 0.8);
   assert.equal(rows[0].factors.drainage, 0.9);
   assert.equal(rows[0].factors['remote-sensing'], 0);
+  assert.ok(rows[2].factors['remote-sensing'] > 0);
   assert.deepEqual(rows[0].metadata.spectralScene.itemId, 'spectral-test');
   assert.ok(rows[0].metadata.factorsCovered.length >= 10);
 });
