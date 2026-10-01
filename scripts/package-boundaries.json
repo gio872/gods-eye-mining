@@ -3577,6 +3577,8 @@
       "src/intelligence/graphLayer.js",
       "src/intelligence/graphBuilder.js"
     ],
-    "external": []
+    "external": [
+      "cesium"
+    ]
   }
 }
