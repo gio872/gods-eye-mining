@@ -106,15 +106,11 @@ async function streamUri(media, profileToken, credentials) {
   return text(xml,'Uri') || text(xml,'URI');
 }
 function velocityBody({profileToken, pan=0, tilt=0, zoom=0, timeoutMs=900}) {
+  const clamp = (value) => Math.max(-1, Math.min(1, Number(value) || 0));
   const timeout = `PT${Math.max(100, Math.min(10000, Number(timeoutMs) || 900))}MS`;
-  const movement = (pan || tilt)
-    ? `<tt:PanTilt x="${Math.max(-1,Math.min(1,Number(pan)||0))}" y="${Math.max(-1,Math.min(1,Number(tilt)||0)}"/>`
-    : '';
-  const zoomNode = zoom
-    ? `<tt:Zoom x="${Math.max(-1,Math.min(1,Number(zoom)||0))}"/>`
-    : '';
-  return `<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:Velocity><tt:PanTilt x="${movement ? Math.max(-1,Math.min(1,Number(pan)||0)) : 0}" y="${movement ? Math.max(-1,Math.min(1,Number(tilt)||0)) : 0}"/>${zoomNode ? zoomNode : ''}</tptz:Velocity><tptz:Timeout>${timeout}</tptz:Timeout>`;
+  return `<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:Velocity><tt:PanTilt x="${clamp(pan)}" y="${clamp(tilt)}"/>${zoom ? `<tt:Zoom x="${clamp(zoom)}"/>` : ''}</tptz:Velocity><tptz:Timeout>${timeout}</tptz:Timeout>`;
 }
+
 function ptzSoap(action, body, security='') {
   return `<?xml version="1.0" encoding="UTF-8"?><s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><s:Header>${security}</s:Header><s:Body><${action}>${body}</${action}></s:Body></s:Envelope>`;
 }
