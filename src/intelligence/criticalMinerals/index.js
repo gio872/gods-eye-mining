@@ -17,3 +17,8 @@ export {
 } from './criticality.js';
 
 export { buildCriticalMineralOpportunity } from './opportunity.js';
+
+export { SUPPLY_CHAIN_STAGES, createSupplyChainSnapshot } from './supplyChain.js';
+export { COUNTRY_RISK_FIELDS, calculateCountryMineralRisk } from './countryRisk.js';
+export { MARKET_RISK_FIELDS, calculateMarketRisk } from './marketRisk.js';
+export { modelSupplyShockScenario } from './shockModel.js';
