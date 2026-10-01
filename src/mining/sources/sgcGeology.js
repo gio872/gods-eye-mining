@@ -10,7 +10,7 @@ const DEFAULT_GEOLOGY_URL =
   'https://srvags.sgc.gov.co/arcgis/rest/services/Mapa_Geologico_Colombia/Mapa_Geologico_Colombia_V2023/FeatureServer/733/query';
 
 const COMMODITY_PATTERNS = Object.freeze({
-  gold: [/\bau\b/i, /\boro\b/i, /placer/i],
+  gold: [/\bau\b/i, /\boro\b/i],
   copper: [/\bcu\b/i, /cobre/i],
   silver: [/\bag\b/i, /plata/i],
   tungsten: [/\bw\b/i, /tungsteno/i, /wolframio/i],
