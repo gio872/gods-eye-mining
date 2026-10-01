@@ -333,7 +333,10 @@ function highlightResults(dataSource, results, clickPoint) {
       if (
         Number(result?.geometry?.rings ? 1 : 0) &&
         positions.length > 2 &&
-        !Cesium.Cartesian3.equals(positions[0], positions[positions.length - 1])
+        !Cesium.Cartesian3.equals(
+          positions[0],
+          positions[positions.length - 1],
+        )
       )
         positions.push(positions[0]);
 
