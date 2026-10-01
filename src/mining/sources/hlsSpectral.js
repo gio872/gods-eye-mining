@@ -122,7 +122,7 @@ function bandMean(value) {
 function sampleFromFeature(feature) {
   const stats = statsPayload(feature);
   return {
-    id: feature?.properties?.id ?? stats.id ?? null,
+    id: feature?.id ?? feature?.properties?.id ?? stats.id ?? null,
     B02: bandMean(stats.B02 ?? stats.blue),
     B04: bandMean(stats.B04 ?? stats.red),
     B8A: bandMean(stats.B8A ?? stats.nir),
@@ -167,7 +167,7 @@ function itemTime(item) {
   return Number.isFinite(millis) ? millis : 0;
 }
 
-function pickItem(items, centre, maxCloud) {
+function pickItem(items, maxCloud) {
   const eligible = items
     .filter((item) => {
       const cloud = itemCloud(item);
@@ -182,12 +182,7 @@ function pickItem(items, centre, maxCloud) {
       if (ca !== cb) return ca - cb;
       return itemTime(b) - itemTime(a);
     });
-  if (!eligible.length) return null;
-  return eligible.find((item) => {
-    const geometry = item?.geometry;
-    if (!geometry || !centre) return true;
-    return true;
-  }) || eligible[0];
+  return eligible[0] || null;
 }
 
 function getItemId(item) {
@@ -299,7 +294,7 @@ export function createHlsSpectralSource({
       };
     }
 
-    const item = pickItem(stacItems(search), centre, maxCloud);
+    const item = pickItem(stacItems(search), maxCloud);
     if (!item) {
       return {
         values: points.map(() => 0),
