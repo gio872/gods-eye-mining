@@ -139,29 +139,8 @@ if (import.meta.url === invoked) {
       mode,
     );
     if (mode === '--check' && result.changed.length) {
-      for (const name of result.changed) {
+      for (const name of result.changed)
         console.error(`Needs formatting: ${name}`);
-        if (name === 'scripts/package-boundaries.json') {
-          const root = fileURLToPath(new URL('../', import.meta.url));
-          const file = path.join(root, name);
-          const entry = await readFile(file, 'utf8');
-          const formatted = await prettier.format(entry, {
-            ...(await prettier.resolveConfig(file)),
-            filepath: file,
-          });
-          const first = [...entry].findIndex((char, index) => char !== formatted[index]);
-          console.error('PACKAGE_FORMAT_DIFF', JSON.stringify({ first, source: entry.slice(Math.max(0, first - 500), first + 1200), formatted: formatted.slice(Math.max(0, first - 500), first + 1200) }));
-        }
-        if (name === 'src/mining/sources/anmMiningCadastre.js') {
-          const entry = await readFile(path.join(fileURLToPath(new URL('../', import.meta.url)), name), 'utf8');
-          const formatted = await prettier.format(entry, {
-            ...(await prettier.resolveConfig(path.join(fileURLToPath(new URL('../', import.meta.url)), name))),
-            filepath: path.join(fileURLToPath(new URL('../', import.meta.url)), name),
-          });
-          const first = [...entry].findIndex((char, index) => char !== formatted[index]);
-          console.error('ANM_FORMAT_DIFF', JSON.stringify({ first, source: entry.slice(Math.max(0, first - 500), first + 1200), formatted: formatted.slice(Math.max(0, first - 500), first + 1200) }));
-        }
-      }
       process.exitCode = 1;
     } else {
       console.log(
