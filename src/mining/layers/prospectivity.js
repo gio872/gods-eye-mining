@@ -10,6 +10,86 @@ const GRID_RADIUS = 3;
 const GRID_STEP_DEGREES = 0.005;
 const TARGET_POINT_THRESHOLD = 0.55;
 
+
+function propertyValue(entity, name, fallback = null) {
+  try {
+    const property = entity?.properties?.[name];
+    const value =
+      typeof property?.getValue === 'function'
+        ? property.getValue(Cesium.JulianDate.now())
+        : property;
+    return value == null ? fallback : value;
+  } catch {
+    return fallback;
+  }
+}
+
+function factorLabel(name) {
+  return {
+    terrain: 'Terreno',
+    hydrology: 'Hidrología',
+    geology: 'Geología',
+    structure: 'Estructura',
+    mineralization: 'Mineralización',
+    remoteSensing: 'Sentinel-2 / HLS',
+    alluvial: 'Aluvial',
+    geochemistry: 'Geoquímica',
+    lineaments: 'Lineamientos',
+    drainage: 'Drenaje',
+  }[name] || name;
+}
+
+function formatFactor(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric.toFixed(2) : '—';
+}
+
+function showTargetDetail(container, entity) {
+  if (!container || !entity) return;
+  const score = Number(propertyValue(entity, 'score', 0));
+  const confidence = Number(propertyValue(entity, 'confidence', 0));
+  const lat = Number(propertyValue(entity, 'latitude', 0));
+  const lon = Number(propertyValue(entity, 'longitude', 0));
+  const factors = {
+    terrain: propertyValue(entity, 'terrain', 0),
+    hydrology: propertyValue(entity, 'hydrology', 0),
+    geology: propertyValue(entity, 'geology', 0),
+    structure: propertyValue(entity, 'structure', 0),
+    mineralization: propertyValue(entity, 'mineralization', 0),
+    remoteSensing: propertyValue(entity, 'remoteSensing', 0),
+    alluvial: propertyValue(entity, 'alluvial', 0),
+    geochemistry: propertyValue(entity, 'geochemistry', 0),
+    lineaments: propertyValue(entity, 'lineaments', 0),
+    drainage: propertyValue(entity, 'drainage', 0),
+  };
+  const rows = Object.entries(factors)
+    .map(
+      ([name, value]) =>
+        '<div style="display:flex;justify-content:space-between;gap:12px;margin:3px 0"><span>' +
+        factorLabel(name) +
+        '</span><strong>' +
+        formatFactor(value) +
+        '</strong></div>',
+    )
+    .join('');
+  container.innerHTML =
+    '<div style="font-size:12px;letter-spacing:.16em;color:#55e8ff;margin-bottom:8px">GEM TARGET</div>' +
+    '<div style="font-size:24px;font-weight:700;margin-bottom:4px">Score ' +
+    formatFactor(score) +
+    '</div>' +
+    '<div style="font-size:12px;margin-bottom:10px">Confianza: ' +
+    formatFactor(confidence) +
+    ' · ' +
+    lat.toFixed(5) +
+    ', ' +
+    lon.toFixed(5) +
+    '</div>' +
+    '<div style="border-top:1px solid rgba(85,232,255,.25);padding-top:7px">' +
+    rows +
+    '</div>';
+  container.hidden = false;
+}
+
 function cameraCentre(viewer) {
   const canvas = viewer?.scene?.canvas;
   const ellipsoid = viewer?.scene?.ellipsoid || Cesium.Ellipsoid.WGS84;
@@ -170,6 +250,8 @@ export function createProspectivityLayer({
   let lastError = null;
   let lastEvidence = [];
   let removeMoveEnd = null;
+  let clickHandler = null;
+  let detailPanel = null;
 
   async function refresh() {
     if (!enabled || destroyed || refreshing || !viewer) return false;
@@ -229,6 +311,31 @@ export function createProspectivityLayer({
         dataSource = new Cesium.CustomDataSource('gem-prospectivity');
         viewer.dataSources.add(dataSource);
       }
+      if (!detailPanel && viewer?.container) {
+        detailPanel = document.createElement('div');
+        detailPanel.hidden = true;
+        detailPanel.style.cssText =
+          'position:absolute;top:120px;right:24px;width:300px;max-height:48vh;overflow:auto;padding:14px 16px;' +
+          'box-sizing:border-box;border:1px solid rgba(85,232,255,.55);background:rgba(4,12,18,.92);' +
+          'color:#e9fbff;font-family:monospace;font-size:12px;line-height:1.35;z-index:50;pointer-events:none;' +
+          'box-shadow:0 0 24px rgba(0,0,0,.35);backdrop-filter:blur(6px);';
+        viewer.container.appendChild(detailPanel);
+      }
+      clickHandler?.destroy?.();
+      clickHandler = null;
+      if (viewer?.scene?.canvas) {
+        clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        clickHandler.setInputAction((movement) => {
+          if (!enabled) return;
+          const picked = viewer.scene.pick(movement.position);
+          const entity = picked?.id;
+          if (!entity || typeof entity.id !== 'string' || !entity.id.startsWith('gem-')) {
+            if (detailPanel) detailPanel.hidden = true;
+            return;
+          }
+          showTargetDetail(detailPanel, entity);
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      }
       removeMoveEnd?.();
       removeMoveEnd = null;
       const remover = viewer?.camera?.moveEnd?.addEventListener?.(() => {
@@ -264,6 +371,10 @@ export function createProspectivityLayer({
       enabled = false;
       removeMoveEnd?.();
       removeMoveEnd = null;
+      clickHandler?.destroy?.();
+      clickHandler = null;
+      detailPanel?.remove?.();
+      detailPanel = null;
       if (dataSource && viewer?.dataSources?.contains?.(dataSource))
         viewer.dataSources.remove(dataSource, true);
       dataSource = null;
