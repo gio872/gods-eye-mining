@@ -85,6 +85,7 @@ export function createApplicationCatalog({
   vesselOptions,
   resolveAsset,
   nepalBoundaryResolver,
+  gemProfile = 'gold-alluvial',
 }) {
   if (!signal?.addEventListener)
     throw new TypeError('An application lifetime signal is required');
@@ -140,6 +141,7 @@ export function createApplicationCatalog({
       imageryLayer: recentImagery,
       getContextLayers: () => catalog?.layers || [],
       signal,
+      profile: gemProfile,
     });
     catalog = createLayerCatalog(
       [
