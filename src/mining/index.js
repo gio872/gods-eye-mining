@@ -10,4 +10,3 @@ export {
 export { createProspectivityEngine } from './core/prospectivityEngine.js';
 export { createMiningEngine } from './core/miningEngine.js';
 
-export { createProspectivityLayer } from './layers/prospectivity.js';
