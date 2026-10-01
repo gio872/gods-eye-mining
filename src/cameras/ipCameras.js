@@ -424,6 +424,17 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
   };
   const refresh = async () => {
     try {
+      const status = await source.getStatus();
+      if (!status.configured) {
+        cameras = Array.isArray(status.cameras) ? status.cameras : [];
+        health = new Map(cameras.map((camera) => [camera.id, camera]));
+        syncEntities();
+        render();
+        stopEvents();
+        setMessage('Servidor de cámaras sin configurar: establezca GEM_CAMERA_ADMIN_TOKEN y reinicie GEM.', true);
+        return false;
+      }
+
       const result = await source.list();
       cameras = Array.isArray(result.cameras) ? result.cameras : [];
       const activeIds = new Set(cameras.map(({ id }) => id));
@@ -435,7 +446,8 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
       startEvents();
       return true;
     } catch (error) {
-      setMessage(error?.message || 'No se pudo consultar el servicio de cámaras. Revise el diagnóstico del servidor.', true);
+      const detail = error?.message || 'No se pudo consultar el servicio de cámaras.';
+      setMessage(detail, true);
       return false;
     }
   };
