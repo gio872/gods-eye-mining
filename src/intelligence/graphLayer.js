@@ -100,11 +100,25 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       panel.hidden=false;this._refreshGraph();return true;
     },
     attachDataManager(manager){this._manager=manager||null;},
+    setSourceLayers(nextLayers){
+      layersSource=nextLayers || null;
+      this._refreshGraph();
+    },
+    _refreshGraph(){
+      if(layersSource){
+        const next=buildIntelligenceGraphFromLayers(layersSource);
+        activeGraph=next.nodes.length ? next : createDemoIntelligenceGraph();
+      }
+      if(!activeGraph.getNode(selectedId)) selectedId=activeGraph.nodes[0]?.id || '';
+      selected=activeGraph.getNode(selectedId);
+      this._render();
+    },
     _render(){
       if(!this._body)return;
       const summary=panel?.querySelector('#gem-graph-summary');
-      const stats=activeGraph.stats();if(summary)summary.textContent=`${stats.nodes} NODES · ${stats.edges} RELATIONSHIPS · DEPTH 2 · EVIDENCE-AWARE`;
-      renderGraphSvg(this._body,graph,selectedId,(node)=>{selectedId=node.id;selected=node;this._render();});
+      const stats=activeGraph.stats();
+      if(summary)summary.textContent=`${stats.nodes} NODES · `${stats.edges} RELATIONSHIPS · DEPTH 2 · LIVE SOURCES`;
+      renderGraphSvg(this._body,activeGraph,selectedId,(node)=>{selectedId=node.id;selected=node;this._render();});
     },
     disable(){enabled=false;if(panel)panel.hidden=true;return true;},
     update(){if(!enabled)return true;this._refreshGraph();return true;},
