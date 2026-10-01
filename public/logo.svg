@@ -1,23 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
   <title id="title">TerraQueen Mining Intelligence</title>
-  <desc id="desc">Corporate TerraQueen mining intelligence emblem with mountain strata and mineral compass.</desc>
+  <desc id="desc">Emblema corporativo TerraQueen de inteligencia minera geoespacial.</desc>
   <defs>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f4cf69"/>
-      <stop offset="0.52" stop-color="#d2a33d"/>
-      <stop offset="1" stop-color="#8f6518"/>
+      <stop offset="0" stop-color="#fff0a0"/>
+      <stop offset=".24" stop-color="#f2c45e"/>
+      <stop offset=".58" stop-color="#c68b20"/>
+      <stop offset="1" stop-color="#7e5412"/>
     </linearGradient>
     <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#62eff2"/>
-      <stop offset="1" stop-color="#0ca8bb"/>
+      <stop offset="0" stop-color="#83ffff"/>
+      <stop offset=".5" stop-color="#25d8df"/>
+      <stop offset="1" stop-color="#0b8395"/>
     </linearGradient>
+    <radialGradient id="glow"><stop offset="0" stop-color="#20d6df" stop-opacity=".32"/><stop offset="1" stop-color="#20d6df" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".6"/></filter>
   </defs>
-  <rect x="12" y="12" width="296" height="296" rx="42" fill="#061116" stroke="url(#teal)" stroke-width="5"/>
-  <path d="M44 220 108 108l42 63 38-54 88 103H44Z" fill="none" stroke="url(#gold)" stroke-width="13" stroke-linejoin="round"/>
-  <path d="M63 243h194M83 263h154" stroke="url(#teal)" stroke-width="5" opacity=".9"/>
-  <path d="M76 194c39-10 76-7 109 6 30 12 50 13 73 7" fill="none" stroke="#21cad4" stroke-width="4" opacity=".7"/>
-  <circle cx="227" cy="88" r="28" fill="#0a1920" stroke="#21cad4" stroke-width="4"/>
-  <path d="M227 68v40M207 88h40M213 74l28 28M241 74l-28 28" stroke="#f2c55d" stroke-width="3"/>
-  <path d="M214 108h26" stroke="#21cad4" stroke-width="2" opacity=".75"/>
-  <text x="160" y="289" text-anchor="middle" fill="#f1f7f8" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">TERRAQUEEN</text>
+  <circle cx="240" cy="240" r="226" fill="#041117" stroke="#17343b" stroke-width="8"/>
+  <circle cx="240" cy="240" r="204" fill="url(#glow)" stroke="url(#teal)" stroke-width="3" opacity=".95"/>
+  <g fill="none" stroke="url(#teal)" stroke-width="3" opacity=".72">
+    <circle cx="240" cy="195" r="116"/>
+    <path d="M124 195h232M240 79v232"/>
+    <path d="M157 113c46 50 120 82 166 0M157 277c46-50 120-82 166 0"/>
+  </g>
+  <circle cx="240" cy="195" r="116" fill="#071b22" opacity=".82" stroke="#56e9ef" stroke-width="4"/>
+  <path d="M176 198 240 116l64 82-64 65-64-65Z" fill="#0a2028" stroke="url(#gold)" stroke-width="8" filter="url(#shadow)"/>
+  <path d="M240 116v147M176 198l64 65M304 198l-64 65" stroke="#21d7e0" stroke-width="4" opacity=".8"/>
+  <path d="M92 310 176 192l64 76 54-62 96 104H92Z" fill="#0a1920" stroke="url(#gold)" stroke-width="12" stroke-linejoin="round" filter="url(#shadow)"/>
+  <path d="M112 334h256M137 357h206" stroke="url(#teal)" stroke-width="5" opacity=".92"/>
+  <path d="M240 47 253 77 285 83 260 103 266 136 240 119 214 136 220 103 195 83 227 77Z" fill="url(#gold)" stroke="#fff3ac" stroke-width="2"/>
+  <g fill="none" stroke="url(#gold)" stroke-width="5">
+    <path d="M52 240h38M390 240h38M240 52v38M240 390v38"/>
+    <path d="m102 102 27 27M351 351l27 27M378 102l-27 27M102 378l27-27"/>
+  </g>
+  <circle cx="240" cy="240" r="15" fill="url(#gold)" stroke="#fff5c3" stroke-width="3"/>
+  <path d="M240 223v34M223 240h34" stroke="#0a1c22" stroke-width="3"/>
 </svg>
