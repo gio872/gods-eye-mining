@@ -3590,5 +3590,29 @@
     "external": [
       "cesium"
     ]
+  },
+  "ip-cameras-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/ip-cameras"
+    ],
+    "modules": [
+      "server/providers/ipCameras.js"
+    ],
+    "external": []
+  },
+  "ip-cameras": {
+    "exports": [
+      "./cameras"
+    ],
+    "modules": [
+      "src/cameras/index.js",
+      "src/cameras/ipCameraSource.js",
+      "src/cameras/ipCameras.js"
+    ],
+    "external": [
+      "cesium",
+      "hls.js"
+    ]
   }
 }
