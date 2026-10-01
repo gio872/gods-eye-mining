@@ -86,6 +86,7 @@ export function createApplicationCatalog({
   resolveAsset,
   nepalBoundaryResolver,
   gemProfile = 'gold-alluvial',
+  remoteSensingSource = null,
 }) {
   if (!signal?.addEventListener)
     throw new TypeError('An application lifetime signal is required');
@@ -139,6 +140,7 @@ export function createApplicationCatalog({
       featureSource: sources.features,
       geologySource: sources.geology,
       imageryLayer: recentImagery,
+      remoteSensingSource,
       getContextLayers: () => catalog?.layers || [],
       signal,
       profile: gemProfile,
