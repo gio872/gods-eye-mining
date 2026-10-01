@@ -39,6 +39,34 @@ test('SGC geology source scores nearby commodity evidence and keeps metadata', a
           },
         ]);
       }
+      if (url.includes('/MapServer/1704/')) {
+        return response([
+          {
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [-75.201, 4.44],
+                [-75.201, 4.46],
+              ],
+            },
+            properties: { Tipo: 'Falla' },
+          },
+        ]);
+      }
+      if (url.includes('/MapServer/1709/')) {
+        return response([
+          {
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [-75.201, 4.44],
+                [-75.201, 4.46],
+              ],
+            },
+            properties: { METAL: 'Au', Style_2022: 'Au' },
+          },
+        ]);
+      }
       return response([
         {
           geometry: {
@@ -70,10 +98,9 @@ test('SGC geology source scores nearby commodity evidence and keeps metadata', a
   assert.equal(result.commodity, 'gold');
   assert.equal(result.featureCount, 2);
   assert.equal(result.geologyMapFeatureCount, 1);
-  assert.equal(result.featureCount, 2);
   assert.ok(result.mineralizationValues[0] > 0.9);
-  assert.ok(result.structureValues[0] >= 0);
-  assert.ok(result.alluvialValues[0] >= 0);
+  assert.ok(result.structureValues[0] > 0.9);
+  assert.ok(result.alluvialValues[0] > 0.9);
   assert.ok(result.values[0] > 0);
   assert.match(result.source, /SGC/);
 });
