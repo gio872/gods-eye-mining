@@ -3,6 +3,7 @@ import { createApplicationRequestServices } from '../services/requests.js';
 import { createApplicationCatalog } from '../app/constructCatalog.js';
 import { createStandaloneLayerSources } from './layerSources.js';
 import { createSgcGeologySource } from '../mining/sources/sgcGeology.js';
+import { createHlsSpectralSource } from '../mining/sources/hlsSpectral.js';
 export { createStandaloneReferenceSources } from './layerSources.js';
 
 /** Create fresh layer instances using the existing standalone source choices. */
@@ -16,7 +17,7 @@ export function createStandaloneCatalog({
   featureSource = createApplicationRequestServices().features,
   geologySource = createSgcGeologySource(),
   gemProfile = 'gold-alluvial',
-  remoteSensingSource = null,
+  remoteSensingSource = createHlsSpectralSource(),
 } = {}) {
   return createApplicationCatalog({
     nepalBoundaryResolver,
