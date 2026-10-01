@@ -102,6 +102,7 @@ export function createProspectivityLayer({
   let lastUpdate = null;
   let lastError = null;
   let lastEvidence = [];
+  let removeMoveEnd = null;
 
   async function refresh() {
     if (!enabled || destroyed || refreshing || !viewer) return false;
@@ -150,6 +151,12 @@ export function createProspectivityLayer({
         dataSource = new Cesium.CustomDataSource('gem-prospectivity');
         viewer.dataSources.add(dataSource);
       }
+      removeMoveEnd?.();
+      removeMoveEnd = null;
+      const remover = viewer?.camera?.moveEnd?.addEventListener?.(() => {
+        if (enabled) void refresh();
+      });
+      removeMoveEnd = typeof remover === 'function' ? remover : null;
       return true;
     },
 
@@ -177,6 +184,8 @@ export function createProspectivityLayer({
     destroy() {
       if (destroyed) return;
       enabled = false;
+      removeMoveEnd?.();
+      removeMoveEnd = null;
       if (dataSource && viewer?.dataSources?.contains?.(dataSource))
         viewer.dataSources.remove(dataSource, true);
       dataSource = null;
