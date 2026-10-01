@@ -23,7 +23,7 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Mining',
-    ids: ['metal-markets', 'anm-mining-cadastre', 'gem-prospectivity'],
+    ids: ['metal-markets', 'anm-mining-cadastre', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
   },
   {
     label: 'Movement',
