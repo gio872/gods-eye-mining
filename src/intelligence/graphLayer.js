@@ -117,7 +117,7 @@ export function createIntelligenceGraphLayer({ graph=createDemoIntelligenceGraph
       if(!this._body)return;
       const summary=panel?.querySelector('#gem-graph-summary');
       const stats=activeGraph.stats();
-      if(summary)summary.textContent=`${stats.nodes} NODES · `${stats.edges} RELATIONSHIPS · DEPTH 2 · LIVE SOURCES`;
+      if(summary)summary.textContent=`${stats.nodes} NODES · ${stats.edges} RELATIONSHIPS · DEPTH 2 · LIVE SOURCES`;
       renderGraphSvg(this._body,activeGraph,selectedId,(node)=>{selectedId=node.id;selected=node;this._render();});
     },
     disable(){enabled=false;if(panel)panel.hidden=true;return true;},
