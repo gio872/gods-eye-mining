@@ -3608,11 +3608,23 @@
     "modules": [
       "src/cameras/index.js",
       "src/cameras/ipCameraSource.js",
-      "src/cameras/ipCameras.js"
+      "src/cameras/ipCameras.js",
+      "src/cameras/onvifSource.js",
+      "src/cameras/onvif.js"
     ],
     "external": [
       "cesium",
       "hls.js"
     ]
+  },
+  "onvif-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/onvif"
+    ],
+    "modules": [
+      "server/providers/onvif.js"
+    ],
+    "external": []
   }
 }
