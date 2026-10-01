@@ -33,6 +33,7 @@ import { createProspectivityLayer } from '../mining/layers/prospectivity.js';
 import { createAnmMiningCadastreLayer } from '../mining/sources/anmMiningCadastre.js';
 import { createMetalMarketsLayer } from '../mining/sources/metalMarkets.js';
 import { createApplicationPopulations } from './layers/populations.js';
+import { overlayHost } from './layers/overlayHost.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -181,7 +182,7 @@ export function createApplicationCatalog({
         createApplicationDirections(),
         recentImagery,
         gemProspectivity,
-        createAnmMiningCadastreLayer({ signal }),
+        createAnmMiningCadastreLayer({ signal, overlayHost }),
         createMetalMarketsLayer({ signal }),
         createApplicationPopulations({ source: sources.populations }),
         vessels,
