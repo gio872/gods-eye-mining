@@ -3146,6 +3146,10 @@
   },
   "gem-mining-cadastre-source": {
     "exports": ["./mining/sources/anm-cadastre"],
+    "modules": [
+      "src/mining/sources/anmMiningCadastre.js"
+    ],ining-cadastre-source": {
+    "exports": ["./mining/sources/anm-cadastre"],
     "modules": ["src/mining/sources/anmMiningCadastre.js"],
     "external": ["cesium"]
   },
