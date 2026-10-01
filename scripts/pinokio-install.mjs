@@ -18,7 +18,11 @@ export function runChecked(command, args, { shell = false } = {}) {
     stdio: 'inherit',
   });
   if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status || 1);
+  if (result.status !== 0) {
+    const error = new Error(`${command} ${args.join(' ')} exited with code ${result.status}`);
+    error.exitCode = result.status || 1;
+    throw error;
+  }
 }
 
 function releaseWindowsNativeLocks() {
@@ -85,5 +89,10 @@ export function isDirectInvocation(
 }
 
 if (isDirectInvocation()) {
-  installPinokioDependencies();
+  try {
+    installPinokioDependencies();
+  } catch (error) {
+    console.error(`[Pinokio] Installation failed: ${error?.message || String(error)}`);
+    process.exit(error?.exitCode || 1);
+  }
 }
