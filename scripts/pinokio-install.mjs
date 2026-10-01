@@ -43,17 +43,27 @@ export function installPinokioDependencies() {
   rmSync(READY_FILE, { force: true });
   const npm = npmProcessSpec();
   releaseWindowsNativeLocks();
+
+  // npm ci removes the entire node_modules tree before reinstalling. On
+  // Windows, Cesium contains a large asset tree that can remain locked by
+  // Pinokio, Vite, antivirus, or Explorer and make that cleanup fail with
+  // EPERM. A normal npm install reconciles package-lock.json without doing
+  // that destructive pre-clean step, so use it for the local Windows runtime.
+  const installArgs = process.platform === 'win32'
+    ? ['install', '--no-audit', '--no-fund', '--prefer-offline']
+    : ['ci', '--no-audit', '--no-fund'];
+
   try {
-    runChecked(npm.command, ['ci', '--no-audit', '--no-fund'], { shell: npm.shell });
+    runChecked(npm.command, installArgs, { shell: npm.shell });
   } catch (error) {
-    // A Windows antivirus/editor race can briefly keep esbuild.exe open.
-    // Release the native lock once more, wait a moment, then retry npm ci.
+    // A native child can still be holding a file. Release the known binary
+    // lock and retry once before surfacing the installation failure.
     releaseWindowsNativeLocks();
     if (process.platform === 'win32') {
       const waitUntil = Date.now() + 1500;
       while (Date.now() < waitUntil) {}
     }
-    runChecked(npm.command, ['ci', '--no-audit', '--no-fund'], { shell: npm.shell });
+    runChecked(npm.command, installArgs, { shell: npm.shell });
   }
 
   // Pinokio starts Vite directly and loads only its ENVIRONMENT file plus the
