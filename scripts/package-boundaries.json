@@ -3572,13 +3572,10 @@
     "modules": [
       "src/intelligence/index.js",
       "src/intelligence/layers.js",
-      "src/mining/core/economicValue.js"
+      "src/mining/core/economicValue.js",
+      "src/intelligence/graph.js",
+      "src/intelligence/graphLayer.js"
     ],
-    "external": []
-  },
-  "gem-intelligence": {
-    "exports": ["./intelligence"],
-    "modules": ["src/intelligence/index.js", "src/intelligence/layers.js", "src/mining/core/economicValue.js"],
     "external": []
   }
 }
