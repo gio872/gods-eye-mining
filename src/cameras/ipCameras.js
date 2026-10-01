@@ -106,6 +106,13 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
 
   const token = () => sourceToken || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('gem.camera.adminToken') || '' : '');
 
+  const closePanel = () => {
+    enabled = false;
+    stopEvents();
+    for (const id of hls.keys()) stopHls(id);
+    if (panel) panel.hidden = true;
+    dataManager?.setEnabled?.('ip-cameras', false, { origin: 'user' });
+  };
   const setMessage = (message, error = false) => {
     const el = panel?.querySelector('.gem-ip-message');
     if (el) {
@@ -428,7 +435,7 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
       startEvents();
       return true;
     } catch (error) {
-      setMessage(error?.message || 'Autenticación requerida', true);
+      setMessage(error?.message || 'No se pudo consultar el servicio de cámaras. Revise el diagnóstico del servidor.', true);
       return false;
     }
   };
@@ -497,8 +504,11 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
         form.reset();
         form.hidden = true;
       };
-      panel.querySelector('.gem-ip-close').onclick = () =>
-        dataManager?.setEnabled('ip-cameras', false, { origin: 'user' });
+      panel.querySelector('.gem-ip-close').onclick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        closePanel();
+      };
       panel.querySelector('.gem-ip-form').onsubmit = async (event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
