@@ -213,3 +213,21 @@
   }
   #style-indicator { right: 16px; top: 16px; }
 }
+
+/* TerraQueen executive signature */
+#title-bar .ceo-signature {
+  margin-left: 67px;
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 2.2px;
+  color: rgba(242, 197, 93, 0.62);
+  text-transform: uppercase;
+}
+@media (max-width: 900px) {
+  #title-bar .ceo-signature {
+    margin-left: 55px;
+    font-size: 6px;
+    letter-spacing: 1.7px;
+  }
+}
