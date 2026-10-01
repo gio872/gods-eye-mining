@@ -4,7 +4,7 @@
  */
 
 export const GRAPH_NODE_TYPES = Object.freeze([
-  'location','deposit','mining-right','commodity','company','person',
+  'location','deposit','critical-mineral','mining-right','commodity','company','person',
   'owner','project','facility','port','shipment','transaction',
   'country','sanction','pep','media','document','market',
 ]);
@@ -13,7 +13,7 @@ export const GRAPH_EDGE_TYPES = Object.freeze([
   'located-in','contains','produces','holds-right','owned-by','owns','controls',
   'directs','works-for','operates','processes','refines','ships-to',
   'ships-from','trades','transacts-with','registered-in','located-near',
-  'screened-against','mentioned-in','supported-by','derived-from',
+  'screened-against','mentioned-in','supported-by','derived-from','classified-as','refined-in','produced-in','used-in','by-product-of',
 ]);
 
 function clean(value) { return String(value ?? '').trim(); }
