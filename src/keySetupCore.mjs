@@ -99,6 +99,15 @@ export const KEY_SETUP_KEYS = Object.freeze([
     tier: 'free',
   }),
   Object.freeze({
+    id: 'metals-dev',
+    title: 'METALS.DEV',
+    unlocks: 'Live metal market prices · Mercado de Metales · USD/COP',
+    getUrl: 'https://metals.dev/',
+    envVars: Object.freeze(['VITE_METALS_DEV_API_KEY']),
+    tier: 'free',
+    clientExposed: true,
+  }),
+  Object.freeze({
     id: 'launch-library',
     title: 'LAUNCH LIBRARY',
     unlocks: 'Higher space-missions request allowance',
