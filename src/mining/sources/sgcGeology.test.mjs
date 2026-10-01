@@ -66,11 +66,15 @@ test('SGC geology source scores nearby commodity evidence and keeps metadata', a
     commodity: 'gold',
   });
 
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 5);
   assert.equal(result.commodity, 'gold');
   assert.equal(result.featureCount, 2);
   assert.equal(result.geologyMapFeatureCount, 1);
-  assert.ok(result.values[0] > 0.9);
+  assert.equal(result.featureCount, 2);
+  assert.ok(result.mineralizationValues[0] > 0.9);
+  assert.ok(result.structureValues[0] >= 0);
+  assert.ok(result.alluvialValues[0] >= 0);
+  assert.ok(result.values[0] > 0);
   assert.match(result.source, /SGC/);
 });
 
