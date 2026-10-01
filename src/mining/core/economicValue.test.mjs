@@ -37,6 +37,20 @@ test('base-metal scenario uses percentage grade and USD per metric tonne', () =>
   assert.equal(result.grossValueUsd, 160000);
 });
 
+test('contained metal mass remains valid when recovery is zero', () => {
+  const result = calculateGrossMetalValue({
+    commodity: 'copper',
+    tonnes: 1000,
+    grade: 2,
+    recoveryPercent: 0,
+    priceUsd: 10000,
+  });
+  assert.equal(result.containedMetalTonnes, 20);
+  assert.equal(result.containedMetalKg, 20_000);
+  assert.equal(result.recoveredMetalTonnes, 0);
+  assert.equal(result.grossValueUsd, 0);
+});
+
 test('invalid recovery is constrained to the physical range', () => {
   assert.equal(normalizeRecoveryPercent(-10), 0);
   assert.equal(normalizeRecoveryPercent(150), 100);
