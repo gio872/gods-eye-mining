@@ -79,6 +79,33 @@ test('GEM keeps unavailable geology and hydrology explicit', async () => {
 });
 
 
+test('GEM accepts a remote sensing source object with getEvidence', async () => {
+  const bridge = createMiningEvidenceBridge({
+    terrain: {
+      async resolveEllipsoidalGround(points) {
+        return points.map(() => ({ ellipsoid: 100, source: 'terrain-test' }));
+      },
+    },
+    remoteSensingSource: {
+      async getEvidence({ points }) {
+        return {
+          values: points.map(() => 0.7),
+          source: 'HLS object test',
+          indices: points.map(() => ({ ferric: 1, ferrous: 1, clay: 1, ndvi: 0 })),
+          itemId: 'object-test',
+        };
+      },
+    },
+  });
+  const rows = await bridge.buildEvidence([
+    { id: 'a', lat: 4.45, lon: -75.2 },
+    { id: 'b', lat: 4.451, lon: -75.201 },
+  ]);
+  assert.equal(rows[0].factors['remote-sensing'], 0.7);
+  assert.equal(rows[0].metadata.remoteSensingSource, 'HLS object test');
+  assert.equal(rows[0].metadata.spectralScene.itemId, 'object-test');
+});
+
 test('GEM places SGC geochemistry, lineaments and drainage plus real spectral anomalies into one score input', async () => {
   const bridge = createMiningEvidenceBridge({
     terrain: {
