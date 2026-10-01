@@ -33,7 +33,6 @@ function pointOf(value) {
     finite(value.lon) ??
     finite(value.lng) ??
     finite(value.longitude) ??
-    finite(value.geometry?.coordinates?.[0]) ??
     finite(value.center?.lon);
   return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
 }
@@ -151,7 +150,7 @@ function scoreHydrology(point, features, radiusKm) {
   return clamp(1 - nearest / radiusKm);
 }
 
-function terrainFactors(points, heights, profile) {
+function terrainFactors(points, heights, profile, stepDegrees = 0.005) {
   const finiteHeights = heights.filter((value) => Number.isFinite(value));
   const globalRelief =
     finiteHeights.length > 1
@@ -169,7 +168,11 @@ function terrainFactors(points, heights, profile) {
     const row = point?.gridRow;
     const col = point?.gridCol;
     const centre = heights[index];
-    if (!Number.isFinite(centre) || !Number.isInteger(row) || !Number.isInteger(col)) {
+    if (
+      !Number.isFinite(centre) ||
+      !Number.isInteger(row) ||
+      !Number.isInteger(col)
+    ) {
       return clamp(globalRelief / 300);
     }
 
@@ -196,8 +199,8 @@ function terrainFactors(points, heights, profile) {
       const latScale = 111_320;
       const lonScale =
         111_320 * Math.max(0.01, Math.cos((point.lat * Math.PI) / 180));
-      const stepLatM = latScale * 0.005;
-      const stepLonM = lonScale * 0.005;
+      const stepLatM = latScale * stepDegrees;
+      const stepLonM = lonScale * stepDegrees;
       const dzDy =
         (heights[southIndex] - heights[northIndex]) / (2 * stepLatM);
       const dzDx =
@@ -239,17 +242,6 @@ function terrainFactors(points, heights, profile) {
   };
 }
 
-function readNumericEvidence(feature) {
-  const properties = propertiesOf(feature);
-  for (const key of ['prospectivity', 'evidence', 'score', 'rating', 'rank']) {
-    const value = finite(properties[key]);
-    if (Number.isFinite(value)) return clamp(value);
-    const nested = finite(properties.tags?.[key]);
-    if (Number.isFinite(nested)) return clamp(nested);
-  }
-  return null;
-}
-
 function sourceFlag(value) {
   return typeof value === 'string' && value.length > 0;
 }
@@ -267,6 +259,7 @@ export function createMiningEvidenceBridge({
   getContextLayers = () => [],
   hydrologyRadiusKm = 2,
   signal = null,
+  gridStepDegrees = 0.005,
 } = {}) {
   if (typeof terrain?.resolveEllipsoidalGround !== 'function')
     throw new TypeError('GEM evidence bridge requires terrain resolution');
@@ -296,22 +289,34 @@ export function createMiningEvidenceBridge({
   }
 
   async function collectGeology(points, requestSignal, commodity) {
+    const empty = {
+      values: points.map(() => 0),
+      structureValues: points.map(() => 0),
+      mineralizationValues: points.map(() => 0),
+      alluvialValues: points.map(() => 0),
+      lineamentValues: points.map(() => 0),
+      drainageValues: points.map(() => 0),
+      geochemistryValues: points.map(() => 0),
+      auAnomalyValues: points.map(() => 0),
+      agAnomalyValues: points.map(() => 0),
+      cuAnomalyValues: points.map(() => 0),
+      rawGeochemistry: { au: [], ag: [], cu: [] },
+      source: null,
+      geologyAvailable: false,
+      structureSource: null,
+      mineralizationSource: null,
+      alluvialSource: null,
+      lineamentSource: null,
+      drainageSource: null,
+      geochemistrySource: null,
+    };
+
     if (
       typeof geologySource?.getEvidence !== 'function' &&
       typeof geologySource?.getFeatures !== 'function'
-    ) {
-      return {
-        values: points.map(() => 0),
-        structureValues: points.map(() => 0),
-        mineralizationValues: points.map(() => 0),
-        alluvialValues: points.map(() => 0),
-        source: null,
-        geologyAvailable: false,
-        structureSource: null,
-        mineralizationSource: null,
-        alluvialSource: null,
-      };
-    }
+    )
+      return empty;
+
     const centre = points[Math.floor(points.length / 2)];
     const raw =
       typeof geologySource.getEvidence === 'function'
@@ -329,30 +334,25 @@ export function createMiningEvidenceBridge({
           });
 
     if (Array.isArray(raw)) {
-      const values = points.map(() => {
-        let best = 0;
-        for (const feature of raw) {
-          const evidence = readNumericEvidence(feature);
-          if (evidence != null) best = Math.max(best, evidence);
-        }
-        return best;
-      });
+      const values = points.map(() => 0);
       return {
+        ...empty,
         values,
-        structureValues: points.map(() => 0),
-        mineralizationValues: values,
-        alluvialValues: points.map(() => 0),
         source: raw.length ? 'GEM geology GIS' : null,
         geologyAvailable: raw.length > 0,
-        structureSource: null,
         mineralizationSource: raw.length ? 'GEM geology GIS' : null,
-        alluvialSource: null,
       };
     }
 
+    const geologyAvailable =
+      Number(raw?.geologyMapFeatureCount) > 0 ||
+      (Number(raw?.featureCount) > 0 && !Number.isFinite(raw?.geologyMapFeatureCount));
+
     return {
+      ...empty,
       values: points.map(
-        (_, index) => clamp(raw?.geologyValues?.[index] ?? raw?.values?.[index]),
+        (_, index) =>
+          clamp(raw?.geologyValues?.[index] ?? raw?.values?.[index]),
       ),
       structureValues: points.map((_, index) =>
         clamp(raw?.structureValues?.[index]),
@@ -363,21 +363,68 @@ export function createMiningEvidenceBridge({
       alluvialValues: points.map((_, index) =>
         clamp(raw?.alluvialValues?.[index]),
       ),
+      lineamentValues: points.map((_, index) =>
+        clamp(raw?.lineamentValues?.[index]),
+      ),
+      drainageValues: points.map((_, index) =>
+        clamp(raw?.drainageValues?.[index]),
+      ),
+      geochemistryValues: points.map((_, index) =>
+        clamp(raw?.geochemistryValues?.[index]),
+      ),
+      auAnomalyValues: points.map((_, index) =>
+        clamp(raw?.auAnomalyValues?.[index]),
+      ),
+      agAnomalyValues: points.map((_, index) =>
+        clamp(raw?.agAnomalyValues?.[index]),
+      ),
+      cuAnomalyValues: points.map((_, index) =>
+        clamp(raw?.cuAnomalyValues?.[index]),
+      ),
+      rawGeochemistry: {
+        au: Array.isArray(raw?.rawGeochemistry?.au)
+          ? raw.rawGeochemistry.au
+          : [],
+        ag: Array.isArray(raw?.rawGeochemistry?.ag)
+          ? raw.rawGeochemistry.ag
+          : [],
+        cu: Array.isArray(raw?.rawGeochemistry?.cu)
+          ? raw.rawGeochemistry.cu
+          : [],
+      },
       source: sourceFlag(raw?.source) ? raw.source : null,
-      geologyAvailable:
-        Boolean(raw?.source) || Number(raw?.geologyMapFeatureCount) > 0 ||
-        Number(raw?.featureCount) > 0,
+      geologyAvailable,
       structureSource:
-        Number(raw?.faultFeatureCount) > 0 ? raw.source : null,
+        Number(raw?.faultFeatureCount) > 0 ||
+        Number(raw?.lineamentFeatureCount) > 0
+          ? raw.source
+          : null,
       mineralizationSource:
         Number(raw?.featureCount) > 0 ? raw.source : null,
       alluvialSource:
         Number(raw?.alluvialFeatureCount) > 0 ? raw.source : null,
+      lineamentSource:
+        Number(raw?.lineamentFeatureCount) > 0 ? raw.source : null,
+      drainageSource:
+        Number(raw?.drainageSimpleFeatureCount) > 0 ||
+        Number(raw?.drainageDoubleFeatureCount) > 0
+          ? raw.source
+          : null,
+      geochemistrySource: sourceFlag(raw?.geochemistrySource)
+        ? raw.geochemistrySource
+        : Number(raw?.geochemistrySampleCount) > 0
+          ? raw.source
+          : null,
       geologyMapFeatureCount: Number(raw?.geologyMapFeatureCount) || 0,
       faultFeatureCount: Number(raw?.faultFeatureCount) || 0,
+      lineamentFeatureCount: Number(raw?.lineamentFeatureCount) || 0,
       mineralizationFeatureCount: Number(raw?.featureCount) || 0,
       alluvialFeatureCount: Number(raw?.alluvialFeatureCount) || 0,
-      matchedUnits: Array.isArray(raw?.matchedUnits) ? raw.matchedUnits : [],
+      drainageSimpleFeatureCount:
+        Number(raw?.drainageSimpleFeatureCount) || 0,
+      drainageDoubleFeatureCount:
+        Number(raw?.drainageDoubleFeatureCount) || 0,
+      geochemistrySampleCount: Number(raw?.geochemistrySampleCount) || 0,
     };
   }
 
@@ -402,7 +449,9 @@ export function createMiningEvidenceBridge({
           days: 30,
           signal: requestSignal,
         });
-        candidates = Array.isArray(result?.candidates) ? result.candidates : [];
+        candidates = Array.isArray(result?.candidates)
+          ? result.candidates
+          : [];
         catalogError = result?.errors?.length ? result.errors : null;
       } catch (error) {
         catalogError = [String(error?.message || error)];
@@ -411,6 +460,7 @@ export function createMiningEvidenceBridge({
 
     let anomalyValues = null;
     let anomalySource = null;
+    let spectralMetadata = null;
     if (typeof remoteSensingSource === 'function' && centre) {
       try {
         const result = await remoteSensingSource({
@@ -419,10 +469,12 @@ export function createMiningEvidenceBridge({
           commodity,
           signal: requestSignal,
         });
-        if (Array.isArray(result) && result.length) anomalyValues = result;
+        if (Array.isArray(result) && result.length)
+          anomalyValues = result;
         else if (Array.isArray(result?.values) && result.values.length)
           anomalyValues = result.values;
         if (anomalyValues) anomalySource = result?.source || 'GEM remote sensing';
+        spectralMetadata = result || null;
       } catch (error) {
         catalogError = [
           ...(catalogError || []),
@@ -453,6 +505,7 @@ export function createMiningEvidenceBridge({
       clearFraction,
       pinned,
       catalogError,
+      spectralMetadata,
     };
   }
 
@@ -494,6 +547,7 @@ export function createMiningEvidenceBridge({
       points,
       heights,
       options.profile || 'base',
+      options.gridStepDegrees || gridStepDegrees,
     );
     const [hydrologyResult, geologyResult] = await Promise.all([
       collectHydrology(points, requestSignal),
@@ -506,27 +560,44 @@ export function createMiningEvidenceBridge({
     );
     const context = existingLayerContext(points);
 
+    const evidenceSourceByFactor = {
+      terrain: Boolean(terrainResults.some((row) => row?.source)),
+      hydrology:
+        Boolean(hydrologyResult.source) || Boolean(geologyResult.drainageSource),
+      geology: Boolean(geologyResult.geologyAvailable),
+      structure: Boolean(geologyResult.structureSource),
+      mineralization: Boolean(geologyResult.mineralizationSource),
+      'remote-sensing': Boolean(imagery.source),
+      alluvial: Boolean(geologyResult.alluvialSource),
+      geochemistry: Boolean(geologyResult.geochemistrySource),
+      lineaments: Boolean(geologyResult.lineamentSource),
+      drainage: Boolean(geologyResult.drainageSource),
+      sampling: false,
+    };
+    const applicability = 10;
+    const coverage = Object.values(evidenceSourceByFactor)
+      .slice(0, applicability)
+      .filter(Boolean).length / applicability;
+
     return points.map((point, index) => {
+      const drainageValue = geologyResult.drainageValues?.[index] ?? 0;
+      const baseHydrology = hydrologyResult.values[index] ?? 0;
+      const combinedHydrology = clamp(
+        baseHydrology * 0.60 + drainageValue * 0.40,
+      );
       const factors = normalizeFactorMap({
         terrain: terrainResult.values[index],
-        hydrology: hydrologyResult.values[index] ?? 0,
+        hydrology: combinedHydrology,
         geology: geologyResult.values[index] ?? 0,
         structure: geologyResult.structureValues?.[index] ?? 0,
         mineralization: geologyResult.mineralizationValues?.[index] ?? 0,
         'remote-sensing': imagery.value[index],
         alluvial: geologyResult.alluvialValues?.[index] ?? 0,
+        geochemistry: geologyResult.geochemistryValues?.[index] ?? 0,
+        lineaments: geologyResult.lineamentValues?.[index] ?? 0,
+        drainage: drainageValue,
         sampling: 0,
       });
-
-      const covered = [
-        Boolean(terrainResults[index]?.source),
-        Boolean(hydrologyResult.source),
-        Boolean(geologyResult.geologyAvailable),
-        Boolean(geologyResult.structureSource),
-        Boolean(geologyResult.mineralizationSource),
-        Boolean(geologyResult.alluvialSource),
-      ];
-      const applicability = 6;
 
       return {
         ...point,
@@ -536,7 +607,8 @@ export function createMiningEvidenceBridge({
           terrainReliefM: terrainResult.reliefM,
           localReliefM: terrainResult.localReliefM[index],
           terrainSource: terrainResults[index]?.source || null,
-          hydrologySource: hydrologyResult.source,
+          hydrologySource:
+            hydrologyResult.source || geologyResult.drainageSource || null,
           hydrologyFeatureCount: hydrologyResult.featureCount,
           geologySource: geologyResult.source,
           geologyAvailable: geologyResult.geologyAvailable,
@@ -544,30 +616,48 @@ export function createMiningEvidenceBridge({
           structureSource: geologyResult.structureSource,
           faultFeatureCount: geologyResult.faultFeatureCount || 0,
           mineralizationSource: geologyResult.mineralizationSource,
-          mineralizationFeatureCount: geologyResult.mineralizationFeatureCount || 0,
+          mineralizationFeatureCount:
+            geologyResult.mineralizationFeatureCount || 0,
           alluvialSource: geologyResult.alluvialSource,
           alluvialFeatureCount: geologyResult.alluvialFeatureCount || 0,
-          matchedGeologyUnit: geologyResult.matchedUnits?.[index] || null,
+          lineamentSource: geologyResult.lineamentSource,
+          lineamentFeatureCount: geologyResult.lineamentFeatureCount || 0,
+          drainageSource: geologyResult.drainageSource,
+          drainageSimpleFeatureCount:
+            geologyResult.drainageSimpleFeatureCount || 0,
+          drainageDoubleFeatureCount:
+            geologyResult.drainageDoubleFeatureCount || 0,
+          drainageHierarchy: 'SGC cartographic hierarchy + local drainage density',
+          geochemistrySource: geologyResult.geochemistrySource,
+          geochemistrySampleCount:
+            geologyResult.geochemistrySampleCount || 0,
+          auAnomaly: geologyResult.auAnomalyValues?.[index] ?? 0,
+          agAnomaly: geologyResult.agAnomalyValues?.[index] ?? 0,
+          cuAnomaly: geologyResult.cuAnomalyValues?.[index] ?? 0,
+          rawAu: geologyResult.rawGeochemistry?.au?.[index] ?? null,
+          rawAg: geologyResult.rawGeochemistry?.ag?.[index] ?? null,
+          rawCu: geologyResult.rawGeochemistry?.cu?.[index] ?? null,
+          matchedGeologyUnit: null,
           imagerySource: imagery.imageryCatalogSource,
           remoteSensingSource: imagery.source,
           imageryCandidateCount: imagery.candidateCount,
           imageryLowCloudCount: imagery.lowCloudCount,
           imageryPinned: imagery.pinned,
           imageryCatalogError: imagery.catalogError,
+          spectralIndices: imagery.spectralMetadata?.indices?.[index] || null,
+          spectralScene: imagery.spectralMetadata
+            ? {
+                itemId: imagery.spectralMetadata.itemId || null,
+                itemDatetime: imagery.spectralMetadata.itemDatetime || null,
+                cloudCover: imagery.spectralMetadata.cloudCover ?? null,
+                method: imagery.spectralMetadata.method || null,
+              }
+            : null,
           godEyeLayerContext: context,
-          evidenceCoverage: covered.filter(Boolean).length / applicability,
-          factorsCovered: PROSPECTIVITY_FACTORS.filter((factor) => {
-            const indexByFactor = {
-              terrain: 0,
-              hydrology: 1,
-              geology: 2,
-              structure: 3,
-              mineralization: 4,
-              alluvial: 5,
-              'remote-sensing': 6,
-            };
-            return Boolean(covered[indexByFactor[factor]]);
-          }),
+          evidenceCoverage: coverage,
+          factorsCovered: PROSPECTIVITY_FACTORS.filter(
+            (factor) => evidenceSourceByFactor[factor],
+          ),
         },
       };
     });
