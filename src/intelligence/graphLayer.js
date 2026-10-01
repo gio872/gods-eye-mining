@@ -40,7 +40,7 @@ function shell(){
 }
 
 function renderGraphSvg(container, graph, seedId, onSelect){
-  const {nodes,edges}=activeGraph.subgraph(seedId,2);
+  const {nodes,edges}=graph.subgraph(seedId,2);
   const width=container.clientWidth||900, height=container.clientHeight||500;
   const cx=width/2, cy=height/2;
   const seed=nodes.find(n=>n.id===seedId)||nodes[0];
