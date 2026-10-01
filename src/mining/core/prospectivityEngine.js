@@ -1,57 +1,75 @@
 import {
   PROSPECTIVITY_FACTORS,
+  PROSPECTIVITY_PROFILES,
   clamp,
   createMiningTarget,
   normalizeFactorMap,
 } from './miningTypes.js';
 
-const DEFAULT_WEIGHTS = Object.freeze({
-  terrain: 0.2,
-  hydrology: 0.2,
-  geology: 0.3,
-  'remote-sensing': 0.2,
-  sampling: 0.1,
-});
-
-function normalizeWeights(weights = DEFAULT_WEIGHTS) {
+function normalizeWeights(weights) {
   const raw = PROSPECTIVITY_FACTORS.map((factor) =>
     Math.max(0, Number(weights?.[factor]) || 0),
   );
   const total = raw.reduce((sum, value) => sum + value, 0);
-  if (total === 0) return DEFAULT_WEIGHTS;
-
+  if (total === 0) return normalizeWeights(PROSPECTIVITY_PROFILES.base.weights);
   return Object.fromEntries(
     PROSPECTIVITY_FACTORS.map((factor, index) => [factor, raw[index] / total]),
   );
 }
 
-function weightedScore(factors, weights) {
-  return clamp(
-    PROSPECTIVITY_FACTORS.reduce(
-      (sum, factor) => sum + factors[factor] * weights[factor],
-      0,
-    ),
-  );
+function scoreCoverage(confidence) {
+  return clamp(confidence == null ? 1 : confidence);
 }
 
 /**
- * Pure prospectivity scoring. Inputs are normalized 0..1 evidence signals.
- * This is an analytical heuristic, not a declaration of mineral reserves.
+ * Pure prospectivity scoring. Every factor is normalized 0..1.
+ * The coverage multiplier prevents a map with missing evidence channels from
+ * presenting the same score as a fully observed cell.
  */
-export function createProspectivityEngine({ weights = DEFAULT_WEIGHTS } = {}) {
-  const normalizedWeights = Object.freeze(normalizeWeights(weights));
+export function createProspectivityEngine({
+  profile = 'base',
+  weights,
+  coverageFloor = 0,
+} = {}) {
+  const selectedProfile =
+    PROSPECTIVITY_PROFILES[profile] || PROSPECTIVITY_PROFILES.base;
+  const normalizedWeights = Object.freeze(
+    normalizeWeights(weights || selectedProfile.weights),
+  );
+  const normalizedProfile = PROSPECTIVITY_PROFILES[profile]
+    ? profile
+    : 'base';
 
-  function score({ factors = {}, commodity = 'gold', id, latitude, longitude, source, confidence, metadata } = {}) {
+  function score({
+    factors = {},
+    commodity = selectedProfile.commodity,
+    id,
+    latitude,
+    longitude,
+    source,
+    confidence,
+    metadata,
+  } = {}) {
     const normalizedFactors = normalizeFactorMap(factors);
-    const scoreValue = weightedScore(normalizedFactors, normalizedWeights);
+    const evidenceCoverage = scoreCoverage(confidence);
+    const rawScore = clamp(
+      PROSPECTIVITY_FACTORS.reduce(
+        (sum, factor) =>
+          sum + normalizedFactors[factor] * normalizedWeights[factor],
+        0,
+      ),
+    );
+    const coverageMultiplier = Math.max(coverageFloor, evidenceCoverage);
+    const scoreValue = clamp(rawScore * coverageMultiplier);
 
     return createMiningTarget({
       id: id ?? `gem-target-${Date.now()}`,
       latitude,
       longitude,
       commodity,
+      profile: normalizedProfile,
       score: scoreValue,
-      confidence: confidence ?? scoreValue,
+      confidence: evidenceCoverage,
       factors: normalizedFactors,
       source,
       metadata,
@@ -60,11 +78,14 @@ export function createProspectivityEngine({ weights = DEFAULT_WEIGHTS } = {}) {
 
   function rank(candidates = []) {
     return [...candidates]
-      .map((candidate) => (candidate?.score === undefined ? score(candidate) : candidate))
+      .map((candidate) =>
+        candidate?.score === undefined ? score(candidate) : candidate,
+      )
       .sort((a, b) => b.score - a.score);
   }
 
   return Object.freeze({
+    getProfile: () => normalizedProfile,
     getWeights: () => normalizedWeights,
     score,
     rank,
