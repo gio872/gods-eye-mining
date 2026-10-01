@@ -1760,6 +1760,7 @@
       "src/splitFlap.js",
       "src/standalone/catalog.js",
       "src/mining/sources/sgcGeology.js",
+      "src/mining/sources/hlsSpectral.js",
       "src/standalone/layerSources.js",
       "src/styles/anime.js",
       "src/styles/noir.js",
