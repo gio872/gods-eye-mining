@@ -288,7 +288,6 @@ function highlightResults(dataSource, results, clickPoint) {
       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
     },
-
   });
   pointEntity.show = true;
 
