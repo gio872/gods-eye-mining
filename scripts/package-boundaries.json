@@ -1,6 +1,10 @@
 {
   "infrastructure": {
-    "exports": ["./infrastructure", "./infrastructure/geojson", "./infrastructure/lod"],
+    "exports": [
+      "./infrastructure",
+      "./infrastructure/geojson",
+      "./infrastructure/lod"
+    ],
     "modules": [
       "src/data/infrastructure.js",
       "src/data/localGeojsonCore.js",
@@ -96,7 +100,10 @@
   "terrain-provider": {
     "runtime": "node",
     "exports": ["./server/providers/terrain"],
-    "modules": ["server/providers/terrain.js", "src/data/terrainHeightsProxy.js"],
+    "modules": [
+      "server/providers/terrain.js",
+      "src/data/terrainHeightsProxy.js"
+    ],
     "external": []
   },
   "terrain-source": {
@@ -2701,7 +2708,10 @@
   },
   "civil-flight-ingestion": {
     "exports": ["./layers/flights/ingestion"],
-    "modules": ["src/layers/flights/ingestion.js", "src/layers/flights/recordPolicy.js"],
+    "modules": [
+      "src/layers/flights/ingestion.js",
+      "src/layers/flights/recordPolicy.js"
+    ],
     "external": []
   },
   "military-flight-records": {
@@ -2717,17 +2727,26 @@
   },
   "military-flight-ingestion": {
     "exports": ["./layers/military/ingestion"],
-    "modules": ["src/layers/military/ingestion.js", "src/layers/military/recordPolicy.js"],
+    "modules": [
+      "src/layers/military/ingestion.js",
+      "src/layers/military/recordPolicy.js"
+    ],
     "external": []
   },
   "vessel-records": {
     "exports": ["./layers/vessels/records"],
-    "modules": ["src/layers/vessels/records.js", "src/layers/vessels/recordPolicy.js"],
+    "modules": [
+      "src/layers/vessels/records.js",
+      "src/layers/vessels/recordPolicy.js"
+    ],
     "external": []
   },
   "vessel-ingestion": {
     "exports": ["./layers/vessels/ingestion"],
-    "modules": ["src/layers/vessels/ingestion.js", "src/layers/vessels/recordPolicy.js"],
+    "modules": [
+      "src/layers/vessels/ingestion.js",
+      "src/layers/vessels/recordPolicy.js"
+    ],
     "external": []
   },
   "directions-layer": {
@@ -2795,7 +2814,10 @@
   },
   "earthquakes-source": {
     "exports": ["./layers/earthquakes/source"],
-    "modules": ["src/layers/earthquakes/records.js", "src/layers/earthquakes/source.js"],
+    "modules": [
+      "src/layers/earthquakes/records.js",
+      "src/layers/earthquakes/source.js"
+    ],
     "external": []
   },
   "firms-source": {
@@ -3034,7 +3056,10 @@
   },
   "transit-source-factory": {
     "exports": ["./layers/transit/source"],
-    "modules": ["src/layers/transit/source.js", "src/sources/transitHistory.js"],
+    "modules": [
+      "src/layers/transit/source.js",
+      "src/sources/transitHistory.js"
+    ],
     "external": []
   },
   "transit-service": {
@@ -3112,7 +3137,10 @@
   },
   "gem-mining-sources": {
     "exports": ["./mining/sources/sgc", "./mining/sources/hls-spectral"],
-    "modules": ["src/mining/sources/sgcGeology.js", "src/mining/sources/hlsSpectral.js"],
+    "modules": [
+      "src/mining/sources/sgcGeology.js",
+      "src/mining/sources/hlsSpectral.js"
+    ],
     "external": []
   },
   "gem-mining-cadastre-source": {
