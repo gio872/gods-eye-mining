@@ -624,3 +624,17 @@ Configure the Vite variable:
 For Pinokio, provide the same variable through the application's environment/settings and restart the app. The module reports `LIVE`, `DELAYED`, or `STALE` from the provider timestamp and does not invent a quote when the provider is unavailable.
 
 Metals.Dev documents a maximum 60-second delay for its live feed on the Free plan, with 100 requests/month. The provider also exposes LBMA/LME authority data. LME itself publishes separate Official Prices as daily reference prices.
+
+### Entity / AML Intelligence
+
+The Entity / AML Intelligence layer now runs live provider-backed screening through the local `/api/aml` proxy. It covers OFAC SDN and OFAC Consolidated sanctions data, GDELT document search for adverse-media discovery, and GLEIF LEI/ownership reference data. PEP/RCA screening is wired to OpenSanctions and requires the server-side `OPENSANCTIONS_API_KEY`; OpenSanctions states that businesses need an appropriate data license/API key for its service. Results are candidate screening evidence, not an automatic legal or risk conclusion.
+
+Server configuration:
+
+```env
+GEM_AML_ADMIN_TOKEN=replace-with-a-long-random-token
+# Optional fallback: GEM_CAMERA_ADMIN_TOKEN
+OPENSANCTIONS_API_KEY=
+```
+
+The AML proxy keeps upstream credentials server-side. OFAC is queried from its current Sanctions List Service exports, GLEIF is used for legal-entity and reported parent relationships, and GDELT is used for recent article discovery. GLEIF ownership data should be interpreted as reported Level 2 relationships and not as a complete beneficial-ownership determination.
