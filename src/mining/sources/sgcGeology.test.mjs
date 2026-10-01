@@ -121,15 +121,17 @@ test('SGC source fuses geology, structures, drainage and Au/Ag/Cu anomalies', as
           },
         ]);
       if (url.includes('/identify?')) {
-        const n = calls.filter((item) => item.includes('/identify?')).length;
+        const geometry = new URL(url).searchParams.get('geometry') || '';
+        const latitude = Number(geometry.split(',')[1]);
+        const values =
+          latitude >= 4.4515
+            ? [100, 50, 80]
+            : latitude >= 4.4505
+              ? [20, 10, 40]
+              : [10, 5, 20];
         return {
           ok: true,
           async json() {
-            const values = [
-              [10, 5, 20],
-              [20, 10, 40],
-              [100, 50, 80],
-            ][n] || [10, 5, 20];
             return {
               results: [
                 { layerId: 3, value: String(values[0]) },
