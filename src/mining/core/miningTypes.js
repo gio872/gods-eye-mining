@@ -15,9 +15,57 @@ export const PROSPECTIVITY_FACTORS = Object.freeze([
   'terrain',
   'hydrology',
   'geology',
+  'structure',
+  'mineralization',
   'remote-sensing',
+  'alluvial',
   'sampling',
 ]);
+
+export const PROSPECTIVITY_PROFILES = Object.freeze({
+  'gold-lode': Object.freeze({
+    label: 'Gold · hard-rock / lode',
+    commodity: 'gold',
+    weights: Object.freeze({
+      terrain: 0.08,
+      hydrology: 0.04,
+      geology: 0.18,
+      structure: 0.18,
+      mineralization: 0.24,
+      'remote-sensing': 0.10,
+      alluvial: 0.03,
+      sampling: 0.15,
+    }),
+  }),
+  'gold-alluvial': Object.freeze({
+    label: 'Gold · alluvial',
+    commodity: 'gold',
+    weights: Object.freeze({
+      terrain: 0.13,
+      hydrology: 0.18,
+      geology: 0.08,
+      structure: 0.05,
+      mineralization: 0.20,
+      'remote-sensing': 0.08,
+      alluvial: 0.23,
+      sampling: 0.05,
+    }),
+  }),
+  base: Object.freeze({
+    label: 'General mineral prospectivity',
+    commodity: 'gold',
+    weights: Object.freeze({
+      terrain: 0.12,
+      hydrology: 0.10,
+      geology: 0.18,
+      structure: 0.15,
+      mineralization: 0.20,
+      'remote-sensing': 0.10,
+      alluvial: 0.05,
+      sampling: 0.10,
+    }),
+  }),
+});
 
 export function clamp(value, min = 0, max = 1) {
   const numeric = Number(value);
@@ -43,6 +91,7 @@ export function createMiningTarget({
   latitude,
   longitude,
   commodity = 'gold',
+  profile = 'base',
   score = 0,
   factors = {},
   source = 'gem',
@@ -58,6 +107,7 @@ export function createMiningTarget({
     latitude: normalizeCoordinate(latitude),
     longitude: normalizeCoordinate(longitude),
     commodity,
+    profile,
     score: clamp(score),
     confidence: clamp(confidence),
     factors: normalizeFactorMap(factors),
