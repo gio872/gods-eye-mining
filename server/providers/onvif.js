@@ -181,6 +181,14 @@ async function ptzGotoPreset(ptz, profileToken, presetToken, credentials) {
   await callPtz(ptz,'tptz:GotoPreset',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:PresetToken>${esc(presetToken)}</tptz:PresetToken>`,credentials);
   return {ok:true};
 }
+async function ptzSetPreset(ptz, profileToken, name, credentials) {
+  const xml=await callPtz(ptz,'tptz:SetPreset',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:PresetName>${esc(String(name||'GEM Preset').slice(0,64))}</tptz:PresetName>`,credentials);
+  return {ok:true,presetToken:text(xml,'PresetToken')};
+}
+async function ptzRemovePreset(ptz, profileToken, presetToken, credentials) {
+  await callPtz(ptz,'tptz:RemovePreset',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:PresetToken>${esc(presetToken)}</tptz:PresetToken>`,credentials);
+  return {ok:true};
+}
 
 
 async function discover(timeoutMs=DISCOVERY_TIMEOUT_MS) {
@@ -248,6 +256,8 @@ export function onvifProxy({maxDiscoveryResults=64,adminToken=process.env.GEM_CA
           if(action==='stop') return reply(200,await ptzStop(ptz.href,input.profileToken,credentials));
           if(action==='presets') return reply(200,{presets:await ptzPresets(ptz.href,input.profileToken,credentials)});
           if(action==='gotoPreset') return reply(200,await ptzGotoPreset(ptz.href,input.profileToken,input.presetToken,credentials));
+          if(action==='setPreset') return reply(200,await ptzSetPreset(ptz.href,input.profileToken,input.name,credentials));
+          if(action==='removePreset') return reply(200,await ptzRemovePreset(ptz.href,input.profileToken,input.presetToken,credentials));
           throw new Error('Unsupported PTZ action');
         }
         if(url.pathname==='/probe' && req.method==='POST'){
