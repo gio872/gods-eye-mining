@@ -5,8 +5,15 @@ export function createOnvifSource({fetchImpl=(...args)=>fetch(...args)}={}) {
     if(!response.ok) throw new Error(body?.error||`ONVIF request failed (HTTP ${response.status})`);
     return body;
   }
+  const post=(path,body)=>request(path,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body),
+  });
   return Object.freeze({
     discover:()=>request('/api/onvif/discover'),
-    probe:(camera)=>request('/api/onvif/probe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(camera)}),
+    probe:(camera)=>post('/api/onvif/probe',camera),
+    ptz:(input)=>post('/api/onvif/ptz',input),
+    events:(input)=>post('/api/onvif/events',input),
   });
 }
