@@ -1,11 +1,14 @@
 import * as Cesium from 'cesium';
 import { createMiningEngine } from '../core/miningEngine.js';
 import { createMiningEvidenceBridge } from '../evidence.js';
-import { clamp } from '../core/miningTypes.js';
+import {
+  clamp,
+  PROSPECTIVITY_PROFILES,
+} from '../core/miningTypes.js';
 
-const GRID_RADIUS = 1;
-const GRID_STEP_DEGREES = 0.01;
-const TARGET_HEIGHT_M = 18;
+const GRID_RADIUS = 3;
+const GRID_STEP_DEGREES = 0.005;
+const TARGET_POINT_THRESHOLD = 0.55;
 
 function cameraCentre(viewer) {
   const canvas = viewer?.scene?.canvas;
@@ -29,49 +32,95 @@ function cameraCentre(viewer) {
 
 function gridAround(center) {
   const points = [];
+  let row = 0;
   for (let dy = -GRID_RADIUS; dy <= GRID_RADIUS; dy += 1) {
+    let col = 0;
     for (let dx = -GRID_RADIUS; dx <= GRID_RADIUS; dx += 1) {
+      const lat = center.lat + dy * GRID_STEP_DEGREES;
+      const lon = center.lon + dx * GRID_STEP_DEGREES;
       points.push({
-        id: `gem-${dy + GRID_RADIUS}-${dx + GRID_RADIUS}`,
-        lat: center.lat + dy * GRID_STEP_DEGREES,
-        lon: center.lon + dx * GRID_STEP_DEGREES,
+        id: `gem-${row}-${col}`,
+        lat,
+        lon,
+        gridRow: row,
+        gridCol: col,
+        cell: {
+          west: lon - GRID_STEP_DEGREES / 2,
+          east: lon + GRID_STEP_DEGREES / 2,
+          south: lat - GRID_STEP_DEGREES / 2,
+          north: lat + GRID_STEP_DEGREES / 2,
+        },
       });
+      col += 1;
     }
+    row += 1;
   }
   return points;
 }
 
-function scoreColor(score) {
+function scoreColor(score, alpha = 0.5) {
   const hue = clamp((1 - score) * 0.33);
-  return Cesium.Color.fromHsl(hue, 0.9, 0.5, 0.9);
+  return Cesium.Color.fromHsl(hue, 0.92, 0.5, alpha);
 }
 
 function publishTargets(dataSource, targets) {
   dataSource.entities.removeAll();
   for (const target of targets) {
-    const entity = dataSource.entities.add({
-      id: target.id,
-      position: Cesium.Cartesian3.fromDegrees(
+    const cell = target.metadata?.cell;
+    const graphics = {};
+    if (
+      cell &&
+      Number.isFinite(cell.west) &&
+      Number.isFinite(cell.south) &&
+      Number.isFinite(cell.east) &&
+      Number.isFinite(cell.north)
+    ) {
+      graphics.rectangle = {
+        coordinates: Cesium.Rectangle.fromDegrees(
+          cell.west,
+          cell.south,
+          cell.east,
+          cell.north,
+        ),
+        material: scoreColor(target.score, 0.24 + target.score * 0.50),
+        outline: target.score >= TARGET_POINT_THRESHOLD,
+        outlineColor: scoreColor(target.score, 0.82),
+        outlineWidth: 1,
+        height: 2,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      };
+    }
+    if (target.score >= TARGET_POINT_THRESHOLD) {
+      graphics.position = Cesium.Cartesian3.fromDegrees(
         target.longitude,
         target.latitude,
-        TARGET_HEIGHT_M,
-      ),
-      point: {
-        pixelSize: 10 + target.score * 12,
-        color: scoreColor(target.score),
-        outlineColor: Cesium.Color.WHITE.withAlpha(0.75),
+      );
+      graphics.point = {
+        pixelSize: 8 + target.score * 14,
+        color: scoreColor(target.score, 1),
+        outlineColor: Cesium.Color.WHITE.withAlpha(0.85),
         outlineWidth: 1,
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      },
+      };
+    }
+    const entity = dataSource.entities.add({
+      id: target.id,
+      ...graphics,
       properties: new Cesium.PropertyBag({
         commodity: target.commodity,
+        profile: target.profile,
         score: target.score,
         confidence: target.confidence,
         terrain: target.factors.terrain,
         hydrology: target.factors.hydrology,
         geology: target.factors.geology,
+        structure: target.factors.structure,
+        mineralization: target.factors.mineralization,
         remoteSensing: target.factors['remote-sensing'],
+        alluvial: target.factors.alluvial,
+        sampling: target.factors.sampling,
+        matchedGeologyUnit: target.metadata?.matchedGeologyUnit || '',
       }),
     });
   }
@@ -85,7 +134,11 @@ export function createProspectivityLayer({
   getContextLayers = () => [],
   signal = null,
   commodity = 'gold',
+  profile = 'gold-alluvial',
 } = {}) {
+  const selectedProfile = PROSPECTIVITY_PROFILES[profile]
+    ? profile
+    : 'gold-alluvial';
   const evidence = createMiningEvidenceBridge({
     terrain: surface?.terrain,
     featureSource,
@@ -94,7 +147,7 @@ export function createProspectivityLayer({
     getContextLayers,
     signal,
   });
-  const mining = createMiningEngine();
+  const mining = createMiningEngine({ profile: selectedProfile });
   let viewer = null;
   let dataSource = null;
   let enabled = false;
@@ -113,7 +166,10 @@ export function createProspectivityLayer({
     lastError = null;
     try {
       const points = gridAround(centre);
-      const analysed = await evidence.buildEvidence(points, { commodity });
+      const analysed = await evidence.buildEvidence(points, {
+        commodity,
+        profile: selectedProfile,
+      });
       mining.clear();
       for (const row of analysed) {
         mining.upsert({
@@ -121,9 +177,13 @@ export function createProspectivityLayer({
           latitude: row.lat,
           longitude: row.lon,
           commodity,
+          profile: selectedProfile,
           factors: row.factors,
           confidence: row.metadata?.evidenceCoverage ?? 0,
-          metadata: row.metadata,
+          metadata: {
+            ...row.metadata,
+            cell: row.cell,
+          },
           source: 'GEM',
         });
       }
@@ -144,7 +204,7 @@ export function createProspectivityLayer({
     id: 'gem-prospectivity',
     name: 'GEM Prospectivity',
     icon: '⛏',
-    source: 'GEM · Terrain + Hydrology + Geology + Imagery',
+    source: `GEM · ${PROSPECTIVITY_PROFILES[selectedProfile].label}`,
     updateInterval: 0,
 
     init(nextViewer) {
@@ -196,15 +256,32 @@ export function createProspectivityLayer({
       destroyed = true;
     },
 
+    getParams() {
+      return {
+        commodity,
+        profile: selectedProfile,
+        gridStepDegrees: GRID_STEP_DEGREES,
+        gridSize: GRID_RADIUS * 2 + 1,
+      };
+    },
+
     getStats() {
       return {
         count: mining.getTargets().length,
         lastUpdate,
         refreshing,
         error: lastError,
+        commodity,
+        profile: selectedProfile,
+        gridCells: (GRID_RADIUS * 2 + 1) ** 2,
         evidence: {
           hydrology: lastEvidence.some((row) => row.metadata?.hydrologySource),
           geology: lastEvidence.some((row) => row.metadata?.geologyAvailable),
+          structure: lastEvidence.some((row) => row.metadata?.structureSource),
+          mineralization: lastEvidence.some(
+            (row) => row.metadata?.mineralizationSource,
+          ),
+          alluvial: lastEvidence.some((row) => row.metadata?.alluvialSource),
           imagery: lastEvidence.some((row) => row.metadata?.imagerySource),
           terrain: lastEvidence.some((row) => row.metadata?.terrainSource),
         },
@@ -219,6 +296,8 @@ export function createProspectivityLayer({
         score: target.score,
         confidence: target.confidence,
         commodity: target.commodity,
+        profile: target.profile,
+        factors: target.factors,
       }));
     },
 
