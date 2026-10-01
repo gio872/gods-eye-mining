@@ -251,6 +251,7 @@
     "./layers/transit/source": "./src/layers/transit/source.js",
     "./sources/transit-service": "./src/sources/transitService.js",
     "./sources/map-features": "./src/sources/overpassFeatures.js",
-    "./mining": "./src/mining/index.js"
+    "./mining": "./src/mining/index.js",
+    "./mining/layers": "./src/mining/layers/index.js"
   }
 }
