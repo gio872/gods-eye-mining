@@ -3518,5 +3518,14 @@
     "external": [
       "cesium"
     ]
+  },
+  "gem-economic-value": {
+    "exports": [
+      "./mining/economic-value"
+    ],
+    "modules": [
+      "src/mining/core/economicValue.js"
+    ],
+    "external": []
   }
 }
