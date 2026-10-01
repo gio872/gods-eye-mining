@@ -129,7 +129,7 @@ async function callEvents(endpoint, action, body, credentials) {
   const security=credentials?.username ? usernameToken(credentials.username,credentials.password||'') : '';
   try { return await post(endpoint,eventSoap(action,body,security),credentials,{timeoutMs:6500}); }
   catch (first) {
-    if (credentials?.username) return await post(endpoint,eventSoap(action,body,''),credentials,{timeoutMs:6500});
+    if (credentials?.username) return await post(endpoint,eventSoap(action,body,''),{...credentials,timeoutMs:6500});
     throw first;
   }
 }
@@ -206,12 +206,16 @@ async function discover(timeoutMs=DISCOVERY_TIMEOUT_MS) {
   return [...found.values()];
 }
 
-export function onvifProxy({maxDiscoveryResults=64}={}) {
+export function onvifProxy({maxDiscoveryResults=64,adminToken=process.env.GEM_CAMERA_ADMIN_TOKEN||''}={}) {
   const install=(server)=>{
     server.middlewares.use('/api/onvif',async(req,res)=>{
       const reply=(status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(body));};
       try {
         const url=new URL(req.url||'/', 'http://localhost');
+      const bearer = String(req.headers?.authorization || '');
+      const suppliedToken = bearer.startsWith('Bearer ') ? bearer.slice(7).trim() : '';
+      if (!adminToken) return reply(503,{error:'GEM_CAMERA_ADMIN_TOKEN is not configured on the server'});
+      if (suppliedToken !== adminToken) return reply(401,{error:'Invalid camera administrator token'});
         if(url.pathname==='/discover' && req.method==='GET'){
           const cameras=(await discover()).slice(0,maxDiscoveryResults);
           return reply(200,{cameras});
@@ -223,6 +227,7 @@ export function onvifProxy({maxDiscoveryResults=64}={}) {
           const credentials={username:String(input.username||''),password:String(input.password||'')};
           const subscriptionBody='<wsnt:InitialTerminationTime>PT30M</wsnt:InitialTerminationTime>';
           let subUrl=String(input.pullPoint||'');
+          if(subUrl) subUrl=normalizeEndpoint(subUrl).href;
           if(!subUrl){
             const xml=await callEvents(endpoint.href,'tev:CreatePullPointSubscription',subscriptionBody,credentials);
             subUrl=text(xml,'Address') || text(xml,'XAddr');
