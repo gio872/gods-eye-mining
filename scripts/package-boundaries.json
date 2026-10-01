@@ -2086,6 +2086,7 @@
       "src/mining/layers/prospectivity.js",
       "src/layers/populations/source.js",
       "src/layers/populations/index.js",
+      "src/app/layers/populations.js",
       "src/mining/core/miningTypes.js",
       "src/mining/core/prospectivityEngine.js",
       "src/mining/core/miningEngine.js",
