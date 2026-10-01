@@ -18,8 +18,8 @@ GEM (Geospatial Exploration & Mining) is integrated into God's Eye as an applica
 
 ## Evidence and confidence
 
-The initial GEM factors are terrain, hydrology, geology, remote sensing, and sampling.
-Sampling is intentionally not populated yet.
+The GEM map currently models terrain, hydrology, geology, structure, known mineralization, alluvial context, remote-sensing and sampling.
+Sampling is intentionally not populated yet. Remote-sensing imagery is queried for coverage, cloud and recency, but it is not scored as mineral evidence until an actual spectral/anomaly source is supplied.
 When a source is unavailable, GEM records that absence explicitly instead of turning missing data into positive evidence.
 Target confidence is the fraction of the five evidence channels that are actually backed by a source.
 
@@ -54,3 +54,7 @@ Authoritative geological and sampling data should be connected before using GEM 
 The default connector queries the SGC's public ArcGIS services for the Colombian metallogenic map and the 2023 geological map. The metallogenic evidence is commodity-aware and decays with distance from matching deposits/occurrences. Statuses such as producer/past producer, prospect, occurrence/manifestation and anomaly receive different heuristic weights.
 
 These weights are an analytical model implemented by GEM; they are not SGC classifications and should be calibrated against the exploration program and target commodity.
+
+## Profiles
+
+The default standalone profile is `gold-alluvial`. The core also provides `gold-lode` and `base`. Profiles alter factor weights without changing the underlying source observations.
