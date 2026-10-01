@@ -565,3 +565,16 @@ One heads-up from the inside: build in this space for a week and you learn that 
 **🌐 God's Eye View. No place left behind.**
 
 </div>
+
+
+## TerraQueen Metal Markets
+
+The Mining workspace includes a `Mercado de Metales` layer powered by Metals.Dev. It displays spot prices for gold, silver, platinum, palladium, aluminum, copper, nickel, lead and zinc, plus a USD/COP conversion from the provider's currency feed.
+
+Configure the Vite variable:
+
+`VITE_METALS_DEV_API_KEY=<your key>`
+
+For Pinokio, provide the same variable through the application's environment/settings and restart the app. The module reports `LIVE`, `DELAYED`, or `STALE` from the provider timestamp and does not invent a quote when the provider is unavailable.
+
+Metals.Dev documents a maximum 60-second delay for its live feed on the Free plan, with 100 requests/month. The provider also exposes LBMA/LME authority data. LME itself publishes separate Official Prices as daily reference prices.
