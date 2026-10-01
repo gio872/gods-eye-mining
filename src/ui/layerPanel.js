@@ -18,6 +18,10 @@ const FEED_STATE_LABELS = Object.freeze({
 // Presentation order is independent of catalog registration and startup order.
 const PANEL_GROUPS = [
   {
+    label: 'Cartography',
+    ids: ['population-places'],
+  },
+  {
     label: 'Mining',
     ids: ['metal-markets', 'anm-mining-cadastre', 'gem-prospectivity'],
   },
@@ -34,6 +38,7 @@ const PANEL_GROUPS = [
 // Default Mining Mode: non-mining/non-terrestrial-context layers stay available
 // in the catalog but are intentionally hidden from the primary operator panel.
 const MINING_MODE_VISIBLE_IDS = new Set([
+  'population-places',
   'metal-markets',
   'anm-mining-cadastre',
   'gem-prospectivity',
