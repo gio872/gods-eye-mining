@@ -34,6 +34,12 @@ import { createAnmMiningCadastreLayer } from '../mining/sources/anmMiningCadastr
 import { createMetalMarketsLayer } from '../mining/sources/metalMarkets.js';
 import { createApplicationPopulations } from './layers/populations.js';
 import { overlayHost } from './layers/overlayHost.js';
+import {
+  createProjectEconomicsLayer,
+  createCriticalMineralsLayer,
+  createEntityIntelligenceLayer,
+  createTradeIntelligenceLayer,
+} from '../intelligence/layers.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -73,6 +79,10 @@ export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'anm-mining-cadastre', disposition: 'local-only' }),
   Object.freeze({ id: 'metal-markets', disposition: 'local-only' }),
   Object.freeze({ id: 'population-places', disposition: 'local-only' }),
+  Object.freeze({ id: 'mining-economics', disposition: 'local-only' }),
+  Object.freeze({ id: 'critical-minerals', disposition: 'local-only' }),
+  Object.freeze({ id: 'entity-intelligence', disposition: 'local-only' }),
+  Object.freeze({ id: 'mineral-trade-intelligence', disposition: 'local-only' }),
 ]);
 
 /** Serialization metadata for every layer the application catalog constructs. */
@@ -185,6 +195,10 @@ export function createApplicationCatalog({
         createAnmMiningCadastreLayer({ signal, overlayHost }),
         createMetalMarketsLayer({ signal }),
         createApplicationPopulations({ source: sources.populations }),
+        createProjectEconomicsLayer(),
+        createCriticalMineralsLayer(),
+        createEntityIntelligenceLayer(),
+        createTradeIntelligenceLayer(),
         vessels,
         installations,
         createApplicationAwareness({
