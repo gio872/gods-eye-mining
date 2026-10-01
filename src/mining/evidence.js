@@ -483,9 +483,13 @@ export function createMiningEvidenceBridge({
     let anomalyValues = null;
     let anomalySource = null;
     let spectralMetadata = null;
-    if (typeof remoteSensingSource === 'function' && centre) {
+    const remoteSensingGetter =
+      typeof remoteSensingSource === 'function'
+        ? remoteSensingSource
+        : remoteSensingSource?.getEvidence;
+    if (typeof remoteSensingGetter === 'function' && centre) {
       try {
-        const result = await remoteSensingSource({
+        const result = await remoteSensingGetter({
           points,
           center: centre,
           commodity,
