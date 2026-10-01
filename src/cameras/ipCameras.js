@@ -263,17 +263,20 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
     const go = document.createElement('button');
     go.type = 'button';
     go.textContent = 'IR';
-    load.addEventListener('click', async () => {
+    const loadPresets = async () => {
       try {
         const result = await ptzRequest(camera, { action: 'presets' });
         config.presets = Array.isArray(result.presets) ? result.presets : [];
         select.replaceChildren(new Option('PRESETS ONVIF', ''));
         for (const preset of config.presets) select.appendChild(new Option(preset.name, preset.token));
         setMessage(`${config.presets.length} preset(s) cargados: ${camera.name}`);
+        return true;
       } catch (error) {
         setMessage(error?.message || 'No se pudieron cargar los presets', true);
+        return false;
       }
-    });
+    };
+    load.addEventListener('click', () => void loadPresets());
     go.addEventListener('click', async () => {
       if (!select.value) return;
       try {
@@ -304,7 +307,7 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
       if (!select.value) return;
       try {
         await ptzRequest(camera, { action: 'removePreset', presetToken: select.value });
-        await load.click();
+        await loadPresets();
         setMessage('Preset eliminado');
       } catch (error) {
         setMessage(error?.message || 'No se pudo eliminar el preset', true);
