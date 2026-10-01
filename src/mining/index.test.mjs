@@ -41,6 +41,9 @@ test('factor values are normalized to the analytical range', () => {
   assert.equal(target.factors.geology, 0.5);
   assert.equal(target.factors['remote-sensing'], 0);
   assert.equal(target.factors.sampling, 0.75);
+  assert.equal(target.factors.structure, 0);
+  assert.equal(target.factors.mineralization, 0);
+  assert.equal(target.factors.alluvial, 0);
 });
 
 test('prospectivity scoring normalizes weights and ranks candidates', () => {
