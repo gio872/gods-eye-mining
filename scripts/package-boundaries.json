@@ -1347,6 +1347,7 @@
       "src/app/layers/militaryFlights.js",
       "src/app/layers/militaryInstallations.js",
       "src/app/layers/populations.js",
+      "src/mining/layers/prospectivity.js",
       "src/app/layers/overlayHost.js",
       "src/app/layers/radio.js",
       "src/app/layers/rocketLaunches.js",
