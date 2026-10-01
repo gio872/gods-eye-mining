@@ -262,6 +262,9 @@
     "./cameras": "./src/cameras/index.js",
     "./server/providers/ip-cameras": {
       "node": "./server/providers/ipCameras.js"
+    },
+    "./server/providers/onvif": {
+      "node": "./server/providers/onvif.js"
     }
   }
 }
