@@ -128,16 +128,23 @@ function calculateEconomics(input) {
   const sustainingCost=tonnes*sustaining;
   const ebitda=revenue-opex;
   const freeCash=ebitda-sustainingCost;
-  const aisc= value.recoveredMetalTonnes>0 ? (opex+sustainingCost)/(value.recoveredMetalTonnes) : null;
-  const breakEvenPrice=value.recoveredMetalTonnes>0 ? (opex+sustainingCost)/value.recoveredTroyOz : null;
+  const precious=value.priceUnit==='USD/toz';
+  const denominator=precious ? value.recoveredTroyOz : value.recoveredMetalTonnes;
+  const aisc=denominator>0 ? (opex+sustainingCost)/denominator : null;
+  const breakEvenPrice=denominator>0 ? (opex+sustainingCost)/denominator : null;
   const annual=[...Array(years)].map((_,i)=>i===0?-capex:freeCash);
-  let npv=-capex;
-  const discount=finite(input.discount,10)/100;
-  for(let i=1;i<=years;i++) npv+=freeCash/Math.pow(1+discount,i);
+  const discount=Math.max(-0.99,finite(input.discount,10)/100);
+  const npv=annual.reduce((sum,cash,i)=>sum+cash/Math.pow(1+discount,i),0);
+  const npvAt=(rate)=>annual.reduce((sum,cash,i)=>sum+cash/Math.pow(1+rate,i),0);
   let irr=null;
-  for(let rate=-0.95;rate<2;rate+=0.001){
-    const pv=annual.reduce((sum,cash,i)=>sum+cash/Math.pow(1+rate,i),0);
-    if(Math.abs(pv)<Math.abs(npv*0.02+1)) { irr=rate*100; break; }
+  let lo=-0.99, hi=10, flo=npvAt(lo), fhi=npvAt(hi);
+  if(Number.isFinite(flo)&&Number.isFinite(fhi)&&flo*fhi<0){
+    for(let i=0;i<80;i++){
+      const mid=(lo+hi)/2, fm=npvAt(mid);
+      if(Math.abs(fm)<1e-6){ irr=mid*100; break; }
+      if(flo*fm<=0){hi=mid;fhi=fm;} else {lo=mid;flo=fm;}
+    }
+    if(irr===null) irr=((lo+hi)/2)*100;
   }
   return { ...value, revenue, opex, sustainingCost, ebitda, freeCash, aisc, breakEvenPrice, npv, irr };
 }
