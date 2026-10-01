@@ -67,3 +67,18 @@ The default standalone profile is `gold-alluvial`. The core also provides `gold-
 ## Analytical boundary
 
 GEM outputs are heuristic prospectivity scores. They are not mineral reserves, mineral resources, assay grades, economic valuations or proof of a deposit. SGC observations are authoritative source data, but the weighting, anomaly normalization and spectral interpretation are GEM analytical assumptions that require calibration against the exploration program, commodity and field validation.
+
+
+## ANM Mining Cadastre
+
+GEM is complemented by an official Colombian mining-cadastre overlay from the Agencia Nacional de Minería (ANM). The application consumes the public ANM WMS at:
+
+`https://geo.anm.gov.co/webgis/services/ANM/ServiciosGeograficosANM/MapServer/WMSServer`
+
+and click-identification through the public ANM `ServiciosANM` MapServer.
+
+The visible cadastre set includes: current mining requests represented by the ANM geoservice, mining titles, subcontracts, special-reserve requests, restricted indigenous areas, ethnic mining zones, strategic mining areas, state-investment areas, declared/in-process special reserves, areas susceptible to mining, reserved-potential zones, and area banks.
+
+Important legal boundary: **“Sin título/solicitud identificado” is not equivalent to a legally certified free area.** The ANM states that a Certificado de Área Libre considers titles and/or current applications, mining-excluded zones, overlap percentages and the corresponding boundary information. Use the in-app status as a cartographic screening aid and verify legal availability through ANM before filing or acquiring mining rights.
+
+Source metadata is shown in the map interface as ANM official geoservices. The WMS/WFS endpoints are publicly offered by ANM for consultation, interoperability and transparency.
