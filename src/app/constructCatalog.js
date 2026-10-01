@@ -41,6 +41,7 @@ import {
   createTradeIntelligenceLayer,
 } from '../intelligence/layers.js';
 import { createIntelligenceGraphLayer } from '../intelligence/graphLayer.js';
+import { createIpCamerasLayer } from '../cameras/ipCameras.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -188,6 +189,7 @@ export function createApplicationCatalog({
         createApplicationLaunches({ source: sources.launches, satellites }),
         createApplicationTraffic({ source: sources.traffic, surface }),
         createApplicationCctv({ surface, source: sources.cctv }),
+        createIpCamerasLayer(),
         createApplicationRadio({ surface, source: sources.radio }),
         createApplicationTransit({ surface, source: sources.transit }),
         createApplicationBikeshare({ source: sources.bikeshare }),
