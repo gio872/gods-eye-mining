@@ -4,6 +4,7 @@ import {
   getCriticalMineralRecord,
   getTaxonomyStats,
   calculateCriticalityCoverage,
+  getCriticalMineralSources,
 } from './criticalMinerals/index.js';
 
 const TRADE_CORRIDORS = Object.freeze([
@@ -236,6 +237,7 @@ export function createCriticalMineralsLayer() {
       taxonomies:getTaxonomyStats(),
       metricStatus:'NOT_CONNECTED',
       temporalVersion:'2026.10',
+      authoritativeSources:getCriticalMineralSources().map(source=>({id:source.id,provider:source.provider,year:source.year})),
     }),
   });
 }
