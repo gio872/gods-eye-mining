@@ -3,6 +3,7 @@ import {
   createGraphEdge,
   createIntelligenceGraph,
 } from './graph.js';
+import { getCriticalMineralCatalog, getCriticalMineralRecord } from './criticalMinerals/index.js';
 
 function nowIso() {
   return new Date().toISOString();
@@ -69,6 +70,30 @@ export function buildIntelligenceGraphFromLayers(layers = [], {
     ? prospectivitySnapshot.targets.slice(0, Math.max(0, Number(maxTargets) || 0))
     : [];
 
+  const criticalMinerals = getCriticalMineralCatalog();
+  for (const mineral of criticalMinerals) {
+    const id = `critical-mineral:${mineral.id}`;
+    addNode(nodes, createGraphNode({
+      id, type:'critical-mineral', label:mineral.name,
+      subtitle:`${mineral.group} · USGS 2025`,
+      properties:{...mineral, classifications:mineral.classifications, temporal:mineral.temporal},
+      source:'GEM Critical Minerals',
+      observedAt:observedAt,
+    }));
+    const commodityId = `commodity:${mineral.id}`;
+    addNode(nodes, createGraphNode({
+      id:commodityId, type:'commodity', label:mineral.name,
+      subtitle:'critical mineral commodity',
+      properties:{commodity:mineral.id, critical:true},
+      source:'GEM Critical Minerals', observedAt:observedAt,
+    }));
+    addEdge(edges, createGraphEdge({
+      id:`edge:${id}:classified-as:usgs2025`, from:id, to:commodityId,
+      type:'classified-as', source:'USGS 2025', observedAt:observedAt,
+      evidence:[{taxonomy:'USGS_2025',year:2025}],
+    }));
+  }
+
   const targetIds = new Map();
   for (const target of targets) {
     const id = `deposit:gem:${target.id}`;
@@ -91,6 +116,15 @@ export function buildIntelligenceGraphFromLayers(layers = [], {
     }));
 
     const commodity = String(target.commodity || 'unknown').toLowerCase();
+    const critical = getCriticalMineralRecord(commodity);
+    if (critical) {
+      const criticalId = `critical-mineral:${critical.id}`;
+      addEdge(edges, createGraphEdge({
+        id:`edge:${id}:classified-as:${criticalId}`, from:id, to:criticalId,
+        type:'classified-as', source:'GEM Prospectivity', observedAt,
+        evidence:[{targetId:target.id, commodity:critical.id, score:target.score, confidence:target.confidence}],
+      }));
+    }
     const commodityId = `commodity:${commodity}`;
     addNode(nodes, createGraphNode({
       id: commodityId,
