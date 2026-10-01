@@ -84,6 +84,7 @@ export function createProspectivityLayer({
   imageryLayer,
   getContextLayers = () => [],
   signal = null,
+  commodity = 'gold',
 } = {}) {
   const evidence = createMiningEvidenceBridge({
     terrain: surface?.terrain,
@@ -112,14 +113,14 @@ export function createProspectivityLayer({
     lastError = null;
     try {
       const points = gridAround(centre);
-      const analysed = await evidence.buildEvidence(points);
+      const analysed = await evidence.buildEvidence(points, { commodity });
       mining.clear();
       for (const row of analysed) {
         mining.upsert({
           id: row.id,
           latitude: row.lat,
           longitude: row.lon,
-          commodity: 'gold',
+          commodity,
           factors: row.factors,
           confidence: row.metadata?.evidenceCoverage ?? 0,
           metadata: row.metadata,
