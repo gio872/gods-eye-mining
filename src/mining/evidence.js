@@ -285,18 +285,27 @@ export function createMiningEvidenceBridge({
     }
     const centre = points[Math.floor(points.length / 2)];
     if (!centre) return { values: [], source: null, featureCount: 0 };
-    const response = await featureSource.getFootprints(centre, {
-      signal: requestSignal,
-    });
-    const available = Array.isArray(response);
-    const features = available ? response : [];
-    return {
-      values: points.map((point) =>
-        scoreHydrology(point, features, hydrologyRadiusKm),
-      ),
-      source: available ? 'Gods Eye GIS · Overpass' : null,
-      featureCount: features.length,
-    };
+    try {
+      const response = await featureSource.getFootprints(centre, {
+        signal: requestSignal,
+      });
+      const available = Array.isArray(response);
+      const features = available ? response : [];
+      return {
+        values: points.map((point) =>
+          scoreHydrology(point, features, hydrologyRadiusKm),
+        ),
+        source: available ? 'Gods Eye GIS · Overpass' : null,
+        featureCount: features.length,
+      };
+    } catch (error) {
+      return {
+        values: points.map(() => 0),
+        source: null,
+        featureCount: 0,
+        error: String(error?.message || error),
+      };
+    }
   }
 
   async function collectGeology(points, requestSignal, commodity) {
