@@ -444,6 +444,7 @@ export function createMiningEvidenceBridge({
       drainageDoubleFeatureCount:
         Number(raw?.drainageDoubleFeatureCount) || 0,
       geochemistrySampleCount: Number(raw?.geochemistrySampleCount) || 0,
+      geochemistryUnits: raw?.geochemistryUnits || null,
       matchedUnits: Array.isArray(raw?.matchedUnits) ? raw.matchedUnits : [],
     };
   }
@@ -654,6 +655,11 @@ export function createMiningEvidenceBridge({
           auAnomaly: geologyResult.auAnomalyValues?.[index] ?? 0,
           agAnomaly: geologyResult.agAnomalyValues?.[index] ?? 0,
           cuAnomaly: geologyResult.cuAnomalyValues?.[index] ?? 0,
+          geochemistryUnits: geologyResult.geochemistryUnits || {
+            au: 'µg/kg',
+            ag: 'mg/kg',
+            cu: 'mg/kg',
+          },
           rawAu: geologyResult.rawGeochemistry?.au?.[index] ?? null,
           rawAg: geologyResult.rawGeochemistry?.ag?.[index] ?? null,
           rawCu: geologyResult.rawGeochemistry?.cu?.[index] ?? null,
