@@ -10,7 +10,7 @@ export const GRAPH_NODE_TYPES = Object.freeze([
 ]);
 
 export const GRAPH_EDGE_TYPES = Object.freeze([
-  'located-in','contains','produces','holds-right','owned-by','controls',
+  'located-in','contains','produces','holds-right','owned-by','owns','controls',
   'directs','works-for','operates','processes','refines','ships-to',
   'ships-from','trades','transacts-with','registered-in','located-near',
   'screened-against','mentioned-in','supported-by','derived-from',
@@ -107,8 +107,8 @@ export function createDemoIntelligenceGraph() {
   const edges=[
     ['e1','location:sample','deposit:sample','contains'],
     ['e2','deposit:sample','commodity:gold','produces'],
-    ['e3','deposit:sample','right:sample','holds-right'],
-    ['e4','right:sample','company:operator','operates'],
+    ['e3','right:sample','deposit:sample','holds-right'],
+    ['e4','company:operator','right:sample','holds-right'],
     ['e5','company:operator','person:ubo','owned-by'],
     ['e6','company:operator','project:sample','operates'],
     ['e7','project:sample','facility:plant','processes'],
