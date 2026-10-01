@@ -46,6 +46,7 @@ export class LayerPresentation {
           this.manager.setLayerParams(id, params, options),
         getRowControls: (id) => {
           const module = this.manager.layers.get(id)?.module;
+          module?.attachDataManager?.(this.manager);
           try {
             return module?.getRowControls?.() || null;
           } catch (error) {
