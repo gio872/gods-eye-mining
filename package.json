@@ -259,6 +259,7 @@
     "./mining/sources/metal-markets": "./src/mining/sources/metalMarkets.js",
     "./mining/economic-value": "./src/mining/core/economicValue.js",
     "./intelligence": "./src/intelligence/index.js",
+    "./intelligence/entity-source": "./src/intelligence/entityIntelligenceSource.js",
     "./cameras": "./src/cameras/index.js",
     "./server/providers/ip-cameras": {
       "node": "./server/providers/ipCameras.js"
