@@ -181,7 +181,8 @@ export function mergePopulationTiles(results, maxLabels = 140) {
           '|' +
           place.longitude.toFixed(5);
         const existing = byKey.get(key);
-        if (!existing || place.priority > existing.priority) byKey.set(key, place);
+        if (!existing || place.priority > existing.priority)
+          byKey.set(key, place);
       }
     }
   }
