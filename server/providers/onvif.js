@@ -96,11 +96,96 @@ async function mediaProfiles(media, credentials) {
     raw,
   }));
 }
+function capabilityXAddr(xml, serviceTag) {
+  const block = new RegExp(`<(?:[\\w-]+:)?${serviceTag}\\b[^>]*>([\\s\\S]*?)</(?:[\\w-]+:)?${serviceTag}>`, 'i').exec(xml)?.[1] || '';
+  return text(block, 'XAddr');
+}
 async function streamUri(media, profileToken, credentials) {
   const body='<trt:StreamSetup><tt:Stream>RTP-Unicast</tt:Stream><tt:Transport><tt:Protocol>RTSP</tt:Protocol></tt:Transport></trt:StreamSetup><trt:ProfileToken>'+esc(profileToken)+'</trt:ProfileToken>';
   const xml=await callOnvif(media,'trt:GetStreamUri',body,credentials);
   return text(xml,'Uri') || text(xml,'URI');
 }
+function velocityBody({profileToken, pan=0, tilt=0, zoom=0, timeoutMs=900}) {
+  const timeout = `PT${Math.max(100, Math.min(10000, Number(timeoutMs) || 900))}MS`;
+  const movement = (pan || tilt)
+    ? `<tt:PanTilt x="${Math.max(-1,Math.min(1,Number(pan)||0))}" y="${Math.max(-1,Math.min(1,Number(tilt)||0)}"/>`
+    : '';
+  const zoomNode = zoom
+    ? `<tt:Zoom x="${Math.max(-1,Math.min(1,Number(zoom)||0))}"/>`
+    : '';
+  return `<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:Velocity><tt:PanTilt x="${movement ? Math.max(-1,Math.min(1,Number(pan)||0)) : 0}" y="${movement ? Math.max(-1,Math.min(1,Number(tilt)||0)) : 0}"/>${zoomNode ? zoomNode : ''}</tptz:Velocity><tptz:Timeout>${timeout}</tptz:Timeout>`;
+}
+function ptzSoap(action, body, security='') {
+  return `<?xml version="1.0" encoding="UTF-8"?><s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><s:Header>${security}</s:Header><s:Body><${action}>${body}</${action}></s:Body></s:Envelope>`;
+}
+async function callPtz(endpoint, action, body, credentials) {
+  const security=credentials?.username ? usernameToken(credentials.username,credentials.password||'') : '';
+  try { return await post(endpoint,ptzSoap(action,body,security),credentials); }
+  catch (first) {
+    if (credentials?.username) return await post(endpoint,ptzSoap(action,body,''),credentials);
+    throw first;
+  }
+}
+function eventSoap(action, body, security='') {
+  return `<?xml version="1.0" encoding="UTF-8"?><s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tev="http://www.onvif.org/ver10/events/wsdl" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:wsa="http://www.w3.org/2005/08/addressing" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><s:Header>${security}</s:Header><s:Body><${action}>${body}</${action}></s:Body></s:Envelope>`;
+}
+async function callEvents(endpoint, action, body, credentials) {
+  const security=credentials?.username ? usernameToken(credentials.username,credentials.password||'') : '';
+  try { return await post(endpoint,eventSoap(action,body,security),credentials,{timeoutMs:6500}); }
+  catch (first) {
+    if (credentials?.username) return await post(endpoint,eventSoap(action,body,''),credentials,{timeoutMs:6500});
+    throw first;
+  }
+}
+function parseEventMessages(xml) {
+  return all(xml,'NotificationMessage').map((raw) => {
+    const topic = text(raw,'Topic');
+    const message = text(raw,'Message');
+    const source = text(message,'SimpleItem');
+    const timestamp = text(raw,'UtcTime') || new Date().toISOString();
+    const lower = `${topic} ${raw}`.toLowerCase();
+    return {
+      topic,
+      source,
+      timestamp,
+      type: /tamper|tampering/i.test(lower) ? 'tamper' : /motion|cellmotion/i.test(lower) ? 'motion' : 'event',
+    };
+  });
+}
+async function getCapabilities(endpoint, credentials) {
+  return callOnvif(endpoint,'tds:GetCapabilities','<tds:Category>All</tds:Category>',credentials);
+}
+async function ptzStatus(ptz, profileToken, credentials) {
+  const xml=await callPtz(ptz,'tptz:GetStatus',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken>`,credentials);
+  return {
+    pan: Number(/<[^>]*PanTilt[^>]*x="([^"]+)"/i.exec(xml)?.[1]),
+    tilt: Number(/<[^>]*PanTilt[^>]*y="([^"]+)"/i.exec(xml)?.[1]),
+    zoom: Number(/<[^>]*Zoom[^>]*x="([^"]+)"/i.exec(xml)?.[1]),
+    panTiltStatus: text(xml,'PanTiltStatus') || 'UNKNOWN',
+    zoomStatus: text(xml,'ZoomStatus') || 'UNKNOWN',
+  };
+}
+async function ptzPresets(ptz, profileToken, credentials) {
+  const xml=await callPtz(ptz,'tptz:GetPresets',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken>`,credentials);
+  return all(xml,'Preset').map((raw,index)=>({
+    token:(/<(?:[\\w-]+:)?Preset[^>]*token="([^"]+)"/i.exec(raw)?.[1]) || `preset-${index+1}`,
+    name:text(raw,'Name') || `Preset ${index+1}`,
+  }));
+}
+async function ptzMove(ptz, input, credentials) {
+  const body=velocityBody(input);
+  await callPtz(ptz,'tptz:ContinuousMove',body,credentials);
+  return {ok:true};
+}
+async function ptzStop(ptz, profileToken, credentials) {
+  await callPtz(ptz,'tptz:Stop',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:PanTilt>true</tptz:PanTilt><tptz:Zoom>true</tptz:Zoom>`,credentials);
+  return {ok:true};
+}
+async function ptzGotoPreset(ptz, profileToken, presetToken, credentials) {
+  await callPtz(ptz,'tptz:GotoPreset',`<tptz:ProfileToken>${esc(profileToken)}</tptz:ProfileToken><tptz:PresetToken>${esc(presetToken)}</tptz:PresetToken>`,credentials);
+  return {ok:true};
+}
+
 
 async function discover(timeoutMs=DISCOVERY_TIMEOUT_MS) {
   const socket=dgram.createSocket({type:'udp4',reuseAddr:true});
@@ -135,20 +220,58 @@ export function onvifProxy({maxDiscoveryResults=64}={}) {
           const cameras=(await discover()).slice(0,maxDiscoveryResults);
           return reply(200,{cameras});
         }
+        if(url.pathname==='/events' && req.method==='POST'){
+          const chunks=[];for await(const chunk of req)chunks.push(chunk);
+          const input=JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}');
+          const endpoint=normalizeEndpoint(input.events);
+          const credentials={username:String(input.username||''),password:String(input.password||'')};
+          const subscriptionBody='<wsnt:InitialTerminationTime>PT30M</wsnt:InitialTerminationTime>';
+          let subUrl=String(input.pullPoint||'');
+          if(!subUrl){
+            const xml=await callEvents(endpoint.href,'tev:CreatePullPointSubscription',subscriptionBody,credentials);
+            subUrl=text(xml,'Address') || text(xml,'XAddr');
+            if(!subUrl) throw new Error('ONVIF event subscription did not return a PullPoint address');
+          }
+          const xml=await callEvents(subUrl,'wsnt:PullMessages','<wsnt:Timeout>PT1S</wsnt:Timeout><wsnt:MessageLimit>20</wsnt:MessageLimit>',credentials);
+          return reply(200,{pullPoint:subUrl,events:parseEventMessages(xml)});
+        }
+        if(url.pathname==='/ptz' && req.method==='POST'){
+          const chunks=[];for await(const chunk of req)chunks.push(chunk);
+          const input=JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}');
+          const ptz=normalizeEndpoint(input.ptz);
+          const credentials={username:String(input.username||''),password:String(input.password||'')};
+          const action=String(input.action||'status');
+          if(!input.profileToken) throw new Error('PTZ profileToken is required');
+          if(action==='status') return reply(200,await ptzStatus(ptz.href,input.profileToken,credentials));
+          if(action==='move') return reply(200,await ptzMove(ptz.href,input,credentials));
+          if(action==='stop') return reply(200,await ptzStop(ptz.href,input.profileToken,credentials));
+          if(action==='presets') return reply(200,{presets:await ptzPresets(ptz.href,input.profileToken,credentials)});
+          if(action==='gotoPreset') return reply(200,await ptzGotoPreset(ptz.href,input.profileToken,input.presetToken,credentials));
+          throw new Error('Unsupported PTZ action');
+        }
         if(url.pathname==='/probe' && req.method==='POST'){
           const chunks=[];for await(const chunk of req)chunks.push(chunk);
           const input=JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}');
           const endpoint=normalizeEndpoint(input.endpoint);
           const credentials={username:String(input.username||''),password:String(input.password||'')};
           const device=await deviceService(endpoint,credentials);
-          const media=await callOnvif(device,'tds:GetCapabilities','<tds:Category>Media</tds:Category>',credentials).then((xml)=>text(xml,'XAddr')||text(xml,'MediaXAddr'));
+          const capabilities=await getCapabilities(device,credentials);
+          const media=capabilityXAddr(capabilities,'Media') || capabilityXAddr(capabilities,'Media2');
+          const ptz=capabilityXAddr(capabilities,'PTZ');
+          const events=capabilityXAddr(capabilities,'Events');
           if(!media) throw new Error('ONVIF media service was not advertised by the camera');
           const profiles=await mediaProfiles(media,credentials);
-          const selected=profiles[0];
+          const selected=profiles.find((profile)=>profile.raw.includes('PTZConfiguration')) || profiles[0];
           if(!selected) throw new Error('ONVIF camera returned no media profiles');
           const stream=await streamUri(media,selected.token,credentials);
           if(!stream) throw new Error('ONVIF camera returned no RTSP stream URI');
-          return reply(200,{endpoint,media,device,profiles:profiles.map(({raw,...p})=>p),streamUri:stream});
+          let presetList=[];
+          let ptzStatusValue=null;
+          if(ptz && selected.raw.includes('PTZConfiguration')){
+            try{ presetList=await ptzPresets(ptz,selected.token,credentials); }catch{}
+            try{ ptzStatusValue=await ptzStatus(ptz,selected.token,credentials); }catch{}
+          }
+          return reply(200,{endpoint,media,ptz,events,device,profiles:profiles.map(({raw,...p})=>p),selectedProfile:selected.token,streamUri:stream,ptzAvailable:Boolean(ptz && selected.raw.includes('PTZConfiguration')),presets:presetList,ptzStatus:ptzStatusValue});
         }
         return reply(404,{error:'Not found'});
       }catch(error){return reply(400,{error:error?.message||String(error)});}
