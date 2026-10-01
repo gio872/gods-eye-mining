@@ -132,6 +132,7 @@ export function createProspectivityLayer({
   geologySource,
   imageryLayer,
   getContextLayers = () => [],
+  remoteSensingSource = null,
   signal = null,
   commodity = 'gold',
   profile = 'gold-alluvial',
@@ -144,6 +145,7 @@ export function createProspectivityLayer({
     featureSource,
     geologySource,
     imageryLayer,
+    remoteSensingSource,
     getContextLayers,
     signal,
   });
