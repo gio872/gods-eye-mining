@@ -177,7 +177,7 @@ export function createMiningEvidenceBridge({
     };
   }
 
-  async function collectGeology(points, requestSignal) {
+  async function collectGeology(points, requestSignal, commodity = 'gold') {
     if (
       typeof geologySource?.getEvidence !== 'function' &&
       typeof geologySource?.getFeatures !== 'function'
@@ -315,7 +315,7 @@ export function createMiningEvidenceBridge({
     const terrainResult = terrainFactors(points, heights);
     const [hydrologyResult, geologyResult] = await Promise.all([
       collectHydrology(points, requestSignal),
-      collectGeology(points, requestSignal),
+      collectGeology(points, requestSignal, options.commodity || 'gold'),
     ]);
     const imagery = await collectImagery(points, requestSignal);
     const context = existingLayerContext(points);
