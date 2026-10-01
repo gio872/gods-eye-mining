@@ -235,7 +235,7 @@ function identifyUrl(url, point, radiusKm) {
     imageDisplay: '1024,1024,96',
     returnGeometry: 'false',
   });
-  return `${url.replace(/\/$/, '')}/identify?${params}`;
+  return url.replace(/\/$/, '') + '/identify?' + params;
 }
 
 async function requestJson(url, fetchImpl, signal, options = {}) {
