@@ -1348,6 +1348,8 @@
       "src/app/layers/militaryInstallations.js",
       "src/app/layers/populations.js",
       "src/mining/layers/prospectivity.js",
+      "src/mining/sources/anmMiningCadastre.js",
+      "src/mining/sources/metalMarkets.js",
       "src/app/layers/overlayHost.js",
       "src/app/layers/radio.js",
       "src/app/layers/rocketLaunches.js",
