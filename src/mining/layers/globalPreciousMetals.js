@@ -113,11 +113,11 @@ export function createGlobalPreciousMetalsLayer({source=createGlobalPreciousMeta
     id:'global-precious-metals',name:'Global Precious Metals Intelligence',icon:'◇',source:'USGS · Macrostrat · NOAA EMAG2 · Global Screening',updateInterval:0,showInTogglePanel:true,
     setRowControlsListener(listener){rowControlsListener=typeof listener==='function'?listener:null;},
     getRowControls(){return {chips:[{id:'global-pm-open',label:'GLOBAL PRECIOUS METALS',onClick:()=>{ensurePanel();panel.hidden=false;render();}}],legend:[{label:'Documented occurrence score',color:'#2fe0b3'}],info:analysis?'Target '+Math.round((analysis.score||0)*100)+'/100':occurrences.length?occurrences.length+' ocurrencias globales':'Analizar cualquier coordenada del planeta',infoTitle:'Datos documentados y screening predictivo se mantienen separados.'};},
-    init(nextViewer){viewer=nextViewer||null;if(!viewer)return false;if(!dataSource){dataSource=new Cesium.CustomDataSource('gem-global-precious-metals');viewer.dataSources.add(dataSource);}ensurePanel();return true;},
+    init(nextViewer){viewer=nextViewer||null;if(!viewer)return false;if(!dataSource){dataSource=new Cesium.CustomDataSource('gem-global-precious-metals');viewer.dataSources.add(dataSource);}ensurePanel();if(typeof window!=='undefined'){const listener=(event)=>void consumeSpectralEvidence(event?.detail||{});window.addEventListener('gem:spectral-evidence-updated',listener);removeSpectralListener=()=>window.removeEventListener('gem:spectral-evidence-updated',listener);}return true;},
     enable(nextViewer){if(destroyed)return false;viewer=nextViewer||viewer;ensurePanel();enabled=true;panel.hidden=false;render();paint();return true;},
     disable(){enabled=false;if(panel)panel.hidden=true;clearMap();return true;},
     async update(){return enabled&&!destroyed;},
-    destroy(){if(destroyed)return;clearMap();if(dataSource&&viewer?.dataSources?.contains?.(dataSource))viewer.dataSources.remove(dataSource,true);dataSource=null;panel?.remove?.();panel=null;viewer=null;destroyed=true;},
+    destroy(){if(destroyed)return;removeSpectralListener();clearMap();if(dataSource&&viewer?.dataSources?.contains?.(dataSource))viewer.dataSources.remove(dataSource,true);dataSource=null;panel?.remove?.();panel=null;viewer=null;destroyed=true;},
     getStats(){return {count:occurrences.length,countLabel:occurrences.length?occurrences.length+' OCCURRENCES':'—',analysisScore:analysis?.score??null,knownDepths:occurrences.filter((r)=>r.depthStatus==='known').length};},
     getParams(){return {commodity,source:'USGS MRDS + specialized USGS datasets + Macrostrat + NOAA EMAG2',analysis:analysis,occurrences:occurrences.length};},
   };
