@@ -16,12 +16,12 @@ function exportForAnm(result) {
   const base='ANM_Area_Libre_'+String(result.department?.code||'DEP')+'_'+String(result.municipality?.code||'MPIO')+'_'+stamp;
   const headers=['CELL_KEY_ID','CELL_STATUS_CODE','CELL_REASON_CODE','CELL_REOPENING_DATE','AREA_HA','CENTROID_LONGITUDE','CENTROID_LATITUDE','LONGITUD_MIN','LONGITUD_MAX','LATITUD_MIN','LATITUD_MAX'];
   const rows=result.cells.map(function(cell){return [cell.cellKey,cell.statusCode,cell.reasonCode,cell.reopeningDate||'',cell.areaHa,cell.centroid?.lon,cell.centroid?.lat,cell.bounds?.west,cell.bounds?.east,cell.bounds?.south,cell.bounds?.north].map(csvValue).join(',');});
-  const csv=[headers.join(','),...rows].join('\\r\\n');
+  const csv=[headers.join(','),...rows].join('\r\n');
   downloadFile(base+'.csv',csv,'text/csv;charset=utf-8');
   const features=result.cells.map(function(cell){return {type:'Feature',properties:{CELL_KEY_ID:cell.cellKey,CELL_STATUS_CODE:cell.statusCode,CELL_REASON_CODE:cell.reasonCode,CELL_REOPENING_DATE:cell.reopeningDate||null,AREA_HA:cell.areaHa,CENTROID_LONGITUDE:cell.centroid?.lon,CENTROID_LATITUDE:cell.centroid?.lat},geometry:{type:'Polygon',coordinates:cellCoordinates(cell.bounds)}};}).filter(function(feature){return feature.geometry.coordinates;});
   const geojson={type:'FeatureCollection',name:base,features:features,metadata:{provider:'ANM · AnnA Minería',department:result.department,municipality:result.municipality,cellCount:result.cellCount,totalHa:result.totalHa,retrievedAt:result.retrievedAt,statusDefinition:'CELL_STATUS_CODE=A → Disponible',note:'GeoJSON operacional de celdas disponibles; verifique el estado vigente en AnnA Minería antes de radicar.'}};
   downloadFile(base+'.geojson',JSON.stringify(geojson,null,2),'application/geo+json;charset=utf-8');
-  const cellIds=result.cells.map(function(cell){return cell.cellKey;}).filter(Boolean).join('\\r\\n')+'\\r\\n';
+  const cellIds=result.cells.map(function(cell){return cell.cellKey;}).filter(Boolean).join('\\r\\n')+'\r\n';
   downloadFile(base+'_CELL_KEY_ID.txt',cellIds,'text/plain;charset=utf-8');
   const summary=['GEM · EXPORTACIÓN PARA ANM','Fuente: ANM · AnnA Minería · Sistema de Cuadrícula','Departamento: '+(result.department?.name||'—'),'Municipio: '+(result.municipality?.name||'—'),'Código departamento: '+(result.department?.code||'—'),'Código municipio: '+(result.municipality?.code||'—'),'Celdas disponibles: '+result.cellCount,'Superficie total: '+result.totalHa+' ha','Fecha/hora de consulta: '+result.retrievedAt,'Estado consultado: CELL_STATUS_CODE=A','AVISO: este archivo sirve como soporte cartográfico y operativo. La radicación y verificación de disponibilidad se realiza en AnnA Minería.'].join('\\r\\n');
   downloadFile(base+'_RESUMEN.txt',summary,'text/plain;charset=utf-8');
@@ -152,7 +152,7 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
   }
   function updateExportButton() {
     const button=panel?.querySelector('.gem-anm-free-export');
-    if(button) button.disabled=!currentResult?.cells?.length;
+    if(button) button.disabled=!selectedArea?.cells?.length;
   }
   function ensurePanel(){
     if(panel||!viewer?.container)return;
@@ -163,7 +163,7 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
     const controls=panel.querySelector('.gem-anm-free-controls'), dept=select('department','Departamento'), muni=select('municipality','Municipio'); muni.disabled=true; const btn=document.createElement('button'); btn.type='button'; btn.textContent='CONSULTAR'; btn.style.cssText='border:1px solid rgba(47,224,179,.3);background:rgba(47,224,179,.08);color:#8df1d4;border-radius:5px;padding:7px 10px;font:700 9px monospace;cursor:pointer'; controls.append(dept,muni,btn);
     destroyDrag(); destroyDrag=makeDraggable(panel);
     panel.querySelector('.gem-anm-free-close').onclick=function(e){e.preventDefault();e.stopPropagation();enabled=false;clearMap();if(panel)panel.hidden=true;dataManager?.setEnabled?.('anm-free-areas',false,{origin:'user'});};
-    const mark=document.createElement('button'); mark.type='button'; mark.textContent='MARCAR ÁREA LIBRE'; mark.style.cssText=btn.style.cssText; mark.disabled=true; panel.insertBefore(mark,panel.querySelector('.gem-anm-free-message'));
+    const mark=document.createElement('button'); mark.type='button'; mark.textContent='MARCAR ÁREA LIBRE'; mark.style.cssText=btn.style.cssText; mark.disabled=true; panel.insertBefore(mark,panel.querySelector('.gem-anm-free-message')); const exportButton=document.createElement('button'); exportButton.className='gem-anm-free-export'; exportButton.type='button'; exportButton.textContent='EXPORTAR ÁREA PARA ANM'; exportButton.disabled=true; exportButton.style.cssText=btn.style.cssText; panel.querySelector('.gem-anm-free-export-row').appendChild(exportButton); exportButton.addEventListener('click',function(){try{const name=exportForAnm(selectedArea);panel.querySelector('.gem-anm-free-message').textContent='EXPORTADO · '+name+'.csv + .geojson + _CELL_KEY_ID.txt + _RESUMEN.txt';}catch(e){panel.querySelector('.gem-anm-free-message').textContent='Exportación: '+e.message;}});
     dept.addEventListener('change',function(){ muni.replaceChildren(new Option('Municipio','')); muni.disabled=true; source.listMunicipalities(dept.value).then(function(v){municipalities=v.municipalities||[]; for(const m of municipalities)muni.appendChild(new Option(m.name,m.code)); muni.disabled=false; panel.querySelector('.gem-anm-free-message').textContent=municipalities.length+' municipio(s) cargados';}).catch(function(e){panel.querySelector('.gem-anm-free-message').textContent='ANM: '+e.message;}); });
     mark.addEventListener('click',function(){markArea();});
     btn.addEventListener('click',function(){ if(!dept.value||!muni.value){panel.querySelector('.gem-anm-free-message').textContent='Seleccione departamento y municipio.';return;} btn.disabled=true; panel.querySelector('.gem-anm-free-message').textContent='Consultando disponibilidad ANM…'; source.search(dept.value,muni.value).then(function(v){currentResult=v;selectedArea=null;mark.disabled=!v.cells?.length;updateExportButton();paint();render();panel.querySelector('.gem-anm-free-message').textContent='Consulta ANM completada · '+v.retrievedAt;}).catch(function(e){currentResult=null;clearMap();updateExportButton();render();panel.querySelector('.gem-anm-free-message').textContent='ANM: '+e.message;}).finally(function(){btn.disabled=false;}); });
@@ -176,7 +176,7 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
       municipality:currentResult.municipality,
       cellCount:currentResult.cellCount,
       totalHa:currentResult.totalHa,
-      cells:currentResult.cells.map(function(cell){return {cellKey:cell.cellKey,areaHa:cell.areaHa,bounds:cell.bounds,reasonCode:cell.reasonCode,statusCode:cell.statusCode,reopeningDate:cell.reopeningDate};}),
+      cells:currentResult.cells.map(function(cell){return {cellKey:cell.cellKey,areaHa:cell.areaHa,centroid:cell.centroid,bounds:cell.bounds,reasonCode:cell.reasonCode,statusCode:cell.statusCode,reopeningDate:cell.reopeningDate};}),
       retrievedAt:currentResult.retrievedAt,
       source:currentResult.source,
     };
