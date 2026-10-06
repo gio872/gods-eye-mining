@@ -6,3 +6,4 @@ export { createAnmAreaIntelligenceLayer } from './anmAreaIntelligence.js';
 
 export { createGeophysicsLayer } from './geophysics.js';
 export { createGlobalPreciousMetalsLayer } from './globalPreciousMetals.js';
+export { createGlobalSatelliteMiningLayer } from './globalSatelliteMining.js';
