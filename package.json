@@ -283,6 +283,10 @@
     "./mining/sources/global-precious-metals": "./src/mining/sources/globalPreciousMetalsSource.js",
     "./server/providers/global-precious-metals": {
       "node": "./server/providers/globalPreciousMetals.js"
+    },
+    "./mining/sources/global-satellite-mining": "./src/mining/sources/globalSatelliteMiningSource.js",
+    "./server/providers/global-satellite-mining": {
+      "node": "./server/providers/globalSatelliteMining.js"
     }
   }
 }
