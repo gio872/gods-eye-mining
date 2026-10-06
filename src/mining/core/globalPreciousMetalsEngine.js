@@ -45,26 +45,31 @@ export function scoreDocumentedOccurrence(input){
   });
 }
 
-export function scoreProspectivePoint({commodity='gold',occurrenceProximity=0,occurrenceDensity=0,geologyScore=0,magneticScore=0,depositType='',geologyText=''}={}){
+export function scoreProspectivePoint({commodity='gold',occurrenceProximity=0,occurrenceDensity=0,geologyScore=0,magneticScore=0,spectralScore=null,spectralFeatures=null,depositType='',geologyText=''}={}){
   const def=getPreciousMetalDefinition(commodity);
   const proximity=clamp(Number(occurrenceProximity));
   const density=clamp(Number(occurrenceDensity));
   const geology=clamp(Number(geologyScore));
   const magnetic=clamp(Number(magneticScore));
   const deposit=favorableDepositFactor(commodity==='pgm'?'pgm':commodity,depositType);
-  const score=clamp(
-    proximity*0.32+
-    density*0.12+
-    geology*0.28+
-    magnetic*0.16+
-    deposit*0.12,
-  );
+  const spectral=spectralScore===null?null:clamp(Number(spectralScore));
+  const factors=[
+    [proximity,.28,'occurrence proximity'],
+    [density,.10,'regional occurrence density'],
+    [geology,.22,'favorable geology'],
+    [magnetic,.12,'EMAG2 magnetic context'],
+    [spectral,.18,'satellite spectral mineral evidence'],
+    [deposit,.10,'deposit-system compatibility'],
+  ].filter(([value])=>value!==null&&Number.isFinite(Number(value)));
+  const weightSum=factors.reduce((sum,[,weight])=>sum+weight,0)||1;
+  const score=clamp(factors.reduce((sum,[value,weight])=>sum+Number(value)*weight,0)/weightSum);
   const depth=estimateTargetDepth({commodity,geologyText,depositType});
   const evidence=[];
   if(proximity>0.25)evidence.push('known occurrence proximity');
   if(density>0.25)evidence.push('regional occurrence density');
   if(geology>0.25)evidence.push('favorable geology keywords');
   if(magnetic>0.25)evidence.push('EMAG2 magnetic context');
+  if(spectral!==null&&spectral>0.25)evidence.push('satellite spectral mineral evidence');
   return Object.freeze({
     commodity:def.id,
     label:def.label,
@@ -72,7 +77,9 @@ export function scoreProspectivePoint({commodity='gold',occurrenceProximity=0,oc
     scoreType:'predictive-screening',
     evidence,
     depthEstimate:depth,
-    uncertainty:'high',
+    spectralScore:spectral,
+    spectralFeatures:spectralFeatures||null,
+    uncertainty:spectral!==null?'medium-high':'high',
   });
 }
 
