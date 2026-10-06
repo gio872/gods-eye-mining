@@ -3508,7 +3508,8 @@
   "gem-mining-layer": {
     "exports": [
       "./mining/layers",
-      "./mining/sources/anm-free-areas"
+      "./mining/sources/anm-free-areas",
+      "./mining/sources/anm-area-intelligence"
     ],
     "modules": [
       "src/mining/layers/index.js",
@@ -3522,7 +3523,9 @@
       "src/mining/core/economicValue.js",
       "src/mining/core/economicValue.js",
       "src/layers/recentImagery/catalog.js",
-      "src/layers/recentImagery/model.js"
+      "src/layers/recentImagery/model.js",
+      "src/mining/layers/anmAreaIntelligence.js",
+      "src/mining/sources/anmAreaIntelligenceSource.js"
     ],
     "external": [
       "cesium"
