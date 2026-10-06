@@ -11,6 +11,7 @@ const cache=new Map();
 function finite(v){const n=Number(v);return Number.isFinite(n)?n:null;}
 function clean(v){return String(v??'').trim();}
 function clamp(v,min=0,max=1){return Math.max(min,Math.min(max,v));}
+function appeearsDate(value,fallback){const text=clean(value)||fallback;if(/^\d{4}-\d{2}-\d{2}$/.test(text)){const [y,m,d]=text.split('-');return m+'-'+d+'-'+y;}return text;}
 function validatePoint(lat,lon){
   const latitude=finite(lat),longitude=finite(lon);
   if(latitude===null||longitude===null||latitude<-90||latitude>90||longitude<-180||longitude>180)throw new Error('Coordenadas inválidas');
@@ -81,7 +82,7 @@ async function emitCoverage(lat,lon){
 async function emitPoint({lat,lon,start=EMIT_MISSION_START,end=new Date().toISOString().slice(0,10)}){
   const point=validatePoint(lat,lon);
   const params={
-    dates:[{startDate:start,endDate:end}],
+    dates:[{startDate:appeearsDate(start,EMIT_MISSION_START),endDate:appeearsDate(end,new Date().toISOString().slice(0,10))}],
     layers:[
       {product:EMIT_PRODUCT,layer:'group_1_mineral_id'},
       {product:EMIT_PRODUCT,layer:'group_1_band_depth'},
