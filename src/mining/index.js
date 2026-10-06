@@ -17,3 +17,5 @@ export {
 
 export { createGeophysicsEngine } from './core/geophysicsEngine.js';
 export { createSubsurfaceObservation, createSubsurfaceTarget, GEOPHYSICS_MODALITIES, GEOPHYSICS_MINERALS } from './core/geophysicsTypes.js';
+export { GLOBAL_PRECIOUS_METALS, GLOBAL_PRECIOUS_METAL_IDS, getPreciousMetalDefinition, normalizeGlobalOccurrence, estimateTargetDepth } from './core/globalPreciousMetalsTypes.js';
+export { createGlobalPreciousMetalsEngine, scoreDocumentedOccurrence, scoreProspectivePoint } from './core/globalPreciousMetalsEngine.js';
