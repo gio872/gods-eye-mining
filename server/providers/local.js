@@ -32,6 +32,7 @@ import { anmFreeAreasProxy } from './anmFreeAreas.js';
 import { anmAreaIntelligenceProxy } from './anmAreaIntelligence.js';
 import { movinMarineReferenceProxy } from './movinMarine.js';
 import { globalPreciousMetalsProxy } from './globalPreciousMetals.js';
+import { globalSatelliteMiningProxy } from './globalSatelliteMining.js';
 
 /** Construct the local provider plugins in their established order. */
 function localProviderPlugins() {
@@ -56,6 +57,7 @@ function localProviderPlugins() {
     anmAreaIntelligenceProxy(),
     movinMarineReferenceProxy(),
     globalPreciousMetalsProxy(),
+    globalSatelliteMiningProxy(),
     radioBrowserProxy(),
     gbfsProxy(),
     localReceiversProxy(),
