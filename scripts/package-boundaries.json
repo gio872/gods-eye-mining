@@ -45,7 +45,9 @@
     ],
     "modules": [
       "build/vite.js",
-      "build/application-html.js"
+      "build/application-html.js",
+      "server/hostinger-start.mjs",
+      "server/providers/health.js"
     ],
     "external": [
       "vite-plugin-cesium"
@@ -2280,7 +2282,8 @@
       "src/mining/layers/globalSatelliteMining.js",
       "src/mining/sources/globalSatelliteMiningSource.js",
       "src/mining/core/spectralFeatures.js",
-      "src/mining/sources/spectralMineralSource.js"
+      "src/mining/sources/spectralMineralSource.js",
+      "server/providers/health.js"
     ],
     "external": [
       "hls.js",
@@ -3731,5 +3734,13 @@
       "server/providers/emitEnmap.js"
     ],
     "external": []
+  },
+  "hostinger-runtime": {
+    "runtime": "node",
+    "exports": [],
+    "modules": [
+      "server/hostinger-start.mjs",
+      "server/providers/health.js"
+    ]
   }
 }
