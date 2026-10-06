@@ -86,6 +86,19 @@ export function createGeophysicsLayer({ movinMarineSource = createMovinMarineSou
     targets=engine.rank(filteredObservations());
     paint();publish();rowControlsListener?.();render();
   }
+  async function refreshReferenceData() {
+    if (loadingReference || !movinMarineSource?.snapshot) return false;
+    loadingReference = true;
+    try {
+      liveReference = await movinMarineSource.snapshot();
+      render();
+      return true;
+    } catch {
+      return false;
+    } finally {
+      loadingReference = false;
+    }
+  }
   function render(){
     if(!panel)return;
     const body=panel.querySelector('.gem-geophysics-body');if(!body)return;
@@ -114,7 +127,8 @@ export function createGeophysicsLayer({ movinMarineSource = createMovinMarineSou
     const ref=document.createElement('div');ref.style.cssText='margin-top:10px;padding:8px;border:1px solid rgba(32,206,216,.14);color:#89a4aa;font-size:8px;line-height:1.45';
     const status=liveReference?.status||'STATIC';
     const keywordText=(liveReference?.keywords||[]).slice(0,12).join(' · ');
-    ref.innerHTML='<strong style="color:#67dfe6">REFERENCIA MOVIN’MARINE · M2</strong><br><span style="color:#8df1d4">'+esc(status)+'</span> · Representación declarada: X/Y + Z geofísico, incluyendo conductividad/anomalía y productos 2D/3D con estimaciones de profundidad. Profundidad máxima declarada: '+number(MOVIN_MARINE_M2_REFERENCE.specifications.maximumAnalysisDepthM,0)+' m. Resolución espacial declarada: '+number(MOVIN_MARINE_M2_REFERENCE.specifications.spatialResolutionM,0)+' m.<br><br><strong style="color:#8df1d4">CASOS REPORTADOS</strong><br>'+MOVIN_MARINE_M2_REFERENCE.caseStudies.map((item)=>esc((item.country||'')+' · '+(item.region||'')+' · '+(item.target||item.signal||''))).join('<br>')+(keywordText?'<br><br><span style="color:#78989e">ÍNDICES DETECTADOS EN LA WEB: '+esc(keywordText)+'</span>':'');
+    const liveHeadings=[...(liveReference?.pages?.mining?.headings||[]),...(liveReference?.pages?.radar?.headings||[])].filter(Boolean).slice(0,8);
+    ref.innerHTML='<strong style="color:#67dfe6">REFERENCIA MOVIN’MARINE · M2</strong><br><span style="color:#8df1d4">'+esc(status)+'</span> · Representación declarada: X/Y + Z geofísico, incluyendo conductividad/anomalía y productos 2D/3D con estimaciones de profundidad. Profundidad máxima declarada: '+number(MOVIN_MARINE_M2_REFERENCE.specifications.maximumAnalysisDepthM,0)+' m. Resolución espacial declarada: '+number(MOVIN_MARINE_M2_REFERENCE.specifications.spatialResolutionM,0)+' m.<br><br><strong style="color:#8df1d4">CASOS REPORTADOS</strong><br>'+MOVIN_MARINE_M2_REFERENCE.caseStudies.map((item)=>esc((item.country||'')+' · '+(item.region||'')+' · '+(item.target||item.signal||''))).join('<br>')+(keywordText?'<br><br><span style="color:#78989e">ÍNDICES DETECTADOS EN LA WEB: '+esc(keywordText)+'</span>':'')+(liveHeadings.length?'<br><br><span style="color:#78989e">SECCIONES ACTUALES: '+esc(liveHeadings.join(' · '))+'</span>':'');
     body.appendChild(ref);
   }
   function ensurePanel(){
@@ -126,7 +140,7 @@ export function createGeophysicsLayer({ movinMarineSource = createMovinMarineSou
     const mineral=document.createElement('select');mineral.style.cssText='padding:7px;background:#071820;color:#eef8fa;border:1px solid rgba(32,206,216,.2);border-radius:5px;font:9px monospace';[['all','TODOS'],['gold','ORO'],['copper','COBRE'],['zinc','ZINC'],['rare-earth-elements','TIERRAS RARAS'],['lithium','LITIO'],['coltan','COLTÁN'],['tantalite','TANTALITA'],['tungsten','TUNGSTENO']].forEach(([v,l])=>mineral.appendChild(new Option(l,v)));
     const rankButton=document.createElement('button');rankButton.type='button';rankButton.textContent='RANKING';rankButton.style.cssText='border:1px solid rgba(47,224,179,.3);background:rgba(47,224,179,.08);color:#8df1d4;border-radius:5px;padding:7px 10px;font:700 9px monospace;cursor:pointer';tools.append(file,mineral,rankButton);
     const actions=panel.querySelector('.gem-geophysics-actions');
-    const refreshReference=document.createElement('button');refreshReference.type='button';refreshReference.textContent='ACTUALIZAR M2';refreshReference.style.cssText='border:1px solid rgba(103,223,231,.28);background:rgba(103,223,231,.07);color:#9be7ec;border-radius:5px;padding:7px 10px;font:700 9px monospace;cursor:pointer';
+    const refreshReference=document.createElement('button');refreshReference.type='button';refreshReference.className='gem-geophysics-refresh-reference';refreshReference.textContent='ACTUALIZAR M2';refreshReference.style.cssText='border:1px solid rgba(103,223,231,.28);background:rgba(103,223,231,.07);color:#9be7ec;border-radius:5px;padding:7px 10px;font:700 9px monospace;cursor:pointer';
     const exportButton=document.createElement('button');exportButton.type='button';exportButton.textContent='EXPORTAR GEOJSON';exportButton.style.cssText=rankButton.style.cssText;
     const reset=document.createElement('button');reset.type='button';reset.textContent='LIMPIAR';reset.style.cssText=rankButton.style.cssText;
     actions.append(exportButton,reset,refreshReference);
@@ -135,9 +149,10 @@ export function createGeophysicsLayer({ movinMarineSource = createMovinMarineSou
     rankButton.addEventListener('click',rank);
     exportButton.addEventListener('click',()=>{if(!observations.length){panel.querySelector('.gem-geophysics-message').textContent='No hay observaciones para exportar.';return;}download('GEM_subsurface_observations.geojson',serializeObservationsToGeoJson(observations),'application/geo+json;charset=utf-8');panel.querySelector('.gem-geophysics-message').textContent='GeoJSON de observaciones exportado.';});
     const targetExport=document.createElement('button');targetExport.type='button';targetExport.textContent='EXPORTAR TARGETS';targetExport.style.cssText=rankButton.style.cssText;actions.appendChild(targetExport);targetExport.addEventListener('click',()=>{if(!targets.length){panel.querySelector('.gem-geophysics-message').textContent='No hay targets rankeados.';return;}download('GEM_ranked_subsurface_targets.csv',targetsCsv(targets),'text/csv;charset=utf-8');download('GEM_ranked_subsurface_targets.geojson',targetsGeoJson(targets),'application/geo+json;charset=utf-8');panel.querySelector('.gem-geophysics-message').textContent='Targets exportados · CSV + GeoJSON.';});
-    refreshReference.addEventListener('click',async()=>{if(loadingReference)return;loadingReference=true;refreshReference.disabled=true;refreshReference.textContent='ACTUALIZANDO…';try{liveReference=await movinMarineSource.snapshot();panel.querySelector('.gem-geophysics-message').textContent='Referencia MovinMarine actualizada: '+(liveReference.status||'LIVE');render();}catch(error){panel.querySelector('.gem-geophysics-message').textContent='MovinMarine: '+String(error?.message||error);}finally{loadingReference=false;refreshReference.disabled=false;refreshReference.textContent='ACTUALIZAR M2';}});
+    refreshReference.addEventListener('click',async()=>{if(loadingReference)return;refreshReference.disabled=true;refreshReference.textContent='ACTUALIZANDO…';const ok=await refreshReferenceData();panel.querySelector('.gem-geophysics-message').textContent=ok?'Referencia MovinMarine actualizada: '+(liveReference?.status||'LIVE'):'No se pudo actualizar la referencia MovinMarine.';refreshReference.disabled=false;refreshReference.textContent='ACTUALIZAR M2';});
     reset.addEventListener('click',()=>{observations=[];targets=[];clearMap();publish();render();});
     panel.querySelector('.gem-geophysics-close').addEventListener('click',()=>{panel.hidden=true;});
+    void refreshReferenceData();
   }
   function onArea(event){selectedArea=event?.detail||null;rank();}
   return {
