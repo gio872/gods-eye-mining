@@ -7,6 +7,8 @@ const PANEL_LAYOUT_STORAGE_VERSION = 'v6';
  * resetting every panel's open/closed preference.
  */
 const PANEL_POSITION_STORAGE_VERSION = 'v8';
+/** Mining workspace panel intentionally opens on every normal application start. */
+const DEFAULT_OPEN_PANEL_IDS = new Set(['data-panel']);
 /** Z ladder: panels promote within [100, 139]; voice pill 150, toast 200, clean-view-exit 300. */
 const PANEL_Z_BASE = 100;
 const PANEL_Z_MAX = 139;
@@ -112,6 +114,11 @@ export class PanelPositionControls {
         // storage unavailable
       }
     }
+    // The mining workspace always opens Data Layers on a normal startup so the
+    // complete catalog is immediately visible. A share-restore keeps authored
+    // panel state (allowStored=false), while local/persistent preferences do
+    // not override this deliberate startup composition.
+    if (allowStored && DEFAULT_OPEN_PANEL_IDS.has(panelId)) collapsed = false;
     // DISPLAY starts COLLAPSED for a first-time visitor, then respects the
     // user's persisted choice like every other panel.
     //
