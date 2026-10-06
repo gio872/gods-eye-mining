@@ -3506,7 +3506,9 @@
       "src/mining/core/miningTypes.js",
       "src/mining/core/prospectivityEngine.js",
       "src/mining/core/miningEngine.js",
-      "src/mining/core/economicValue.js"
+      "src/mining/core/economicValue.js",
+      "src/mining/core/geophysicsTypes.js",
+      "src/mining/core/geophysicsEngine.js"
     ],
     "external": []
   },
