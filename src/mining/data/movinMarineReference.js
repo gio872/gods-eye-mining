@@ -12,6 +12,12 @@ export const MOVIN_MARINE_M2_REFERENCE = Object.freeze({
     responseExamples:Object.freeze(['conductivity','anomaly intensity']),
     products:Object.freeze(['2D contours','2D vectors','3D surfaces / depth estimates']),
   }),
+  methodology:Object.freeze({
+    system:'passive airborne electromagnetic recording',
+    spectralFilter:'company-described presence/absence filtering of frequencies',
+    declaredUses:Object.freeze(['mineral anomalies','water','hydrocarbons','subsurface voids','stratigraphy']),
+    declaredScanWidthM:5000,
+  }),
   specifications:Object.freeze({
     maximumAnalysisDepthM:5000,spatialResolutionM:5,meanVerticalResolutionM:5,
     antennaDimensionsM:Object.freeze([0.8,0.8,1.0]),antennaWeightKg:90,
