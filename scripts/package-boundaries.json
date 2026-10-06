@@ -2272,7 +2272,11 @@
       "src/sources/requestDeadline.js",
       "src/data/local_data/osm_military_names/names.json",
       "src/layers/installations/namedMarkers.js",
-      "src/data/infrastructureOverlayEntry.js"
+      "src/data/infrastructureOverlayEntry.js",
+      "src/mining/layers/globalPreciousMetals.js",
+      "src/mining/core/globalPreciousMetalsTypes.js",
+      "src/mining/core/globalPreciousMetalsEngine.js",
+      "src/mining/sources/globalPreciousMetalsSource.js"
     ],
     "external": [
       "hls.js",
@@ -3509,7 +3513,9 @@
       "src/mining/core/miningEngine.js",
       "src/mining/core/economicValue.js",
       "src/mining/core/geophysicsTypes.js",
-      "src/mining/core/geophysicsEngine.js"
+      "src/mining/core/geophysicsEngine.js",
+      "src/mining/core/globalPreciousMetalsTypes.js",
+      "src/mining/core/globalPreciousMetalsEngine.js"
     ],
     "external": []
   },
@@ -3519,7 +3525,8 @@
       "./mining/sources/anm-free-areas",
       "./mining/sources/anm-area-intelligence",
       "./mining/sources/geophysics",
-      "./mining/sources/movin-marine"
+      "./mining/sources/movin-marine",
+      "./mining/sources/global-precious-metals"
     ],
     "modules": [
       "src/mining/layers/index.js",
@@ -3541,7 +3548,11 @@
       "src/mining/sources/geophysicsSource.js",
       "src/mining/data/movinMarineReference.js",
       "src/mining/layers/geophysics.js",
-      "src/mining/sources/movinMarineSource.js"
+      "src/mining/sources/movinMarineSource.js",
+      "src/mining/core/globalPreciousMetalsTypes.js",
+      "src/mining/core/globalPreciousMetalsEngine.js",
+      "src/mining/sources/globalPreciousMetalsSource.js",
+      "src/mining/layers/globalPreciousMetals.js"
     ],
     "external": [
       "cesium"
@@ -3691,5 +3702,15 @@
       "src/sources/httpBody.js"
     ],
     "external": []
+  },
+  "global-precious-metals-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/global-precious-metals"
+    ],
+    "modules": [
+      "server/providers/globalPreciousMetals.js",
+      "server/providers/common/http.js"
+    ]
   }
 }
