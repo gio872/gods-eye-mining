@@ -3505,11 +3505,14 @@
   },
   "gem-mining-layer": {
     "exports": [
-      "./mining/layers"
+      "./mining/layers",
+      "./mining/sources/anm-free-areas"
     ],
     "modules": [
       "src/mining/layers/index.js",
       "src/mining/layers/prospectivity.js",
+      "src/mining/layers/anmFreeAreas.js",
+      "src/mining/sources/anmFreeAreasSource.js",
       "src/mining/evidence.js",
       "src/mining/core/miningTypes.js",
       "src/mining/core/prospectivityEngine.js",
@@ -3608,15 +3611,6 @@
     ],
     "modules": [
       "server/providers/anmFreeAreas.js"
-    ],
-    "external": []
-  },
-  "anm-free-areas-source": {
-    "exports": [
-      "./mining/sources/anm-free-areas"
-    ],
-    "modules": [
-      "src/mining/sources/anmFreeAreasSource.js"
     ],
     "external": []
   },
