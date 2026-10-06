@@ -90,7 +90,7 @@ function normalizedMrds(feature){
   const depId=clean(attr(a,'dep_id','DEP_ID','depid','DEPID'));
   const sourceUrl=clean(attr(a,'url','URL'))|| (depId?MRDS_PAGE+'show-mrds.php?dep_id='+encodeURIComponent(depId):MRDS_PAGE);
   const top=findDepth(a,'top'),bottom=findDepth(a,'bottom'),explicit=finite(attr(a,'depth_m','DEPTH_M','depth','DEPTH'));
-  const depthM=explicit!==null?explicit:(bottom!==null?bottom:(top!==null?top:null));
+  const depthPayload=clean(attr(a,'json','JSON','record','RECORD'));const depthFromPayload=depthPayload?findDepth({payload:depthPayload},'top'):null;const depthM=explicit!==null?explicit:(bottom!==null?bottom:(top!==null?top:(depthFromPayload!==null?depthFromPayload:null)));
   return {
     id:'USGS-MRDS-'+(depId||feature?.attributes?.objectid_1||feature?.attributes?.gid||Math.round(point.lat*1e5)+'-'+Math.round(point.lon*1e5)),
     name:clean(attr(a,'site_name','SITE_NAME'))||'USGS MRDS occurrence',
@@ -119,7 +119,7 @@ function dedupe(rows){
   return out;
 }
 async function queryLayer(url,bbox,where,transform,limit){
-  const payload=await requestJson(url,{geometry:bboxGeometry(bbox),geometryType:'esriGeometryEnvelope',inSR:4326,spatialRel:'esriSpatialRelIntersects',where,outFields:'*',returnGeometry:'true',outSR:4326,resultRecordCount:Math.min(limit,2000),orderByFields:'objectid_1 ASC'});
+  const payload=await requestJson(url,{geometry:bboxGeometry(bbox),geometryType:'esriGeometryEnvelope',inSR:4326,spatialRel:'esriSpatialRelIntersects',where,outFields:'*',returnGeometry:'true',outSR:4326 ,resultRecordCount:Math.min(limit,2000)});
   return (payload.features||[]).map(transform).filter(Boolean);
 }
 async function occurrences(bbox,commodity,limit=1000){
