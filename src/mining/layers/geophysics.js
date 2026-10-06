@@ -46,11 +46,31 @@ export function createGeophysicsLayer(){
         label:{text:(target.mineral||'unknown').toUpperCase()+' · '+Math.round(target.score*100)+'/100\n'+number(target.depthM,0)+' m',font:'10px monospace',style:Cesium.LabelStyle.FILL_AND_OUTLINE,outlineWidth:3,fillColor:color,outlineColor:Cesium.Color.BLACK.withAlpha(.9),pixelOffset:new Cesium.Cartesian2(10,-8),disableDepthTestDistance:Number.POSITIVE_INFINITY},
         properties:{mineral:target.mineral,depthM:target.depthM,score:target.score,anomalyScore:target.anomalyScore,intensity:target.value,unit:target.unit,modality:target.modality,directionDeg:target.directionDeg,confidence:target.confidence,source:target.source},
       });
+      const footprintMeters=20+target.score*80;
       dataSource.entities.add({
         id:target.id+'-surface',
         position:surface,
         point:{pixelSize:4,color:color.withAlpha(.5),outlineColor:color,outlineWidth:1,disableDepthTestDistance:Number.POSITIVE_INFINITY},
       });
+      dataSource.entities.add({
+        id:target.id+'-footprint',
+        position:surface,
+        ellipse:{semiMajorAxis:footprintMeters,semiMinorAxis:footprintMeters*0.6,material:color.withAlpha(.08),outline:true,outlineColor:color.withAlpha(.55),height:1,heightReference:Cesium.HeightReference.CLAMP_TO_GROUND},
+      });
+      if(Number.isFinite(Number(target.directionDeg))){
+        const radians=Number(target.directionDeg)*Math.PI/180;
+        const latScale=111320;
+        const lonScale=111320*Math.max(.01,Math.cos(Number(target.latitude)*Math.PI/180));
+        const dLon=(footprintMeters*1.8*Math.sin(radians))/lonScale;
+        const dLat=(footprintMeters*1.8*Math.cos(radians))/latScale;
+        dataSource.entities.add({
+          id:target.id+'-direction',
+          polyline:{
+            positions:[surface,Cesium.Cartesian3.fromDegrees(target.longitude+dLon,target.latitude+dLat,2)],
+            width:3,material:color.withAlpha(.72),clampToGround:true,
+          },
+        });
+      }
     }
     viewer?.scene?.requestRender?.();
   }
