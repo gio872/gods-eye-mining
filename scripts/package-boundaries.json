@@ -2777,7 +2777,12 @@
       "src/layers/installations/namedMarkers.js",
       "src/data/infrastructureOverlayEntry.js",
       "src/mining/layers/anmAreaIntelligence.js",
-      "src/mining/sources/anmAreaIntelligenceSource.js"
+      "src/mining/sources/anmAreaIntelligenceSource.js",
+      "src/mining/core/geophysicsTypes.js",
+      "src/mining/core/geophysicsEngine.js",
+      "src/mining/sources/geophysicsSource.js",
+      "src/mining/data/movinMarineReference.js",
+      "src/mining/layers/geophysics.js"
     ],
     "external": [
       "hls.js",
@@ -3509,7 +3514,8 @@
     "exports": [
       "./mining/layers",
       "./mining/sources/anm-free-areas",
-      "./mining/sources/anm-area-intelligence"
+      "./mining/sources/anm-area-intelligence",
+      "./mining/sources/geophysics"
     ],
     "modules": [
       "src/mining/layers/index.js",
@@ -3525,7 +3531,12 @@
       "src/layers/recentImagery/catalog.js",
       "src/layers/recentImagery/model.js",
       "src/mining/layers/anmAreaIntelligence.js",
-      "src/mining/sources/anmAreaIntelligenceSource.js"
+      "src/mining/sources/anmAreaIntelligenceSource.js",
+      "src/mining/core/geophysicsTypes.js",
+      "src/mining/core/geophysicsEngine.js",
+      "src/mining/sources/geophysicsSource.js",
+      "src/mining/data/movinMarineReference.js",
+      "src/mining/layers/geophysics.js"
     ],
     "external": [
       "cesium"
