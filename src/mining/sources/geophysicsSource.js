@@ -20,7 +20,8 @@ const HEADER_ALIASES = Object.freeze({
 function key(value){return String(value??'').trim().toLowerCase().replace(/[\s\-]+/g,'_');}
 function finite(value){const n=Number(String(value??'').replace(',','.'));return Number.isFinite(n)?n:null;}
 function pickIndex(headers,aliases){return aliases.map((alias)=>headers.indexOf(alias)).find((index)=>index>=0)??-1;}
-function splitLine(line){
+function splitLine(line, whitespace=false){
+  if(whitespace) return line.trim().split(/\\s+/).map((part)=>part.trim());
   if(line.includes(';')&&!line.includes(',')) return line.split(';').map((part)=>part.trim());
   return line.split(',').map((part)=>part.trim());
 }
@@ -30,7 +31,7 @@ function parseCsv(text){
   const headers=splitLine(lines[0]).map(key);
   const indices=Object.fromEntries(Object.entries(HEADER_ALIASES).map(([name,aliases])=>[name,pickIndex(headers,aliases)]));
   return lines.slice(1).map((line,rowIndex)=>{
-    const parts=splitLine(line);
+    const parts=splitLine(line,whitespace);
     const get=(name)=>indices[name]>=0?parts[indices[name]]:undefined;
     const depth=finite(get('depth'));
     return {
@@ -74,7 +75,9 @@ function parseJson(text){
 }
 export function parseGeophysicalText(text,filename='data.csv'){
   const name=String(filename).toLowerCase();
-  const rows=name.endsWith('.json')||name.endsWith('.geojson')?parseJson(text):parseCsv(text);
+  const isJson=name.endsWith('.json')||name.endsWith('.geojson');
+  const isXyz=name.endsWith('.xyz')||name.endsWith('.txt');
+  const rows=isJson?parseJson(text):parseCsv(text,isXyz);
   return rows.map((row,index)=>createSubsurfaceObservation({...row,id:row.id||'observation-'+(index+1)}));
 }
 export async function ingestGeophysicalFile(file){
