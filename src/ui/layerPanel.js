@@ -23,7 +23,7 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Mining',
-    ids: ['metal-markets', 'anm-mining-cadastre', 'anm-free-areas', 'anm-area-intelligence', 'geophysics-subsurface', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
+    ids: ['metal-markets', 'anm-mining-cadastre', 'anm-free-areas', 'anm-area-intelligence', 'geophysics-subsurface', 'global-precious-metals', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
   },
   {
     label: 'Movement',
@@ -87,6 +87,7 @@ const PANEL_LABELS = {
   'anm-free-areas': 'Áreas Libres ANM',
   'anm-area-intelligence': 'ANM Area Intelligence',
   'geophysics-subsurface': 'Geophysics / Subsurface',
+  'global-precious-metals': 'Global Precious Metals',
   'local-datacenters': 'Data Centers',
   'local-firms': 'Active Fires',
 };
