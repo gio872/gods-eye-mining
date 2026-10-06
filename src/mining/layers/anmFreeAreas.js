@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { createAnmFreeAreasSource } from './anmFreeAreasSource.js';
+import { createAnmFreeAreasSource } from '../sources/anmFreeAreasSource.js';
 
 function esc(value) { return String(value ?? '').replace(/[&<>"']/g, function(c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
 function n(value) { const x = Number(value); return Number.isFinite(x) ? x : null; }
