@@ -30,12 +30,6 @@ const PANEL_GROUPS = [
     ids: [
       'satellites',
       'flights',
-      'military',
-      'local-adsb',
-      'ais-live-vessels',
-      'traffic',
-      'transit',
-      'bikeshare',
     ],
   },
   {
