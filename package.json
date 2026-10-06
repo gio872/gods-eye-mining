@@ -269,6 +269,10 @@
     },
     "./server/providers/aml": {
       "node": "./server/providers/aml.js"
-    }
+    },
+    "./server/providers/anm-free-areas": {
+      "node": "./server/providers/anmFreeAreas.js"
+    },
+    "./mining/sources/anm-free-areas": "./src/mining/sources/anmFreeAreasSource.js"
   }
 }
