@@ -14,5 +14,3 @@ export {
   calculateGrossMetalValue,
   normalizeRecoveryPercent,
 } from './core/economicValue.js';
-
-export { createAnmFreeAreasSource } from './sources/anmFreeAreasSource.js';
