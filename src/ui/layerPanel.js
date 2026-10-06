@@ -23,7 +23,7 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Mining',
-    ids: ['metal-markets', 'anm-mining-cadastre', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
+    ids: ['metal-markets', 'anm-mining-cadastre', 'anm-free-areas', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
   },
   {
     label: 'Movement',
@@ -84,6 +84,7 @@ const PANEL_LABELS = {
   cctv: 'Cameras',
   'alpr-cameras': 'Mapped ALPR Cameras',
   'ip-cameras': 'Cámaras IP',
+  'anm-free-areas': 'Áreas Libres ANM',
   'local-datacenters': 'Data Centers',
   'local-firms': 'Active Fires',
 };
