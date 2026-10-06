@@ -10,20 +10,21 @@ function cellRect(bounds) { const west=n(bounds?.west), east=n(bounds?.east), so
 
 export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } = {}) {
   let viewer=null, panel=null, dataManager=null, dataSource=null, enabled=false, destroyed=false, rowControlsListener=null;
-  let departments=[], municipalities=[], currentResult=null;
+  let departments=[], municipalities=[], currentResult=null, selectedArea=null;
 
   function clearMap(){ dataSource?.entities?.removeAll?.(); }
   function paint(){
     clearMap(); if(!currentResult||!dataSource)return;
+    const selectedKeys=new Set((selectedArea?.cells||[]).map(function(cell){return cell.cellKey;}));
     for(const cell of currentResult.cells||[]){
       const rectangle=cellRect(cell.bounds); if(!rectangle)continue;
       dataSource.entities.add({
         id:'gem-anm-free-cell:'+cell.cellKey,
         rectangle:{
           coordinates:rectangle,
-          material:Cesium.Color.fromCssColorString('#2fe0b3').withAlpha(.20),
+          material:(selectedKeys.has(cell.cellKey)?Cesium.Color.fromCssColorString('#f2c55d'):Cesium.Color.fromCssColorString('#2fe0b3')).withAlpha(selectedKeys.has(cell.cellKey)?.34:.20),
           outline:true,
-          outlineColor:Cesium.Color.fromCssColorString('#2fe0b3').withAlpha(.92),
+          outlineColor:selectedKeys.has(cell.cellKey)?Cesium.Color.fromCssColorString('#f2c55d').withAlpha(.98):Cesium.Color.fromCssColorString('#2fe0b3').withAlpha(.92),
           outlineWidth:1,
           height:0,
           heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,
@@ -50,19 +51,40 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
     panel.hidden = true;
     const controls=panel.querySelector('.gem-anm-free-controls'), dept=select('department','Departamento'), muni=select('municipality','Municipio'); muni.disabled=true; const btn=document.createElement('button'); btn.type='button'; btn.textContent='CONSULTAR'; btn.style.cssText='border:1px solid rgba(47,224,179,.3);background:rgba(47,224,179,.08);color:#8df1d4;border-radius:5px;padding:7px 10px;font:700 9px monospace;cursor:pointer'; controls.append(dept,muni,btn);
     panel.querySelector('.gem-anm-free-close').onclick=function(e){e.preventDefault();e.stopPropagation();enabled=false;clearMap();if(panel)panel.hidden=true;dataManager?.setEnabled?.('anm-free-areas',false,{origin:'user'});};
+    const mark=document.createElement('button'); mark.type='button'; mark.textContent='MARCAR ÁREA LIBRE'; mark.style.cssText=btn.style.cssText; mark.disabled=true; panel.insertBefore(mark,panel.querySelector('.gem-anm-free-message'));
     dept.addEventListener('change',function(){ muni.replaceChildren(new Option('Municipio','')); muni.disabled=true; source.listMunicipalities(dept.value).then(function(v){municipalities=v.municipalities||[]; for(const m of municipalities)muni.appendChild(new Option(m.name,m.code)); muni.disabled=false; panel.querySelector('.gem-anm-free-message').textContent=municipalities.length+' municipio(s) cargados';}).catch(function(e){panel.querySelector('.gem-anm-free-message').textContent='ANM: '+e.message;}); });
-    btn.addEventListener('click',function(){ if(!dept.value||!muni.value){panel.querySelector('.gem-anm-free-message').textContent='Seleccione departamento y municipio.';return;} btn.disabled=true; panel.querySelector('.gem-anm-free-message').textContent='Consultando disponibilidad ANM…'; source.search(dept.value,muni.value).then(function(v){currentResult=v;paint();render();panel.querySelector('.gem-anm-free-message').textContent='Consulta ANM completada · '+v.retrievedAt;}).catch(function(e){currentResult=null;clearMap();render();panel.querySelector('.gem-anm-free-message').textContent='ANM: '+e.message;}).finally(function(){btn.disabled=false;}); });
+    mark.addEventListener('click',function(){markArea();});
+    btn.addEventListener('click',function(){ if(!dept.value||!muni.value){panel.querySelector('.gem-anm-free-message').textContent='Seleccione departamento y municipio.';return;} btn.disabled=true; panel.querySelector('.gem-anm-free-message').textContent='Consultando disponibilidad ANM…'; source.search(dept.value,muni.value).then(function(v){currentResult=v;selectedArea=null;mark.disabled=!v.cells?.length;paint();render();panel.querySelector('.gem-anm-free-message').textContent='Consulta ANM completada · '+v.retrievedAt;}).catch(function(e){currentResult=null;clearMap();render();panel.querySelector('.gem-anm-free-message').textContent='ANM: '+e.message;}).finally(function(){btn.disabled=false;}); });
+  }
+  function markArea(){
+    if(!currentResult?.cells?.length)return;
+    selectedArea={
+      id:'ANM-FREE-'+currentResult.municipality.code,
+      department:currentResult.department,
+      municipality:currentResult.municipality,
+      cellCount:currentResult.cellCount,
+      totalHa:currentResult.totalHa,
+      cells:currentResult.cells.map(function(cell){return {cellKey:cell.cellKey,areaHa:cell.areaHa,bounds:cell.bounds,reasonCode:cell.reasonCode,statusCode:cell.statusCode,reopeningDate:cell.reopeningDate};}),
+      retrievedAt:currentResult.retrievedAt,
+      source:currentResult.source,
+    };
+    paint();
+    const box=panel?.querySelector('.gem-anm-free-message');
+    if(box)box.textContent='ÁREA MARCADA · '+selectedArea.cellCount+' celdas · '+ha(selectedArea.totalHa)+' ha · LISTA PARA CONSULTA';
+    if(typeof window!=='undefined') window.dispatchEvent(new CustomEvent('gem:anm-free-area-selected',{detail:selectedArea}));
+    rowControlsListener?.();
   }
   return {
     id:'anm-free-areas', name:'Áreas Libres ANM', icon:'◇', source:'ANM · AnnA Minería · Cuadrícula', updateInterval:0, showInTogglePanel:true,
     setRowControlsListener:function(listener){rowControlsListener=typeof listener==='function'?listener:null;},
-    getRowControls:function(){return {info:currentResult?currentResult.municipality.name+': '+currentResult.cellCount+' celdas · '+ha(currentResult.totalHa)+' ha':'Buscar áreas disponibles por departamento y municipio',infoTitle:'Disponibilidad cartográfica de celdas AnnA Minería.'};},
+    getRowControls:function(){return {info:selectedArea?selectedArea.municipality.name+': ÁREA MARCADA · '+selectedArea.cellCount+' celdas · '+ha(selectedArea.totalHa)+' ha':currentResult?currentResult.municipality.name+': '+currentResult.cellCount+' celdas · '+ha(currentResult.totalHa)+' ha':'Buscar áreas disponibles por departamento y municipio',infoTitle:'Disponibilidad cartográfica de celdas AnnA Minería. El área marcada queda disponible como objetivo de consulta.'};},
+    getSelectedArea:function(){return selectedArea;},
     attachDataManager:function(manager){dataManager=manager||null;},
     init:function(nextViewer){viewer=nextViewer||null;if(!viewer)return false;if(!dataSource){dataSource=new Cesium.CustomDataSource('gem-anm-free-areas');viewer.dataSources.add(dataSource);}ensurePanel();return true;},
     enable:function(nextViewer){if(destroyed)return false;viewer=nextViewer||viewer;ensurePanel();enabled=true;if(panel)panel.hidden=false;if(!departments.length){const message=panel?.querySelector('.gem-anm-free-message');if(message)message.textContent='Cargando departamentos ANM…';source.listDepartments().then(function(v){departments=v.departments||[];const dept=panel?.querySelector('[name=department]');if(dept){dept.replaceChildren(new Option('Departamento',''));for(const d of departments)dept.appendChild(new Option(d.name,d.code));}if(message)message.textContent=departments.length+' departamento(s) cargados desde ANM';}).catch(function(e){if(message)message.textContent='ANM: '+e.message;});}return true;},
     disable:function(){enabled=false;clearMap();if(panel)panel.hidden=true;return true;},
     update:function(){return enabled&&!destroyed;},
     destroy:function(){if(destroyed)return;clearMap();if(viewer&&dataSource)viewer.dataSources.remove(dataSource,true);dataSource=null;panel?.remove?.();panel=null;viewer=null;dataManager=null;destroyed=true;},
-    getStats:function(){return {enabled:enabled,departmentCount:departments.length,municipalityCount:municipalities.length,cellCount:currentResult?.cellCount||0,totalHa:currentResult?.totalHa||0,truncated:Boolean(currentResult?.truncated),retrievedAt:currentResult?.retrievedAt||null};},
+    getStats:function(){return {enabled:enabled,departmentCount:departments.length,municipalityCount:municipalities.length,cellCount:currentResult?.cellCount||0,totalHa:currentResult?.totalHa||0,selectedCellCount:selectedArea?.cellCount||0,selectedTotalHa:selectedArea?.totalHa||0,truncated:Boolean(currentResult?.truncated),retrievedAt:currentResult?.retrievedAt||null};},
   };
 }
