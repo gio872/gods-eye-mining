@@ -2278,7 +2278,9 @@
       "src/mining/core/globalPreciousMetalsEngine.js",
       "src/mining/sources/globalPreciousMetalsSource.js",
       "src/mining/layers/globalSatelliteMining.js",
-      "src/mining/sources/globalSatelliteMiningSource.js"
+      "src/mining/sources/globalSatelliteMiningSource.js",
+      "src/mining/core/spectralFeatures.js",
+      "src/mining/sources/spectralMineralSource.js"
     ],
     "external": [
       "hls.js",
@@ -3517,7 +3519,8 @@
       "src/mining/core/geophysicsTypes.js",
       "src/mining/core/geophysicsEngine.js",
       "src/mining/core/globalPreciousMetalsTypes.js",
-      "src/mining/core/globalPreciousMetalsEngine.js"
+      "src/mining/core/globalPreciousMetalsEngine.js",
+      "src/mining/core/spectralFeatures.js"
     ],
     "external": []
   },
@@ -3529,7 +3532,8 @@
       "./mining/sources/geophysics",
       "./mining/sources/movin-marine",
       "./mining/sources/global-precious-metals",
-      "./mining/sources/global-satellite-mining"
+      "./mining/sources/global-satellite-mining",
+      "./mining/sources/spectral-minerals"
     ],
     "modules": [
       "src/mining/layers/index.js",
@@ -3557,7 +3561,9 @@
       "src/mining/sources/globalPreciousMetalsSource.js",
       "src/mining/layers/globalPreciousMetals.js",
       "src/mining/sources/globalSatelliteMiningSource.js",
-      "src/mining/layers/globalSatelliteMining.js"
+      "src/mining/layers/globalSatelliteMining.js",
+      "src/mining/core/spectralFeatures.js",
+      "src/mining/sources/spectralMineralSource.js"
     ],
     "external": [
       "cesium"
@@ -3726,5 +3732,15 @@
     "modules": [
       "server/providers/globalSatelliteMining.js"
     ]
+  },
+  "emit-enmap-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/emit-enmap"
+    ],
+    "modules": [
+      "server/providers/emitEnmap.js"
+    ],
+    "external": []
   }
 }

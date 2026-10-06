@@ -31,3 +31,6 @@ test('satellite source exposes the global mining intelligence catalog',async()=>
   const result=await source.sources();
   assert.deepEqual(result.sources.map((row)=>row.id),['mine-the-gap','sentinel-2']);
 });
+
+
+test('EMIT and EnMAP coordinate methods route through the dedicated provider',async()=>{const urls=[];const source=createGlobalSatelliteMiningSource({fetchImpl:async(url)=>{urls.push(url);return {ok:true,async json(){return urls.length===1?{pending:true}:{count:0,items:[]};}};}});const emit=await source.emitPoint({latitude:4.44,longitude:-75.24});const enmap=await source.enmapPoint({latitude:4.44,longitude:-75.24});assert.equal(emit.pending,true);assert.equal(enmap.count,0);assert.match(urls[0],/emit-enmap\\/emit-point/);assert.match(urls[1],/emit-enmap\\/enmap-point/);});

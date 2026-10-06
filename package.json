@@ -287,6 +287,10 @@
     "./mining/sources/global-satellite-mining": "./src/mining/sources/globalSatelliteMiningSource.js",
     "./server/providers/global-satellite-mining": {
       "node": "./server/providers/globalSatelliteMining.js"
+    },
+    "./mining/sources/spectral-minerals": "./src/mining/sources/spectralMineralSource.js",
+    "./server/providers/emit-enmap": {
+      "node": "./server/providers/emitEnmap.js"
     }
   }
 }
