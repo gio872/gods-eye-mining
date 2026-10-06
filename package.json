@@ -256,7 +256,6 @@
     "./mining/sources/sgc": "./src/mining/sources/sgcGeology.js",
     "./mining/sources/hls-spectral": "./src/mining/sources/hlsSpectral.js",
     "./mining/sources/anm-cadastre": "./src/mining/sources/anmMiningCadastre.js",
-    "./mining/sources/metal-markets": "./src/mining/sources/metalMarkets.js",
     "./mining/economic-value": "./src/mining/core/economicValue.js",
     "./intelligence": "./src/intelligence/index.js",
     "./intelligence/entity-source": "./src/intelligence/entityIntelligenceSource.js",
