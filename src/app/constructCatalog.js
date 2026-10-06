@@ -44,6 +44,7 @@ import { createIntelligenceGraphLayer } from '../intelligence/graphLayer.js';
 import { createIpCamerasLayer } from '../cameras/ipCameras.js';
 import { createAnmFreeAreasLayer } from '../mining/layers/anmFreeAreas.js';
 import { createAnmAreaIntelligenceLayer } from '../mining/layers/anmAreaIntelligence.js';
+import { createGeophysicsLayer } from '../mining/layers/geophysics.js';
 
 const SOURCE_METHODS = Object.freeze({
   flights: ['getSnapshot'],
@@ -91,6 +92,7 @@ export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'ip-cameras', disposition: 'local-only' }),
   Object.freeze({ id: 'anm-free-areas', disposition: 'local-only' }),
   Object.freeze({ id: 'anm-area-intelligence', disposition: 'local-only' }),
+  Object.freeze({ id: 'geophysics-subsurface', disposition: 'local-only' }),
 ]);
 
 /** Serialization metadata for every layer the application catalog constructs. */
@@ -204,6 +206,7 @@ export function createApplicationCatalog({
         createAnmMiningCadastreLayer({ signal, overlayHost }),
         createAnmFreeAreasLayer(),
         createAnmAreaIntelligenceLayer(),
+        createGeophysicsLayer(),
         createMetalMarketsLayer({ signal }),
         createApplicationPopulations({ source: sources.populations }),
         createProjectEconomicsLayer(),
