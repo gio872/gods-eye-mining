@@ -39,7 +39,7 @@ test('catalogs construct distinct layers and classification from their supplied 
     signal: b.signal,
     surface: fixtureSurface(b.signal),
   });
-  assert.equal(first.layers.length, 37);
+  assert.equal(first.layers.length, 38);
   assert.ok(first.get('local-adsb'), 'Local ADS-B is registered');
   assert.deepEqual(
     first.metadata.find(({ id }) => id === 'local-adsb'),
@@ -62,8 +62,10 @@ test('catalogs construct distinct layers and classification from their supplied 
   assert.ok(first.get('ip-cameras'));
   assert.ok(first.get('anm-free-areas'));
   assert.ok(first.get('anm-area-intelligence'));
+  assert.ok(first.get('geophysics-subsurface'));
   assert.deepEqual(first.metadata.find(({ id }) => id === 'anm-free-areas'), { id: 'anm-free-areas', disposition: 'local-only' });
   assert.deepEqual(first.metadata.find(({ id }) => id === 'anm-area-intelligence'), { id: 'anm-area-intelligence', disposition: 'local-only' });
+  assert.deepEqual(first.metadata.find(({ id }) => id === 'geophysics-subsurface'), { id: 'geophysics-subsurface', disposition: 'local-only' });
   assert.deepEqual(first.metadata.find(({ id }) => id === 'ip-cameras'), { id: 'ip-cameras', disposition: 'local-only' });
   assert.ok(first.get('transit'));
   const order = first.layers.map(({ id }) => id);
