@@ -33,6 +33,7 @@ import { anmAreaIntelligenceProxy } from './anmAreaIntelligence.js';
 import { movinMarineReferenceProxy } from './movinMarine.js';
 import { globalPreciousMetalsProxy } from './globalPreciousMetals.js';
 import { globalSatelliteMiningProxy } from './globalSatelliteMining.js';
+import { emitEnmapProxy } from './emitEnmap.js';
 
 /** Construct the local provider plugins in their established order. */
 function localProviderPlugins() {
@@ -58,6 +59,7 @@ function localProviderPlugins() {
     movinMarineReferenceProxy(),
     globalPreciousMetalsProxy(),
     globalSatelliteMiningProxy(),
+    emitEnmapProxy(),
     radioBrowserProxy(),
     gbfsProxy(),
     localReceiversProxy(),
