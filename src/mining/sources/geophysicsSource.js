@@ -21,9 +21,19 @@ function key(value){return String(value??'').trim().toLowerCase().replace(/[\s\-
 function finite(value){const n=Number(String(value??'').replace(',','.'));return Number.isFinite(n)?n:null;}
 function pickIndex(headers,aliases){return aliases.map((alias)=>headers.indexOf(alias)).find((index)=>index>=0)??-1;}
 function splitLine(line, whitespace=false){
-  if(whitespace) return line.trim().split(/\\s+/).map((part)=>part.trim());
+  if(whitespace) return line.trim().split(/\s+/).map((part)=>part.trim());
   if(line.includes(';')&&!line.includes(',')) return line.split(';').map((part)=>part.trim());
   return line.split(',').map((part)=>part.trim());
+}
+function parseXyz(text){
+  const lines=String(text??'').split(/\r?\n/).map((line)=>line.trim()).filter(Boolean);
+  return lines.map((line,index)=>line.split(/\s+/)).filter((parts)=>parts.length>=3 && Number.isFinite(Number(parts[0])) && Number.isFinite(Number(parts[1]))).map((parts,index)=>({
+    id:'xyz-'+(index+1),
+    longitude:finite(parts[0]),latitude:finite(parts[1]),
+    value:finite(parts[2])??0,intensity:finite(parts[2])??0,
+    depthTopM:finite(parts[3])??0,depthBottomM:finite(parts[3])??0,
+    source:'XYZ import',modality:'unknown',mineral:'unknown',confidence:0,
+  }));
 }
 function parseCsv(text,whitespace=false){
   const lines=String(text??'').split(/\r?\n/).map((line)=>line.trim()).filter(Boolean);
@@ -77,7 +87,7 @@ export function parseGeophysicalText(text,filename='data.csv'){
   const name=String(filename).toLowerCase();
   const isJson=name.endsWith('.json')||name.endsWith('.geojson');
   const isXyz=name.endsWith('.xyz')||name.endsWith('.txt');
-  const rows=isJson?parseJson(text):parseCsv(text,isXyz);
+  const rows=isJson?parseJson(text):(isXyz && /^[+-]?\\d/.test(String(text).trim()) ? parseXyz(text) : parseCsv(text,isXyz));
   return rows.map((row,index)=>createSubsurfaceObservation({...row,id:row.id||'observation-'+(index+1)}));
 }
 export async function ingestGeophysicalFile(file){
