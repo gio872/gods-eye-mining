@@ -18,12 +18,12 @@ const FEED_STATE_LABELS = Object.freeze({
 // Presentation order is independent of catalog registration and startup order.
 const PANEL_GROUPS = [
   {
-    label: 'Cartography',
-    ids: ['population-places'],
-  },
-  {
     label: 'Mining',
     ids: ['metal-markets', 'anm-mining-cadastre', 'anm-free-areas', 'anm-area-intelligence', 'geophysics-subsurface', 'global-precious-metals', 'global-satellite-mining', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
+  },
+  {
+    label: 'Cartography',
+    ids: ['population-places'],
   },
   {
     label: 'Movement',
