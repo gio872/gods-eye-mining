@@ -19,6 +19,17 @@ function occurrencesCsv(rows){const h=['ID','NAME','METAL','LATITUDE','LONGITUDE
 export function createGlobalPreciousMetalsLayer({source=createGlobalPreciousMetalsSource()}={}){
   let viewer=null,panel=null,dataSource=null,enabled=false,destroyed=false,loading=false,analyzing=false,commodity='gold',occurrences=[],analysis=null,spectralEvidence=null,rowControlsListener=null,removeSpectralListener=()=>{};
   function clearMap(){dataSource?.entities?.removeAll?.();viewer?.scene?.requestRender?.();}
+  async function consumeSpectralEvidence(detail){
+    const spectralScore=Number(detail?.spectralScore);
+    const latitude=Number(detail?.latitude),longitude=Number(detail?.longitude);
+    if(!Number.isFinite(spectralScore)||!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
+    spectralEvidence={...detail};
+    if(!panel||panel.hidden||analyzing)return;
+    analyzing=true;render();
+    try{analysis=await source.analyzePoint({latitude,longitude,commodity,spectralScore,spectralFeatures:detail?.features||detail});paint();}
+    catch(error){panel.querySelector('.gem-global-pm-body').textContent='GLOBAL + ESPECTRO: '+String(error?.message||error);}
+    finally{analyzing=false;render();paint();}
+  }
   function scoredRows(){return occurrences.map((row)=>scoreDocumentedOccurrence(row)||row).sort((a,b)=>(b.score||0)-(a.score||0));}
   function paint(){
     clearMap();if(!dataSource)return;
