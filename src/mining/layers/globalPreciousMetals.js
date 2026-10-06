@@ -17,7 +17,7 @@ function download(name,content,type){const blob=new Blob([content],{type}),url=U
 function occurrencesCsv(rows){const h=['ID','NAME','METAL','LATITUDE','LONGITUDE','DEPTH_M','DEPTH_STATUS','STATUS','DEPOSIT_TYPE','GRADE','COUNTRY','REGION','SOURCE','SOURCE_URL'];const lines=rows.map((r)=>[r.id,r.name,r.commodity,r.latitude,r.longitude,r.depthM,r.depthStatus,r.developmentStatus,r.depositType,r.grade,r.country,r.region,r.source,r.sourceUrl].map((v)=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','));return [h.join(','),...lines].join('\r\n');}
 
 export function createGlobalPreciousMetalsLayer({source=createGlobalPreciousMetalsSource()}={}){
-  let viewer=null,panel=null,dataSource=null,enabled=false,destroyed=false,loading=false,analyzing=false,commodity='gold',occurrences=[],analysis=null,rowControlsListener=null;
+  let viewer=null,panel=null,dataSource=null,enabled=false,destroyed=false,loading=false,analyzing=false,commodity='gold',occurrences=[],analysis=null,spectralEvidence=null,rowControlsListener=null,removeSpectralListener=()=>{};
   function clearMap(){dataSource?.entities?.removeAll?.();viewer?.scene?.requestRender?.();}
   function scoredRows(){return occurrences.map((row)=>scoreDocumentedOccurrence(row)||row).sort((a,b)=>(b.score||0)-(a.score||0));}
   function paint(){
