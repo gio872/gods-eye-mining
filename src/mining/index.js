@@ -14,3 +14,6 @@ export {
   calculateGrossMetalValue,
   normalizeRecoveryPercent,
 } from './core/economicValue.js';
+
+export { createGeophysicsEngine } from './core/geophysicsEngine.js';
+export { createSubsurfaceObservation, createSubsurfaceTarget, GEOPHYSICS_MODALITIES, GEOPHYSICS_MINERALS } from './core/geophysicsTypes.js';
