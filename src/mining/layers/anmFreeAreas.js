@@ -5,8 +5,8 @@ function esc(value) { return String(value ?? '').replace(/[&<>"']/g, function(c)
 function n(value) { const x = Number(value); return Number.isFinite(x) ? x : null; }
 function ha(value) { return Number.isFinite(Number(value)) ? Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 }) : '—'; }
 function ringPositions(ring) { return Array.isArray(ring) ? ring.filter(function(p){return Array.isArray(p)&&n(p[0])!==null&&n(p[1])!==null;}).map(function(p){return Cesium.Cartesian3.fromDegrees(Number(p[0]),Number(p[1]),0);}) : []; }
-function hierarchy(geometry) { const rings = Array.isArray(geometry?.rings) ? geometry.rings.map(ringPositions).filter(function(r){return r.length>=4;}) : []; return rings.length ? new Cesium.PolygonHierarchy(rings[0], rings.slice(1).map(function(r){return new Cesium.PolygonHierarchy(r);})):null; }
 function rect(geometry) { const pairs = Array.isArray(geometry?.rings) ? geometry.rings.flat().filter(function(p){return Array.isArray(p)&&n(p[0])!==null&&n(p[1])!==null;}) : []; if(!pairs.length)return null; return Cesium.Rectangle.fromDegrees(Math.min.apply(null,pairs.map(function(p){return Number(p[0]);})),Math.min.apply(null,pairs.map(function(p){return Number(p[1]);})),Math.max.apply(null,pairs.map(function(p){return Number(p[0]);})),Math.max.apply(null,pairs.map(function(p){return Number(p[1]);}))); }
+function cellRect(bounds) { const west=n(bounds?.west), east=n(bounds?.east), south=n(bounds?.south), north=n(bounds?.north); if([west,east,south,north].some(function(v){return v===null;}) || east<=west || north<=south)return null; return Cesium.Rectangle.fromDegrees(west,south,east,north); }
 
 export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } = {}) {
   let viewer=null, panel=null, dataManager=null, dataSource=null, enabled=false, destroyed=false, rowControlsListener=null;
@@ -16,13 +16,22 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
   function paint(){
     clearMap(); if(!currentResult||!dataSource)return;
     for(const cell of currentResult.cells||[]){
-      const h=hierarchy(cell.geometry); if(!h)continue;
+      const rectangle=cellRect(cell.bounds); if(!rectangle)continue;
       dataSource.entities.add({
         id:'gem-anm-free-cell:'+cell.cellKey,
-        polygon:{hierarchy:h,material:Cesium.Color.fromCssColorString('#2fe0b3').withAlpha(.25),outline:true,outlineColor:Cesium.Color.fromCssColorString('#2fe0b3').withAlpha(.85),outlineWidth:1,heightReference:Cesium.HeightReference.CLAMP_TO_GROUND},
+        rectangle:{
+          coordinates:rectangle,
+          material:Cesium.Color.fromCssColorString('#2fe0b3').withAlpha(.20),
+          outline:true,
+          outlineColor:Cesium.Color.fromCssColorString('#2fe0b3').withAlpha(.92),
+          outlineWidth:1,
+          height:0,
+          heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,
+        },
         properties:{cellKey:cell.cellKey,areaHa:cell.areaHa,reasonCode:cell.reasonCode,statusCode:cell.statusCode,reopeningDate:cell.reopeningDate},
       });
     }
+    viewer?.scene?.requestRender?.();
     const r=rect(currentResult.municipalityGeometry); if(r)viewer?.camera?.flyTo({destination:r,duration:.8});
   }
   function select(name,placeholder){ const s=document.createElement('select'); s.name=name; s.style.cssText='width:100%;box-sizing:border-box;padding:8px;border:1px solid rgba(47,224,179,.2);border-radius:5px;background:rgba(2,12,17,.9);color:#eef8fa;font:10px monospace'; s.appendChild(new Option(placeholder,'')); return s; }
@@ -31,7 +40,7 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
     summary.replaceChildren(); list.replaceChildren(); if(!currentResult)return;
     [['MUNICIPIO',currentResult.municipality.name],['CELDAS DISPONIBLES',String(currentResult.cellCount)],['SUPERFICIE DISPONIBLE',ha(currentResult.totalHa)+' ha'],['CONSULTA',new Date(currentResult.retrievedAt).toLocaleString('es-CO')]].forEach(function(item){ const d=document.createElement('div'); d.style.cssText='display:flex;justify-content:space-between;gap:10px;padding:7px 8px;border:1px solid rgba(255,255,255,.06);border-radius:4px;font-size:8px'; d.innerHTML='<span style="color:#769492">'+esc(item[0])+'</span><strong style="color:#eaf8fa">'+esc(item[1])+'</strong>'; summary.appendChild(d); });
     const heading=document.createElement('div'); heading.style.cssText='margin-top:7px;color:#2fe0b3;font-size:8px;letter-spacing:.1em;font-weight:700'; heading.textContent=(currentResult.truncated?'CELDAS DISPONIBLES · RESULTADO PARCIAL':'CELDAS DISPONIBLES · DETALLE'); list.appendChild(heading);
-    for(const cell of (currentResult.cells||[]).slice(0,1000)){ const row=document.createElement('button'); row.type='button'; row.style.cssText='text-align:left;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);color:#dceced;border-radius:5px;padding:7px;font:8px monospace;cursor:pointer'; row.innerHTML='<b style="color:#8df1d4">'+esc(cell.cellKey)+'</b> · '+ha(cell.areaHa)+' ha · reason '+esc(cell.reasonCode||'N')+' · '+esc(cell.statusCode||'A')+(cell.reopeningDate?'<br><span style="color:#7f9c9b">Liberación: '+esc(new Date(cell.reopeningDate).toLocaleString('es-CO'))+'</span>':''); row.addEventListener('click',function(){const rr=rect(cell.geometry); if(rr)viewer?.camera?.flyTo({destination:rr,duration:.45});}); list.appendChild(row); }
+    for(const cell of (currentResult.cells||[]).slice(0,1000)){ const row=document.createElement('button'); row.type='button'; row.style.cssText='text-align:left;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);color:#dceced;border-radius:5px;padding:7px;font:8px monospace;cursor:pointer'; row.innerHTML='<b style="color:#8df1d4">'+esc(cell.cellKey)+'</b> · '+ha(cell.areaHa)+' ha · reason '+esc(cell.reasonCode||'N')+' · '+esc(cell.statusCode||'A')+(cell.reopeningDate?'<br><span style="color:#7f9c9b">Liberación: '+esc(new Date(cell.reopeningDate).toLocaleString('es-CO'))+'</span>':''); row.addEventListener('click',function(){const rr=cellRect(cell.bounds); if(rr)viewer?.camera?.flyTo({destination:rr,duration:.45});}); list.appendChild(row); }
   }
   function ensurePanel(){
     if(panel||!viewer?.container)return;
