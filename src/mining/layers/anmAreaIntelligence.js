@@ -30,7 +30,7 @@ function makeDraggable(panel) {
   return ()=>{header.removeEventListener('pointerdown',start);header.removeEventListener('pointermove',move);header.removeEventListener('pointerup',stop);header.removeEventListener('pointercancel',stop);};
 }
 export function createAnmAreaIntelligenceLayer({source=createAnmAreaIntelligenceSource()}={}) {
-  let viewer=null,panel=null,dataSource=null,selectedArea=null,latest=null,enabled=false,destroyed=false,analyzing=false,rowControlsListener=null,destroyDrag=()=>{},removeAreaListener=()=>{};
+  let viewer=null,panel=null,dataSource=null,selectedArea=null,latest=null,enabled=false,destroyed=false,analyzing=false,rowControlsListener=null,destroyDrag=()=>{},removeAreaListener=()=>{},geophysicalTargets=[],geophysicalAreaId=null,removeGeophysicsListener=()=>{};
   function clearMap(){dataSource?.entities?.removeAll?.();viewer?.scene?.requestRender?.();}
   function paintSamples(report){
     clearMap(); if(!dataSource||!report)return;
@@ -66,6 +66,14 @@ export function createAnmAreaIntelligenceLayer({source=createAnmAreaIntelligence
     const area=document.createElement('div');area.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px';
     [['MUNICIPIO',report.area?.municipality?.name||'—'],['CELDAS',report.area?.cellCount||0],['SUPERFICIE',Number(report.area?.totalHa||0).toLocaleString('es-CO',{maximumFractionDigits:2})+' ha'],['GEOMETRÍA','ENVOLVENTE DE SCREENING']].forEach(([label,value])=>{const item=document.createElement('div');item.style.cssText='padding:7px 8px;border:1px solid rgba(255,255,255,.06);font-size:8px';item.innerHTML='<span style="color:#78989e">'+esc(label)+'</span><br><strong style="color:#eaf8fa">'+esc(value)+'</strong>';area.appendChild(item);});
     body.appendChild(area);
+    const convergence=geophysicalAreaId===report.area?.id && geophysicalTargets.length ? document.createElement('div') : null;
+    if(convergence){
+      const best=geophysicalTargets[0];
+      const depth=Number(best.depthM);
+      convergence.style.cssText='margin-top:8px;padding:9px;border:1px solid rgba(47,224,179,.22);background:rgba(47,224,179,.04);border-radius:6px;font-size:9px;line-height:1.4';
+      convergence.innerHTML='<div style="color:#78989e;font-size:8px;letter-spacing:.1em">GEM · CONVERGENCIA ANM + GEOPHYSICS</div><strong style="color:#2fe0b3">'+geophysicalTargets.length+' target(s) de subsuelo</strong> · mejor '+Math.round((Number(best.score)||0)*100)+'/100 · '+esc(String(best.mineral||'unknown').toUpperCase())+' · '+(Number.isFinite(depth)?depth.toLocaleString('es-CO',{maximumFractionDigits:0}):'—')+' m';
+      body.appendChild(convergence);
+    }
     const list=document.createElement('div');list.style.cssText='display:grid;gap:6px;margin-top:9px';
     for(const category of report.categories||[]){
       const color=categoryColor(category.id),level=category.count>0?(category.severity==='critical'?'ALERTA':'HALLAZGO'):'SIN INTERSECCIÓN';
@@ -115,13 +123,17 @@ export function createAnmAreaIntelligenceLayer({source=createAnmAreaIntelligence
       viewer=nextViewer||null;if(!viewer)return false;
       if(!dataSource){dataSource=new Cesium.CustomDataSource('gem-anm-area-intelligence');viewer.dataSources.add(dataSource);}
       ensurePanel();removeAreaListener();
-      if(typeof window!=='undefined'){const listener=(event)=>onAreaSelected(event);window.addEventListener('gem:anm-free-area-selected',listener);removeAreaListener=()=>window.removeEventListener('gem:anm-free-area-selected',listener);}
+      if(typeof window!=='undefined'){
+      const listener=(event)=>onAreaSelected(event);window.addEventListener('gem:anm-free-area-selected',listener);removeAreaListener=()=>window.removeEventListener('gem:anm-free-area-selected',listener);
+      const geoListener=(event)=>{geophysicalTargets=event?.detail?.selectedAreaId ? (Array.isArray(event.detail.targets)?event.detail.targets:[]) : [];geophysicalAreaId=event?.detail?.selectedAreaId||null;if(panel&&latest)renderReport(latest);rowControlsListener?.();};
+      window.addEventListener('gem:geophysical-evidence-updated',geoListener);removeGeophysicsListener=()=>window.removeEventListener('gem:geophysical-evidence-updated',geoListener);
+    }
       return true;
     },
     enable(nextViewer){if(destroyed)return false;viewer=nextViewer||viewer;ensurePanel();enabled=true;if(panel)panel.hidden=false;renderReport(latest);return true;},
     disable(){enabled=false;if(panel)panel.hidden=true;clearMap();return true;},
     async update(){return enabled&&!destroyed;},
-    destroy(){if(destroyed)return;destroyDrag();removeAreaListener();clearMap();if(dataSource&&viewer?.dataSources?.contains?.(dataSource))viewer.dataSources.remove(dataSource,true);dataSource=null;panel?.remove?.();panel=null;viewer=null;destroyed=true;},
+    destroy(){if(destroyed)return;destroyDrag();removeAreaListener();removeGeophysicsListener();geophysicalTargets=[];geophysicalAreaId=null;clearMap();if(dataSource&&viewer?.dataSources?.contains?.(dataSource))viewer.dataSources.remove(dataSource,true);dataSource=null;panel?.remove?.();panel=null;viewer=null;destroyed=true;},
     getStats(){const total=(latest?.categories||[]).reduce((sum,category)=>sum+(Number(category.count)||0),0);return {count:total,countLabel:latest?(latest.score?.value??'—')+'/100':selectedArea?'READY':'—',score:latest?.score?.value??null,label:latest?.score?.label||null,partial:Boolean(latest?.diagnostics?.partial)};},
     getParams(){return {source:'ANM SIGM',analysis:'area-due-diligence',score:latest?.score||null,categories:(latest?.categories||[]).map((category)=>({id:category.id,label:category.label,count:category.count}))};},
   };
