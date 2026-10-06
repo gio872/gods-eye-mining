@@ -28,6 +28,7 @@ import { windProxy } from './wind.js';
 import { ipCamerasProxy } from './ipCameras.js';
 import { onvifProxy } from './onvif.js';
 import { amlProxy } from './aml.js';
+import { anmFreeAreasProxy } from './anmFreeAreas.js';
 
 /** Construct the local provider plugins in their established order. */
 function localProviderPlugins() {
@@ -48,6 +49,7 @@ function localProviderPlugins() {
     ipCamerasProxy(),
     onvifProxy(),
     amlProxy(),
+    anmFreeAreasProxy(),
     radioBrowserProxy(),
     gbfsProxy(),
     localReceiversProxy(),
