@@ -98,7 +98,7 @@ async function findMunicipality(departmentCode, municipalityCode) {
 async function municipalityFeature(departmentCode, municipalityCode) {
   const payload = await arcgisQuery(MUNICIPALITY_LAYER, {
     where: `COD_DPTO = '${safeWhere(departmentCode)}' AND COD_MPIO = '${safeWhere(municipalityCode)}'`,
-    outFields: 'NOMBRE,COD_DPTO,COD_MPIO,CATEGORIA,AREA_HA',
+    outFields: 'NOMBRE,COD_DPTO,COD_MPIO,CATEGORIA',
     returnGeometry: 'true',
     outSR: 4686,
     resultRecordCount: 1,
