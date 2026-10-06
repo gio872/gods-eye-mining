@@ -186,8 +186,8 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
       geometryType: 'esriGeometryEnvelope',
       inSR: 4686,
       spatialRel: 'esriSpatialRelIntersects',
-      outFields: 'CELL_KEY_ID,CELL_REASON_CODE,CELL_STATUS_CODE,CELL_REOPENING_DATE,AREA_HA,LONGITUD_CENT,LATITUD_CENT,CELL_TYPE',
-      returnGeometry: 'true',
+      outFields: 'CELL_KEY_ID,CELL_REASON_CODE,CELL_STATUS_CODE,CELL_REOPENING_DATE,AREA_HA,LONGITUD_CENT,LATITUD_CENT,LONGITUD_MIN,LONGITUD_MAX,LATITUD_MIN,LATITUD_MAX,CELL_TYPE',
+      returnGeometry: 'false',
       outSR: 4326,
       resultOffset: offset,
       resultRecordCount: PAGE_SIZE,
@@ -218,7 +218,12 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
       areaHa: Number.isFinite(Number(a.AREA_HA)) ? Number(a.AREA_HA) : null,
       centroid,
       cellType: cleanText(a.CELL_TYPE),
-      geometry: feature.geometry || null,
+      bounds: {
+        west: Number(a.LONGITUD_MIN),
+        east: Number(a.LONGITUD_MAX),
+        south: Number(a.LATITUD_MIN),
+        north: Number(a.LATITUD_MAX),
+      },
       _insideMunicipality: pointInMunicipality([centroid.lon, centroid.lat], municipality.geometry),
     };
   }).filter((cell) => cell._insideMunicipality).map(({ _insideMunicipality, ...cell }) => cell);
