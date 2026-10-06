@@ -19,7 +19,7 @@ const FEED_STATE_LABELS = Object.freeze({
 const PANEL_GROUPS = [
   {
     label: 'Mining',
-    ids: ['metal-markets', 'anm-mining-cadastre', 'anm-free-areas', 'anm-area-intelligence', 'geophysics-subsurface', 'global-precious-metals', 'global-satellite-mining', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
+    ids: ['anm-mining-cadastre', 'anm-free-areas', 'anm-area-intelligence', 'geophysics-subsurface', 'global-precious-metals', 'global-satellite-mining', 'gem-prospectivity', 'intelligence-graph', 'mining-economics', 'critical-minerals', 'entity-intelligence', 'mineral-trade-intelligence'],
   },
   {
     label: 'Cartography',
