@@ -8,9 +8,96 @@ function ringPositions(ring) { return Array.isArray(ring) ? ring.filter(function
 function rect(geometry) { const pairs = Array.isArray(geometry?.rings) ? geometry.rings.flat().filter(function(p){return Array.isArray(p)&&n(p[0])!==null&&n(p[1])!==null;}) : []; if(!pairs.length)return null; return Cesium.Rectangle.fromDegrees(Math.min.apply(null,pairs.map(function(p){return Number(p[0]);})),Math.min.apply(null,pairs.map(function(p){return Number(p[1]);})),Math.max.apply(null,pairs.map(function(p){return Number(p[0]);})),Math.max.apply(null,pairs.map(function(p){return Number(p[1]);}))); }
 function cellRect(bounds) { const west=n(bounds?.west), east=n(bounds?.east), south=n(bounds?.south), north=n(bounds?.north); if([west,east,south,north].some(function(v){return v===null;}) || east<=west || north<=south)return null; return Cesium.Rectangle.fromDegrees(west,south,east,north); }
 
+function makeDraggable(panel) {
+  const header = panel?.querySelector('.gem-anm-free-header');
+  if (!panel || !header) return () => {};
+
+  let dragging = false;
+  let pointerId = null;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  const clamp = () => {
+    const rect = panel.getBoundingClientRect();
+    const margin = 8;
+    const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
+    const maxTop = Math.max(margin, window.innerHeight - rect.height - margin);
+    const left = Math.min(maxLeft, Math.max(margin, rect.left));
+    const top = Math.min(maxTop, Math.max(margin, rect.top));
+    panel.style.left = left + 'px';
+    panel.style.top = top + 'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+  };
+
+  const move = (event) => {
+    if (!dragging || event.pointerId !== pointerId) return;
+    event.preventDefault();
+    const left = event.clientX - offsetX;
+    const top = event.clientY - offsetY;
+    panel.style.left = left + 'px';
+    panel.style.top = top + 'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+    clamp();
+  };
+
+  const stop = (event) => {
+    if (pointerId !== null && event.pointerId !== pointerId) return;
+    dragging = false;
+    pointerId = null;
+    header.style.cursor = 'grab';
+    header.classList.remove('dragging');
+    try {
+      header.releasePointerCapture(event.pointerId);
+    } catch {}
+  };
+
+  const start = (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    const target = event.target;
+    if (target?.closest?.('button, input, select, option, textarea, a')) return;
+
+    const rect = panel.getBoundingClientRect();
+    if (!Number.isFinite(rect.left) || !Number.isFinite(rect.top)) return;
+
+    dragging = true;
+    pointerId = event.pointerId;
+    offsetX = event.clientX - rect.left;
+    offsetY = event.clientY - rect.top;
+
+    panel.style.left = rect.left + 'px';
+    panel.style.top = rect.top + 'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+
+    header.style.cursor = 'grabbing';
+    header.classList.add('dragging');
+    header.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  header.style.cursor = 'grab';
+  header.style.touchAction = 'none';
+  header.addEventListener('pointerdown', start);
+  header.addEventListener('pointermove', move);
+  header.addEventListener('pointerup', stop);
+  header.addEventListener('pointercancel', stop);
+  window.addEventListener('resize', clamp);
+
+  return () => {
+    window.removeEventListener('resize', clamp);
+    header.removeEventListener('pointerdown', start);
+    header.removeEventListener('pointermove', move);
+    header.removeEventListener('pointerup', stop);
+    header.removeEventListener('pointercancel', stop);
+  };
+}
+
 export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } = {}) {
   let viewer=null, panel=null, dataManager=null, dataSource=null, enabled=false, destroyed=false, rowControlsListener=null;
-  let departments=[], municipalities=[], currentResult=null, selectedArea=null;
+  let departments=[], municipalities=[], currentResult=null, selectedArea=null, destroyDrag=()=>{};
 
   function clearMap(){ dataSource?.entities?.removeAll?.(); }
   function paint(){
@@ -46,10 +133,11 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
   function ensurePanel(){
     if(panel||!viewer?.container)return;
     panel=document.createElement('section'); panel.id='terraqueen-anm-free-areas'; panel.style.cssText='position:absolute;top:92px;right:calc(var(--right-rail-x,52px) + 350px);width:min(640px,calc(100vw - 430px));max-height:calc(100vh - 145px);overflow:auto;box-sizing:border-box;padding:15px 16px 12px;color:#eef8fa;background:rgba(3,15,21,.97);border:1px solid rgba(47,224,179,.3);border-radius:11px;box-shadow:0 18px 55px rgba(0,0,0,.58);backdrop-filter:blur(12px);z-index:162;font-family:monospace';
-    panel.innerHTML='<header style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px"><div><div style="font-size:8px;letter-spacing:.16em;color:#2fe0b3;font-weight:700">GEM · ANM · ANNA MINERÍA</div><div style="font:700 18px system-ui,sans-serif;letter-spacing:.06em;margin-top:3px">ÁREAS LIBRES COLOMBIA</div><div style="font-size:8px;letter-spacing:.1em;color:#79aaa1;margin-top:3px">CUADRÍCULA · DISPONIBILIDAD · DEPARTAMENTO · MUNICIPIO</div></div><button type="button" class="gem-anm-free-close" style="width:28px;height:28px;border:1px solid rgba(47,224,179,.25);background:rgba(47,224,179,.06);color:#8df1d4;border-radius:6px;font-size:18px;cursor:pointer">×</button></header><div class="gem-anm-free-controls" style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:11px"></div><div class="gem-anm-free-message" style="min-height:18px;margin-top:7px;font-size:8px;color:#8eb6b0"></div><div class="gem-anm-free-summary" style="margin-top:9px"></div><div class="gem-anm-free-list" style="display:grid;gap:5px;margin-top:9px"></div><div style="margin-top:10px;padding:8px;border:1px solid rgba(242,197,93,.14);border-radius:6px;color:#8fa9aa;font-size:8px;line-height:1.45">ANM: “Disponible” corresponde a CELL_STATUS_CODE = A en la cuadrícula AnnA Minería. Es disponibilidad cartográfica y no certificación jurídica de área libre.</div>';
+    panel.innerHTML='<header class="gem-anm-free-header" style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px"><div><div style="font-size:8px;letter-spacing:.16em;color:#2fe0b3;font-weight:700">GEM · ANM · ANNA MINERÍA</div><div style="font:700 18px system-ui,sans-serif;letter-spacing:.06em;margin-top:3px">ÁREAS LIBRES COLOMBIA</div><div style="font-size:8px;letter-spacing:.1em;color:#79aaa1;margin-top:3px">CUADRÍCULA · DISPONIBILIDAD · DEPARTAMENTO · MUNICIPIO</div></div><button type="button" class="gem-anm-free-close" style="width:28px;height:28px;border:1px solid rgba(47,224,179,.25);background:rgba(47,224,179,.06);color:#8df1d4;border-radius:6px;font-size:18px;cursor:pointer">×</button></header><div class="gem-anm-free-controls" style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:11px"></div><div class="gem-anm-free-message" style="min-height:18px;margin-top:7px;font-size:8px;color:#8eb6b0"></div><div class="gem-anm-free-summary" style="margin-top:9px"></div><div class="gem-anm-free-list" style="display:grid;gap:5px;margin-top:9px"></div><div style="margin-top:10px;padding:8px;border:1px solid rgba(242,197,93,.14);border-radius:6px;color:#8fa9aa;font-size:8px;line-height:1.45">ANM: “Disponible” corresponde a CELL_STATUS_CODE = A en la cuadrícula AnnA Minería. Es disponibilidad cartográfica y no certificación jurídica de área libre.</div>';
     viewer.container.appendChild(panel);
     panel.hidden = true;
     const controls=panel.querySelector('.gem-anm-free-controls'), dept=select('department','Departamento'), muni=select('municipality','Municipio'); muni.disabled=true; const btn=document.createElement('button'); btn.type='button'; btn.textContent='CONSULTAR'; btn.style.cssText='border:1px solid rgba(47,224,179,.3);background:rgba(47,224,179,.08);color:#8df1d4;border-radius:5px;padding:7px 10px;font:700 9px monospace;cursor:pointer'; controls.append(dept,muni,btn);
+    destroyDrag(); destroyDrag=makeDraggable(panel);
     panel.querySelector('.gem-anm-free-close').onclick=function(e){e.preventDefault();e.stopPropagation();enabled=false;clearMap();if(panel)panel.hidden=true;dataManager?.setEnabled?.('anm-free-areas',false,{origin:'user'});};
     const mark=document.createElement('button'); mark.type='button'; mark.textContent='MARCAR ÁREA LIBRE'; mark.style.cssText=btn.style.cssText; mark.disabled=true; panel.insertBefore(mark,panel.querySelector('.gem-anm-free-message'));
     dept.addEventListener('change',function(){ muni.replaceChildren(new Option('Municipio','')); muni.disabled=true; source.listMunicipalities(dept.value).then(function(v){municipalities=v.municipalities||[]; for(const m of municipalities)muni.appendChild(new Option(m.name,m.code)); muni.disabled=false; panel.querySelector('.gem-anm-free-message').textContent=municipalities.length+' municipio(s) cargados';}).catch(function(e){panel.querySelector('.gem-anm-free-message').textContent='ANM: '+e.message;}); });
@@ -84,7 +172,7 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
     enable:function(nextViewer){if(destroyed)return false;viewer=nextViewer||viewer;ensurePanel();enabled=true;if(panel)panel.hidden=false;if(!departments.length){const message=panel?.querySelector('.gem-anm-free-message');if(message)message.textContent='Cargando departamentos ANM…';source.listDepartments().then(function(v){departments=v.departments||[];const dept=panel?.querySelector('[name=department]');if(dept){dept.replaceChildren(new Option('Departamento',''));for(const d of departments)dept.appendChild(new Option(d.name,d.code));}if(message)message.textContent=departments.length+' departamento(s) cargados desde ANM';}).catch(function(e){if(message)message.textContent='ANM: '+e.message;});}return true;},
     disable:function(){enabled=false;clearMap();if(panel)panel.hidden=true;return true;},
     update:function(){return enabled&&!destroyed;},
-    destroy:function(){if(destroyed)return;clearMap();if(viewer&&dataSource)viewer.dataSources.remove(dataSource,true);dataSource=null;panel?.remove?.();panel=null;viewer=null;dataManager=null;destroyed=true;},
+    destroy:function(){if(destroyed)return;clearMap();if(viewer&&dataSource)viewer.dataSources.remove(dataSource,true);dataSource=null;destroyDrag();destroyDrag=()=>{};panel?.remove?.();panel=null;viewer=null;dataManager=null;destroyed=true;},
     getStats:function(){return {enabled:enabled,departmentCount:departments.length,municipalityCount:municipalities.length,cellCount:currentResult?.cellCount||0,totalHa:currentResult?.totalHa||0,selectedCellCount:selectedArea?.cellCount||0,selectedTotalHa:selectedArea?.totalHa||0,truncated:Boolean(currentResult?.truncated),retrievedAt:currentResult?.retrievedAt||null};},
   };
 }
