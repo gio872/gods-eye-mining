@@ -34,6 +34,7 @@ function factorLabel(name) {
       geochemistry: 'Geoquímica',
       lineaments: 'Lineamientos',
       drainage: 'Drenaje',
+      geophysics: 'Geofísica / subsuelo',
     }[name] || name
   );
 }
@@ -350,6 +351,7 @@ function publishTargets(dataSource, targets) {
         lineaments: target.factors.lineaments,
         drainage: target.factors.drainage,
         sampling: target.factors.sampling,
+        geophysics: target.factors.geophysics,
         auAnomaly: target.metadata?.auAnomaly ?? 0,
         agAnomaly: target.metadata?.agAnomaly ?? 0,
         cuAnomaly: target.metadata?.cuAnomaly ?? 0,
@@ -401,6 +403,8 @@ export function createProspectivityLayer({
   let detailPanel = null;
   let selectedEntity = null;
   let marketUpdateListener = null;
+  let geophysicalTargets = [];
+  let geophysicalEvidenceListener = null;
 
   async function refresh() {
     if (!enabled || destroyed || refreshing || !viewer) return false;
@@ -422,7 +426,10 @@ export function createProspectivityLayer({
           longitude: row.lon,
           commodity,
           profile: selectedProfile,
-          factors: row.factors,
+          factors: {
+            ...row.factors,
+            geophysics: nearestGeophysicalScore(row.lat, row.lon),
+          },
           confidence: row.metadata?.evidenceCoverage ?? 0,
           metadata: {
             ...row.metadata,
@@ -445,6 +452,17 @@ export function createProspectivityLayer({
     } finally {
       refreshing = false;
     }
+  }
+
+  function nearestGeophysicalScore(lat, lon) {
+    let best = 0;
+    for (const target of geophysicalTargets) {
+      const dLat = (Number(target.latitude) - lat) * 111.32;
+      const dLon = (Number(target.longitude) - lon) * 111.32 * Math.cos((lat * Math.PI) / 180);
+      const km = Math.hypot(dLat, dLon);
+      if (km <= 5) best = Math.max(best, Number(target.score) || 0);
+    }
+    return clamp(best);
   }
 
   const layer = {
@@ -490,6 +508,13 @@ export function createProspectivityLayer({
           selectedEntity = entity;
           showTargetDetail(detailPanel, entity);
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      }
+      geophysicalEvidenceListener = (event) => {
+        geophysicalTargets = Array.isArray(event?.detail?.targets) ? event.detail.targets : [];
+        if (enabled) void refresh();
+      };
+      if (typeof window !== 'undefined') {
+        window.addEventListener('gem:geophysical-evidence-updated', geophysicalEvidenceListener);
       }
       marketUpdateListener = () => {
         if (enabled && selectedEntity && detailPanel && !detailPanel.hidden)
@@ -543,7 +568,11 @@ export function createProspectivityLayer({
           'terraqueen:metal-market-updated',
           marketUpdateListener,
         );
+        if (geophysicalEvidenceListener)
+          window.removeEventListener('gem:geophysical-evidence-updated', geophysicalEvidenceListener);
       marketUpdateListener = null;
+      geophysicalEvidenceListener = null;
+      geophysicalTargets = [];
       selectedEntity = null;
       detailPanel?.remove?.();
       detailPanel = null;
@@ -573,7 +602,8 @@ export function createProspectivityLayer({
         commodity,
         profile: selectedProfile,
         gridCells: (GRID_RADIUS * 2 + 1) ** 2,
-        evidenceChannels: 10,
+        evidenceChannels: 11,
+        geophysicsTargets: geophysicalTargets.length,
         evidence: {
           hydrology: lastEvidence.some((row) => row.metadata?.hydrologySource),
           geology: lastEvidence.some((row) => row.metadata?.geologyAvailable),
@@ -591,6 +621,7 @@ export function createProspectivityLayer({
             (row) => row.metadata?.remoteSensingSource,
           ),
           terrain: lastEvidence.some((row) => row.metadata?.terrainSource),
+          geophysics: geophysicalTargets.length > 0,
         },
       };
     },
