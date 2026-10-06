@@ -11,7 +11,7 @@ function cellCoordinates(bounds) { const west=n(bounds?.west), east=n(bounds?.ea
 function csvValue(value) { const text=String(value ?? ''); return '"'+text.replace(/"/g,'""')+'"'; }
 function downloadFile(filename, content, type) { const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const anchor=document.createElement('a'); anchor.href=url; anchor.download=filename; anchor.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }
 function exportForAnm(result) {
-  if(!result?.cells?.length) throw new Error('No hay celdas disponibles para exportar');
+  if(!result?.cells?.length) throw new Error('No hay celdas marcadas para exportar');
   const stamp=new Date().toISOString().replace(/[:.]/g,'-');
   const base='ANM_Area_Libre_'+String(result.department?.code||'DEP')+'_'+String(result.municipality?.code||'MPIO')+'_'+stamp;
   const headers=['CELL_KEY_ID','CELL_STATUS_CODE','CELL_REASON_CODE','CELL_REOPENING_DATE','AREA_HA','CENTROID_LONGITUDE','CENTROID_LATITUDE','LONGITUD_MIN','LONGITUD_MAX','LATITUD_MIN','LATITUD_MAX'];
@@ -21,6 +21,8 @@ function exportForAnm(result) {
   const features=result.cells.map(function(cell){return {type:'Feature',properties:{CELL_KEY_ID:cell.cellKey,CELL_STATUS_CODE:cell.statusCode,CELL_REASON_CODE:cell.reasonCode,CELL_REOPENING_DATE:cell.reopeningDate||null,AREA_HA:cell.areaHa,CENTROID_LONGITUDE:cell.centroid?.lon,CENTROID_LATITUDE:cell.centroid?.lat},geometry:{type:'Polygon',coordinates:cellCoordinates(cell.bounds)}};}).filter(function(feature){return feature.geometry.coordinates;});
   const geojson={type:'FeatureCollection',name:base,features:features,metadata:{provider:'ANM · AnnA Minería',department:result.department,municipality:result.municipality,cellCount:result.cellCount,totalHa:result.totalHa,retrievedAt:result.retrievedAt,statusDefinition:'CELL_STATUS_CODE=A → Disponible',note:'GeoJSON operacional de celdas disponibles; verifique el estado vigente en AnnA Minería antes de radicar.'}};
   downloadFile(base+'.geojson',JSON.stringify(geojson,null,2),'application/geo+json;charset=utf-8');
+  const cellIds=result.cells.map(function(cell){return cell.cellKey;}).filter(Boolean).join('\\r\\n')+'\\r\\n';
+  downloadFile(base+'_CELL_KEY_ID.txt',cellIds,'text/plain;charset=utf-8');
   const summary=['GEM · EXPORTACIÓN PARA ANM','Fuente: ANM · AnnA Minería · Sistema de Cuadrícula','Departamento: '+(result.department?.name||'—'),'Municipio: '+(result.municipality?.name||'—'),'Código departamento: '+(result.department?.code||'—'),'Código municipio: '+(result.municipality?.code||'—'),'Celdas disponibles: '+result.cellCount,'Superficie total: '+result.totalHa+' ha','Fecha/hora de consulta: '+result.retrievedAt,'Estado consultado: CELL_STATUS_CODE=A','AVISO: este archivo sirve como soporte cartográfico y operativo. La radicación y verificación de disponibilidad se realiza en AnnA Minería.'].join('\\r\\n');
   downloadFile(base+'_RESUMEN.txt',summary,'text/plain;charset=utf-8');
   return base;
@@ -182,6 +184,7 @@ export function createAnmFreeAreasLayer({ source = createAnmFreeAreasSource() } 
     const box=panel?.querySelector('.gem-anm-free-message');
     if(box)box.textContent='ÁREA MARCADA · '+selectedArea.cellCount+' celdas · '+ha(selectedArea.totalHa)+' ha · LISTA PARA CONSULTA';
     if(typeof window!=='undefined') window.dispatchEvent(new CustomEvent('gem:anm-free-area-selected',{detail:selectedArea}));
+    updateExportButton();
     rowControlsListener?.();
   }
   return {
