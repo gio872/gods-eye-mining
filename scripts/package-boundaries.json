@@ -2782,7 +2782,8 @@
       "src/mining/core/geophysicsEngine.js",
       "src/mining/sources/geophysicsSource.js",
       "src/mining/data/movinMarineReference.js",
-      "src/mining/layers/geophysics.js"
+      "src/mining/layers/geophysics.js",
+      "src/mining/sources/movinMarineSource.js"
     ],
     "external": [
       "hls.js",
@@ -3517,7 +3518,8 @@
       "./mining/layers",
       "./mining/sources/anm-free-areas",
       "./mining/sources/anm-area-intelligence",
-      "./mining/sources/geophysics"
+      "./mining/sources/geophysics",
+      "./mining/sources/movin-marine"
     ],
     "modules": [
       "src/mining/layers/index.js",
@@ -3538,7 +3540,8 @@
       "src/mining/core/geophysicsEngine.js",
       "src/mining/sources/geophysicsSource.js",
       "src/mining/data/movinMarineReference.js",
-      "src/mining/layers/geophysics.js"
+      "src/mining/layers/geophysics.js",
+      "src/mining/sources/movinMarineSource.js"
     ],
     "external": [
       "cesium"
@@ -3674,6 +3677,18 @@
     ],
     "modules": [
       "server/providers/onvif.js"
+    ],
+    "external": []
+  },
+  "movinmarine-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/movin-marine"
+    ],
+    "modules": [
+      "server/providers/movinMarine.js",
+      "server/providers/common/http.js",
+      "src/sources/httpBody.js"
     ],
     "external": []
   }
