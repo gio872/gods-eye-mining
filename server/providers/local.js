@@ -30,6 +30,7 @@ import { onvifProxy } from './onvif.js';
 import { amlProxy } from './aml.js';
 import { anmFreeAreasProxy } from './anmFreeAreas.js';
 import { anmAreaIntelligenceProxy } from './anmAreaIntelligence.js';
+import { movinMarineReferenceProxy } from './movinMarine.js';
 
 /** Construct the local provider plugins in their established order. */
 function localProviderPlugins() {
@@ -52,6 +53,7 @@ function localProviderPlugins() {
     amlProxy(),
     anmFreeAreasProxy(),
     anmAreaIntelligenceProxy(),
+    movinMarineReferenceProxy(),
     radioBrowserProxy(),
     gbfsProxy(),
     localReceiversProxy(),
