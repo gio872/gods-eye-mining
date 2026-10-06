@@ -1,3 +1,5 @@
+import { scoreProspectivePoint } from '../../src/mining/core/globalPreciousMetalsEngine.js';
+
 const MRDS_URL='https://energy.usgs.gov/arcgis/rest/services/Hosted/Mineral_Resource_Data_System/FeatureServer/0';
 const SEDIMENT_GOLD_URL='https://energy.usgs.gov/arcgis/rest/services/Hosted/Sediment_hosted_gold_deposits/FeatureServer/0';
 const PGE_URL='https://energy.usgs.gov/arcgis/rest/services/Hosted/PGE_Ni_Cr_deposits_and_occurrence/FeatureServer/0';
@@ -160,7 +162,7 @@ async function emag2(lat,lon){
   const value=finite(sample?.value??sample?.attributes?.value??sample?.attributes?.VALUE??sample?.attributes?.['Pixel Value']??sample);
   return {valueNtf:value,raw:sample??null,source:EMAG2_SAMPLES_URL};
 }
-async function analyzePoint(lat,lon,commodity){
+async function analyzePoint(lat,lon,commodity,spectralInput=null){
   const point=validatePoint(lat,lon),safeCommodity=METALS[commodity]?commodity:'gold',delta=.5;
   const bbox={west:Math.max(-180,point.lon-delta),south:Math.max(-90,point.lat-delta),east:Math.min(180,point.lon+delta),north:Math.min(90,point.lat+delta)};
   const [rows,geo,mag]=await Promise.all([
@@ -179,9 +181,11 @@ async function analyzePoint(lat,lon,commodity){
     ? (/alluv|placer|gravel|sand/i.test(geo.text+depositText)?{topM:0,bottomM:50,confidence:'low',system:'placer'}:/greenstone|schist|quartzite|orogenic/i.test(geo.text+depositText)?{topM:100,bottomM:2000,confidence:'low',system:'orogenic'}:{topM:100,bottomM:1500,confidence:'low',system:'gold-mineral-system'})
     : safeCommodity==='silver'?{topM:50,bottomM:1200,confidence:'low',system:'silver-hydrothermal'}
     :{topM:100,bottomM:2500,confidence:'low',system:'PGE-magmatic'};
-  const score=clamp(.32*occurrenceProximity+.12*occurrenceDensity+.28*gScore+.16*mScore+.12*(nearest?.depositType?0.6:0.3));
+  const spectralScore=finite(spectralInput?.spectralScore);
+  const target=scoreProspectivePoint({commodity:safeCommodity,occurrenceProximity,occurrenceDensity,geologyScore:gScore,magneticScore:mScore,spectralScore,spectralFeatures:spectralInput||null,depositType:depositText,geologyText:geo.text});
+  const score=target.score;
   return {
-    point,commodity:safeCommodity,score,confidence:'screening-high-uncertainty',uncertainty:'high',
+    point,commodity:safeCommodity,score,confidence:target.uncertainty==='medium-high'?'screening-medium-high-uncertainty':'screening-high-uncertainty',uncertainty:target.uncertainty,spectralScore:target.spectralScore,spectralFeatures:target.spectralFeatures,evidenceList:target.evidence,
     nearestOccurrence:nearest,nearbyOccurrenceCount100Km:nearby,
     evidence:{occurrenceProximity,occurrenceDensity,geologyScore:gScore,magneticScore:mScore,macrostrat:geo.raw,emag2:mag.valueNtf},
     depth:{estimated:depthEstimate,nearestKnownM:nearest?.depthM??null,nearestDepthStatus:nearest?.depthStatus||'not-reported'},
@@ -214,7 +218,12 @@ export function globalPreciousMetalsProxy(){
           return reply(200,{commodity,bbox,count:(await occurrences(bbox,commodity,limit)).length,occurrences:await occurrences(bbox,commodity,limit),generatedAt:new Date().toISOString(),partial:limit>=MAX_RESULTS,caveat:'USGS MRDS is a documented occurrence dataset, not a complete map of undiscovered resources.'});
         }
         if(url.pathname==='/analyze'){
-          const result=await analyzePoint(url.searchParams.get('lat'),url.searchParams.get('lon'),clean(url.searchParams.get('commodity'))||'gold');
+          let spectral=null;
+          const spectralParam=clean(url.searchParams.get('spectral'));
+          if(spectralParam){try{spectral=JSON.parse(spectralParam);}catch{spectral=null;}}
+          const explicitSpectralScore=finite(url.searchParams.get('spectralScore'));
+          if(spectral&&explicitSpectralScore!==null&&spectral.spectralScore===undefined)spectral={...spectral,spectralScore:explicitSpectralScore};
+          const result=await analyzePoint(url.searchParams.get('lat'),url.searchParams.get('lon'),clean(url.searchParams.get('commodity'))||'gold',spectral);
           return reply(200,result);
         }
         return reply(404,{error:'Not found'});
