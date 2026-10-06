@@ -3601,6 +3601,25 @@
     ],
     "external": []
   },
+  "anm-free-areas-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/anm-free-areas"
+    ],
+    "modules": [
+      "server/providers/anmFreeAreas.js"
+    ],
+    "external": []
+  },
+  "anm-free-areas-source": {
+    "exports": [
+      "./mining/sources/anm-free-areas"
+    ],
+    "modules": [
+      "src/mining/sources/anmFreeAreasSource.js"
+    ],
+    "external": []
+  },
   "aml-provider": {
     "runtime": "node",
     "exports": [
