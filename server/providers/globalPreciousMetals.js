@@ -85,17 +85,17 @@ function findDepth(attributes,side){
   }
   return null;
 }
-function normalizedMrds(feature){
+function normalizedMrds(feature,commodityHint='gold'){
   const a=feature?.attributes||{},point=geometryPoint(feature);if(!point)return null;
   const depId=clean(attr(a,'dep_id','DEP_ID','depid','DEPID'));
   const sourceUrl=clean(attr(a,'url','URL'))|| (depId?MRDS_PAGE+'show-mrds.php?dep_id='+encodeURIComponent(depId):MRDS_PAGE);
   const top=findDepth(a,'top'),bottom=findDepth(a,'bottom'),explicit=finite(attr(a,'depth_m','DEPTH_M','depth','DEPTH'));
-  const depthPayload=clean(attr(a,'json','JSON','record','RECORD'));const depthFromPayload=depthPayload?findDepth({payload:depthPayload},'top'):null;const depthM=explicit!==null?explicit:(bottom!==null?bottom:(top!==null?top:(depthFromPayload!==null?depthFromPayload:null)));
+  const depthM=explicit!==null?explicit:(bottom!==null?bottom:(top!==null?top:null));
   return {
     id:'USGS-MRDS-'+(depId||feature?.attributes?.objectid_1||feature?.attributes?.gid||Math.round(point.lat*1e5)+'-'+Math.round(point.lon*1e5)),
     name:clean(attr(a,'site_name','SITE_NAME'))||'USGS MRDS occurrence',
     latitude:point.lat,longitude:point.lon,
-    commodity:clean(attr(a,'code_list','CODE_LIST')).toLowerCase().includes('au')?'gold':(clean(attr(a,'code_list','CODE_LIST')).toLowerCase().includes('ag')?'silver':'pgm'),
+    commodity:commodityHint,
     commodities:clean(attr(a,'code_list','CODE_LIST')).split(/[,;|\s]+/).filter(Boolean),
     country:'',region:'',
     developmentStatus:clean(attr(a,'dev_stat','DEV_STAT')),
@@ -124,7 +124,7 @@ async function queryLayer(url,bbox,where,transform,limit){
 }
 async function occurrences(bbox,commodity,limit=1000){
   const key='occ:'+JSON.stringify(bbox)+':'+commodity+':'+limit;const hit=cacheGet(key);if(hit)return hit;
-  const base=await queryLayer(MRDS_URL,bbox,commodityWhere(commodity),normalizedMrds,Math.min(limit,2000));
+  const base=await queryLayer(MRDS_URL,bbox,commodityWhere(commodity),(feature)=>normalizedMrds(feature,commodity==='gold'||commodity==='silver'||commodity==='platinum'||commodity==='palladium'||commodity==='rhodium'||commodity==='iridium'||commodity==='ruthenium'||commodity==='osmium'?commodity:'pgm'),Math.min(limit,2000));
   const extras=[];
   if(commodity==='gold')extras.push(...await queryLayer(SEDIMENT_GOLD_URL,bbox,'1=1',(f)=>normalizedSpecial(f,'gold'),Math.min(500,limit)));
   if(commodity==='pgm'||['platinum','palladium','rhodium','iridium','ruthenium','osmium'].includes(commodity))extras.push(...await queryLayer(PGE_URL,bbox,'1=1',(f)=>normalizedSpecial(f,'pgm'),Math.min(500,limit)));
@@ -157,7 +157,7 @@ async function emag2(lat,lon){
   const geometry=JSON.stringify({x:lon,y:lat,spatialReference:{wkid:4326}});
   const payload=await requestJson(EMAG2_SAMPLES_URL,{geometry,geometryType:'esriGeometryPoint',returnFirstValueOnly:true,interpolation:'RSP_BilinearInterpolation'});
   const sample=Array.isArray(payload?.samples)?payload.samples[0]:payload?.value??null;
-  const value=finite(sample?.value??sample);
+  const value=finite(sample?.value??sample?.attributes?.value??sample?.attributes?.VALUE??sample?.attributes?.['Pixel Value']??sample);
   return {valueNtf:value,raw:sample??null,source:EMAG2_SAMPLES_URL};
 }
 async function analyzePoint(lat,lon,commodity){
