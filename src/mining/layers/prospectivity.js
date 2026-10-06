@@ -203,6 +203,7 @@ function showTargetDetail(container, entity) {
     geochemistry: propertyValue(entity, 'geochemistry', 0),
     lineaments: propertyValue(entity, 'lineaments', 0),
     drainage: propertyValue(entity, 'drainage', 0),
+    geophysics: propertyValue(entity, 'geophysics', 0),
   };
   const rows = Object.entries(factors)
     .map(
@@ -563,13 +564,12 @@ export function createProspectivityLayer({
       removeMoveEnd = null;
       clickHandler?.destroy?.();
       clickHandler = null;
-      if (typeof window !== 'undefined' && marketUpdateListener)
-        window.removeEventListener(
-          'terraqueen:metal-market-updated',
-          marketUpdateListener,
-        );
+      if (typeof window !== 'undefined') {
+        if (marketUpdateListener)
+          window.removeEventListener('terraqueen:metal-market-updated', marketUpdateListener);
         if (geophysicalEvidenceListener)
           window.removeEventListener('gem:geophysical-evidence-updated', geophysicalEvidenceListener);
+      }
       marketUpdateListener = null;
       geophysicalEvidenceListener = null;
       geophysicalTargets = [];
