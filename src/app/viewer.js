@@ -4,14 +4,17 @@ import { applyModelAtmosphereWorkaround } from './atmosphereCompat.js';
 const PINCH_ZOOM_MULTIPLIER = 8;
 const MAX_PINCH_PIXEL_DELTA = 120;
 
-// GEM always opens over Colombia so the mining/ANM workspace starts in the
-// operator's target country instead of Cesium's global default view.
-export const COLOMBIA_DEFAULT_VIEW = Object.freeze({
-  west: -79.35,
-  south: -4.35,
-  east: -66.80,
-  north: 12.65,
+// GEM opens with a global mining workspace view covering the Americas.
+export const GLOBAL_MINING_DEFAULT_VIEW = Object.freeze({
+  west: -155.0,
+  south: -58.0,
+  east: -25.0,
+  north: 72.0,
 });
+
+// Backwards-compatible export name for callers that still import the old
+// Colombia-specific constant; the runtime startup view is now global.
+export const COLOMBIA_DEFAULT_VIEW = GLOBAL_MINING_DEFAULT_VIEW;
 
 function boundedPinchDelta(delta) {
   if (!Number.isFinite(delta) || delta === 0) return delta;
@@ -136,10 +139,10 @@ export function createApplicationViewer({ container, creditContainer }) {
     viewer.targetFrameRate = 60;
     viewer.camera.setView({
       destination: Cesium.Rectangle.fromDegrees(
-        COLOMBIA_DEFAULT_VIEW.west,
-        COLOMBIA_DEFAULT_VIEW.south,
-        COLOMBIA_DEFAULT_VIEW.east,
-        COLOMBIA_DEFAULT_VIEW.north,
+        GLOBAL_MINING_DEFAULT_VIEW.west,
+        GLOBAL_MINING_DEFAULT_VIEW.south,
+        GLOBAL_MINING_DEFAULT_VIEW.east,
+        GLOBAL_MINING_DEFAULT_VIEW.north,
       ),
     });
     // Before any tile builds a draw command: Cesium's per-vertex model
