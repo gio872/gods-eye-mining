@@ -4,6 +4,15 @@ import { applyModelAtmosphereWorkaround } from './atmosphereCompat.js';
 const PINCH_ZOOM_MULTIPLIER = 8;
 const MAX_PINCH_PIXEL_DELTA = 120;
 
+// GEM always opens over Colombia so the mining/ANM workspace starts in the
+// operator's target country instead of Cesium's global default view.
+export const COLOMBIA_DEFAULT_VIEW = Object.freeze({
+  west: -79.35,
+  south: -4.35,
+  east: -66.80,
+  north: 12.65,
+});
+
 function boundedPinchDelta(delta) {
   if (!Number.isFinite(delta) || delta === 0) return delta;
   return (
@@ -125,6 +134,14 @@ export function createApplicationViewer({ container, creditContainer }) {
   });
   try {
     viewer.targetFrameRate = 60;
+    viewer.camera.setView({
+      destination: Cesium.Rectangle.fromDegrees(
+        COLOMBIA_DEFAULT_VIEW.west,
+        COLOMBIA_DEFAULT_VIEW.south,
+        COLOMBIA_DEFAULT_VIEW.east,
+        COLOMBIA_DEFAULT_VIEW.north,
+      ),
+    });
     // Before any tile builds a draw command: Cesium's per-vertex model
     // atmosphere fails to LINK on Apple's Metal backend and kills the
     // render loop. See app/atmosphereCompat.js.
