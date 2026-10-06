@@ -275,6 +275,7 @@
     },
     "./mining/sources/anm-free-areas": "./src/mining/sources/anmFreeAreasSource.js",
     "./mining/sources/anm-area-intelligence": "./src/mining/sources/anmAreaIntelligenceSource.js",
-    "./mining/sources/geophysics": "./src/mining/sources/geophysicsSource.js"
+    "./mining/sources/geophysics": "./src/mining/sources/geophysicsSource.js",
+    "./mining/sources/movin-marine": "./src/mining/sources/movinMarineSource.js"
   }
 }
