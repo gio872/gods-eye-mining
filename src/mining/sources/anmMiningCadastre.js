@@ -373,7 +373,7 @@ function highlightResults(dataSource, results, clickPoint, overlay) {
     });
   });
 
-  overlayHost?.setEntries?.('anm-mining-cadastre', overlayEntries, {
+  overlay?.setEntries?.('anm-mining-cadastre', overlayEntries, {
     visible: true,
     maxVisible: 24,
     collisionCapacity: 32,
