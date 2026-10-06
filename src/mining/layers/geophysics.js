@@ -13,6 +13,9 @@ function boundsOfArea(area){
 }
 function inside(point,bbox){return !bbox||((point.longitude>=bbox.west&&point.longitude<=bbox.east&&point.latitude>=bbox.south&&point.latitude<=bbox.north));}
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function csvValue(value){const text=String(value??'');return '"'+text.replace(/"/g,'""')+'"';}
+function targetsCsv(rows){const headers=['ID','MINERAL','LATITUDE','LONGITUDE','DEPTH_M','SCORE','ANOMALY_SCORE','CONFIDENCE','MODALITY','VALUE','UNIT','DIRECTION_DEG','SOURCE','SURVEY_DATE'];const body=rows.map((row)=>[row.id,row.mineral,row.latitude,row.longitude,row.depthM,row.score,row.anomalyScore,row.confidence,row.modality,row.value,row.unit,row.directionDeg,row.source,row.surveyDate].map(csvValue).join(','));return [headers.join(','),...body].join('\r\n');}
+function targetsGeoJson(rows){return JSON.stringify({type:'FeatureCollection',name:'GEM Ranked Subsurface Targets',features:rows.map((row)=>({type:'Feature',properties:{id:row.id,mineral:row.mineral,depthM:row.depthM,score:row.score,anomalyScore:row.anomalyScore,confidence:row.confidence,modality:row.modality,value:row.value,unit:row.unit,directionDeg:row.directionDeg,source:row.source,surveyDate:row.surveyDate},geometry:{type:'Point',coordinates:[row.longitude,row.latitude,row.depthM]}}))},null,2);}
 
 export function createGeophysicsLayer(){
   let viewer=null,panel=null,dataSource=null,destroyed=false,enabled=false,rowControlsListener=null,destroyAreaListener=()=>{};
@@ -88,7 +91,7 @@ export function createGeophysicsLayer(){
     }
     body.appendChild(list);
     const ref=document.createElement('div');ref.style.cssText='margin-top:10px;padding:8px;border:1px solid rgba(32,206,216,.14);color:#89a4aa;font-size:8px;line-height:1.45';
-    ref.innerHTML='<strong style="color:#67dfe6">REFERENCIA MOVIN’MARINE · M2</strong><br>Representación declarada: X/Y + Z geofísico, incluyendo conductividad/anomalía y productos 2D/3D con estimaciones de profundidad. Profundidad máxima declarada: '+number(MOVIN_MARINE_M2_REFERENCE.specifications.maximumAnalysisDepthM,0)+' m. Esta ficha es referencia de fabricante, no una medición GEM.';
+    ref.innerHTML='<strong style="color:#67dfe6">REFERENCIA MOVIN’MARINE · M2</strong><br>Representación declarada: X/Y + Z geofísico, incluyendo conductividad/anomalía y productos 2D/3D con estimaciones de profundidad. Profundidad máxima declarada: '+number(MOVIN_MARINE_M2_REFERENCE.specifications.maximumAnalysisDepthM,0)+' m. Resolución espacial declarada: '+number(MOVIN_MARINE_M2_REFERENCE.specifications.spatialResolutionM,0)+' m. Esta ficha es referencia de fabricante, no una medición GEM.<br><br><strong style="color:#8df1d4">CASOS REPORTADOS</strong><br>'+MOVIN_MARINE_M2_REFERENCE.caseStudies.map((item)=>esc((item.country||'')+' · '+(item.region||'')+' · '+(item.target||item.signal||''))).join('<br>');
     body.appendChild(ref);
   }
   function ensurePanel(){
@@ -106,8 +109,9 @@ export function createGeophysicsLayer(){
     file.addEventListener('change',async()=>{try{const selected=[...(file.files||[])];let imported=[];for(const f of selected)imported.push(...await ingestGeophysicalFile(f));observations=observations.concat(imported);panel.querySelector('.gem-geophysics-message').textContent=imported.length+' observación(es) importadas · pulse RANKING.';rank();}catch(error){panel.querySelector('.gem-geophysics-message').textContent='GEODATA: '+String(error?.message||error);}});
     mineral.addEventListener('change',()=>{selectedMineral=mineral.value;rank();});
     rankButton.addEventListener('click',rank);
-    exportButton.addEventListener('click',()=>{if(!observations.length){panel.querySelector('.gem-geophysics-message').textContent='No hay observaciones para exportar.';return;}download('GEM_subsurface_observations.geojson',serializeObservationsToGeoJson(observations),'application/geo+json;charset=utf-8');panel.querySelector('.gem-geophysics-message').textContent='GeoJSON exportado.';});
-    reset.addEventListener('click',()=>{observations=[];targets=[];selectedArea=null;clearMap();publish();render();});
+    exportButton.addEventListener('click',()=>{if(!observations.length){panel.querySelector('.gem-geophysics-message').textContent='No hay observaciones para exportar.';return;}download('GEM_subsurface_observations.geojson',serializeObservationsToGeoJson(observations),'application/geo+json;charset=utf-8');panel.querySelector('.gem-geophysics-message').textContent='GeoJSON de observaciones exportado.';});
+    const targetExport=document.createElement('button');targetExport.type='button';targetExport.textContent='EXPORTAR TARGETS';targetExport.style.cssText=rankButton.style.cssText;actions.appendChild(targetExport);targetExport.addEventListener('click',()=>{if(!targets.length){panel.querySelector('.gem-geophysics-message').textContent='No hay targets rankeados.';return;}download('GEM_ranked_subsurface_targets.csv',targetsCsv(targets),'text/csv;charset=utf-8');download('GEM_ranked_subsurface_targets.geojson',targetsGeoJson(targets),'application/geo+json;charset=utf-8');panel.querySelector('.gem-geophysics-message').textContent='Targets exportados · CSV + GeoJSON.';});
+    reset.addEventListener('click',()=>{observations=[];targets=[];clearMap();publish();render();});
     panel.querySelector('.gem-geophysics-close').addEventListener('click',()=>{panel.hidden=true;});
   }
   function onArea(event){selectedArea=event?.detail||null;rank();}
