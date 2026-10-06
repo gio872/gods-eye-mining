@@ -44,6 +44,11 @@ export function createBrowserViteConfig({
         'Content-Security-Policy': "frame-ancestors 'none'",
       },
     },
+    preview: {
+      host: host === '0.0.0.0' || host === '::' ? host : '0.0.0.0',
+      port: parseInt(port, 10) || 4173,
+      allowedHosts: true,
+    },
     define: {
       'import.meta.env.GOOGLE_MAPS_API_KEY': JSON.stringify(googleApiKey),
       'import.meta.env.CESIUM_ION_TOKEN': JSON.stringify(cesiumToken),
