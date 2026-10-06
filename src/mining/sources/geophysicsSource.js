@@ -87,7 +87,7 @@ export function parseGeophysicalText(text,filename='data.csv'){
   const name=String(filename).toLowerCase();
   const isJson=name.endsWith('.json')||name.endsWith('.geojson');
   const isXyz=name.endsWith('.xyz')||name.endsWith('.txt');
-  const rows=isJson?parseJson(text):(isXyz && /^[+-]?\\d/.test(String(text).trim()) ? parseXyz(text) : parseCsv(text,isXyz));
+  const rows=isJson?parseJson(text):(isXyz && /^[+-]?\d/.test(String(text).trim()) ? parseXyz(text) : parseCsv(text,isXyz));
   return rows.map((row,index)=>createSubsurfaceObservation({...row,id:row.id||'observation-'+(index+1)}));
 }
 export async function ingestGeophysicalFile(file){
