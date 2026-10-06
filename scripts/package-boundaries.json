@@ -3591,17 +3591,6 @@
       "cesium"
     ]
   },
-  "gem-metal-markets": {
-    "exports": [
-      "./mining/sources/metal-markets"
-    ],
-    "modules": [
-      "src/mining/sources/metalMarkets.js"
-    ],
-    "external": [
-      "cesium"
-    ]
-  },
   "gem-economic-value": {
     "exports": [
       "./mining/economic-value"
