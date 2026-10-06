@@ -24,7 +24,7 @@ export const MOVIN_MARINE_M2_REFERENCE = Object.freeze({
     Object.freeze({country:'Perú',region:'varias regiones',target:'oro (Au) y cobre (Cu)',partners:'Inca Minerales, TITAN, ANCONER',period:'2012–2017',status:'company-reported-project'}),
     Object.freeze({country:'Angola',region:'no especificada en la página',target:'oro',project:'GENIUS',period:'2013',status:'company-reported-project'}),
     Object.freeze({country:'Venezuela',region:'no especificada en la página',target:'columbita y tantalita',partner:'Business Development at Tepuy Telecom, C.A.',period:'2016–2017',status:'company-reported-project'}),
-    ]),,
+  ]),
   notes:Object.freeze([
     'No public raw M2 observation dataset, API, GeoTIFF, XYZ grid or proprietary processing parameters were located in the reviewed public materials.',
     'Historical company materials may state different operational depths; GEM keeps current claims separate from measured observations.',
