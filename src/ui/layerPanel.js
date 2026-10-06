@@ -72,8 +72,6 @@ const PANEL_ORDER = PANEL_GROUPS.flatMap(({ label, ids }) =>
 const PANEL_POSITIONS = new Map(
   PANEL_ORDER.map(({ id }, index) => [id, index]),
 );
-const MENU_VISIBLE_LAYER_IDS = Object.freeze(['satellites', 'flights']);
-
 const PANEL_LABELS = {
   'ais-live-vessels': 'Live Vessels',
   bikeshare: 'Bike Share',
@@ -213,7 +211,6 @@ export class LayerPanel {
     let previousGroup = '';
     for (const layer of layers) {
       if (!layer.showInTogglePanel) continue;
-      if (!MENU_VISIBLE_LAYER_IDS.includes(layer.id)) continue;
       const group =
         PANEL_ORDER[PANEL_POSITIONS.get(layer.id)]?.label ?? 'Other layers';
       if (group && group !== previousGroup) {
