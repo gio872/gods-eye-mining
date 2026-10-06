@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { GLOBAL_PRECIOUS_METALS } from '../core/globalPreciousMetalsTypes.js';
 import { createGlobalPreciousMetalsSource } from '../sources/globalPreciousMetalsSource.js';
+import { scoreDocumentedOccurrence } from '../core/globalPreciousMetalsEngine.js';
 
 function esc(value){return String(value??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function num(value,digits=2){return Number.isFinite(Number(value))?Number(value).toLocaleString('es-CO',{maximumFractionDigits:digits}):'—';}
@@ -18,9 +19,11 @@ function occurrencesCsv(rows){const h=['ID','NAME','METAL','LATITUDE','LONGITUDE
 export function createGlobalPreciousMetalsLayer({source=createGlobalPreciousMetalsSource()}={}){
   let viewer=null,panel=null,dataSource=null,enabled=false,destroyed=false,loading=false,analyzing=false,commodity='gold',occurrences=[],analysis=null,rowControlsListener=null;
   function clearMap(){dataSource?.entities?.removeAll?.();viewer?.scene?.requestRender?.();}
+  function scoredRows(){return occurrences.map((row)=>scoreDocumentedOccurrence(row)||row).sort((a,b)=>(b.score||0)-(a.score||0));}
   function paint(){
     clearMap();if(!dataSource)return;
-    for(const row of occurrences.slice(0,2000)){
+    const rows=scoredRows();
+    for(const row of rows.slice(0,2000)){
       const color=scoreColor(row.score);
       const surface=Cesium.Cartesian3.fromDegrees(row.longitude,row.latitude,0);
       dataSource.entities.add({
@@ -54,6 +57,7 @@ export function createGlobalPreciousMetalsLayer({source=createGlobalPreciousMeta
     const s=document.createElement('div');s.style.cssText='padding:7px 9px;border:1px solid rgba(47,224,179,.16);color:#9fc0c2;font-size:9px';s.textContent=statusText();body.appendChild(s);
     const stats=document.createElement('div');stats.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px';
     [['OCURRENCIAS',occurrences.length],['PROFUNDIDAD CONOCIDA',occurrences.filter((r)=>r.depthStatus==='known').length],['MEJOR SCORE',occurrences.length?Math.round((occurrences[0].score||0)*100)+'/100':'—']].forEach(([l,v])=>{const d=document.createElement('div');d.style.cssText='padding:7px 8px;border:1px solid rgba(255,255,255,.06);font-size:8px';d.innerHTML='<span style="color:#78989e">'+l+'</span><br><strong>'+esc(v)+'</strong>';stats.appendChild(d);});body.appendChild(stats);
+    occurrences=scoredRows();
     if(analysis){
       const card=document.createElement('section');const score=Math.round((analysis.score||0)*100),c=scoreColor(analysis.score).toCssColorString();card.style.cssText='margin-top:9px;padding:10px;border:1px solid '+c+'55;background:'+c+'0d;border-radius:7px;font-size:9px;line-height:1.45';
       const evidence=(analysis.evidence&&Object.entries(analysis.evidence).filter(([k])=>['macrostrat','emag2'].indexOf(k)<0).map(([k,v])=>k+': '+num(Number(v)*100,0)+'%').join(' · '))||'—';
