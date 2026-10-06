@@ -279,6 +279,10 @@
     "./mining/sources/movin-marine": "./src/mining/sources/movinMarineSource.js",
     "./server/providers/movin-marine": {
       "node": "./server/providers/movinMarine.js"
+    },
+    "./mining/sources/global-precious-metals": "./src/mining/sources/globalPreciousMetalsSource.js",
+    "./server/providers/global-precious-metals": {
+      "node": "./server/providers/globalPreciousMetals.js"
     }
   }
 }
