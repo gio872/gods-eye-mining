@@ -23,6 +23,7 @@ export const PROSPECTIVITY_FACTORS = Object.freeze([
   'lineaments',
   'drainage',
   'sampling',
+  'geophysics',
 ]);
 
 export const PROSPECTIVITY_PROFILES = Object.freeze({
@@ -41,6 +42,7 @@ export const PROSPECTIVITY_PROFILES = Object.freeze({
       lineaments: 0.08,
       drainage: 0.04,
       sampling: 0,
+      geophysics: 0.10,
     }),
   }),
   'gold-alluvial': Object.freeze({
@@ -58,6 +60,7 @@ export const PROSPECTIVITY_PROFILES = Object.freeze({
       lineaments: 0.03,
       drainage: 0.05,
       sampling: 0,
+      geophysics: 0.10,
     }),
   }),
   base: Object.freeze({
@@ -75,6 +78,7 @@ export const PROSPECTIVITY_PROFILES = Object.freeze({
       lineaments: 0.06,
       drainage: 0.06,
       sampling: 0,
+      geophysics: 0.10,
     }),
   }),
 });
