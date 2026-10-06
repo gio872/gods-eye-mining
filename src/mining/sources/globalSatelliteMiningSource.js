@@ -5,5 +5,6 @@ export function createGlobalSatelliteMiningSource({fetchImpl=fetch}={}){
     const params=new URLSearchParams({west:bbox.west,south:bbox.south,east:bbox.east,north:bbox.north,collection,start,end,maxCloud:String(maxCloud),limit:String(limit)});
     return jsonResponse(await fetchImpl('/api/global-satellite-mining/scenes?'+params.toString(),{headers:{Accept:'application/json'}}));
   }
-  return Object.freeze({sources,scenes});
+  async function sampleSentinel2({sceneId,latitude,longitude}={}){const params=new URLSearchParams({sceneId:String(sceneId||''),lat:String(latitude),lon:String(longitude)});return jsonResponse(await fetchImpl('/api/global-satellite-mining/sample-sentinel2?'+params.toString(),{headers:{Accept:'application/json'}}));}
+  return Object.freeze({sources,scenes,sampleSentinel2});
 }
