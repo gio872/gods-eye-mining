@@ -2276,7 +2276,9 @@
       "src/mining/layers/globalPreciousMetals.js",
       "src/mining/core/globalPreciousMetalsTypes.js",
       "src/mining/core/globalPreciousMetalsEngine.js",
-      "src/mining/sources/globalPreciousMetalsSource.js"
+      "src/mining/sources/globalPreciousMetalsSource.js",
+      "src/mining/layers/globalSatelliteMining.js",
+      "src/mining/sources/globalSatelliteMiningSource.js"
     ],
     "external": [
       "hls.js",
@@ -3526,7 +3528,8 @@
       "./mining/sources/anm-area-intelligence",
       "./mining/sources/geophysics",
       "./mining/sources/movin-marine",
-      "./mining/sources/global-precious-metals"
+      "./mining/sources/global-precious-metals",
+      "./mining/sources/global-satellite-mining"
     ],
     "modules": [
       "src/mining/layers/index.js",
@@ -3552,7 +3555,9 @@
       "src/mining/core/globalPreciousMetalsTypes.js",
       "src/mining/core/globalPreciousMetalsEngine.js",
       "src/mining/sources/globalPreciousMetalsSource.js",
-      "src/mining/layers/globalPreciousMetals.js"
+      "src/mining/layers/globalPreciousMetals.js",
+      "src/mining/sources/globalSatelliteMiningSource.js",
+      "src/mining/layers/globalSatelliteMining.js"
     ],
     "external": [
       "cesium"
@@ -3711,6 +3716,15 @@
     "modules": [
       "server/providers/globalPreciousMetals.js",
       "server/providers/common/http.js"
+    ]
+  },
+  "global-satellite-mining-provider": {
+    "runtime": "node",
+    "exports": [
+      "./server/providers/global-satellite-mining"
+    ],
+    "modules": [
+      "server/providers/globalSatelliteMining.js"
     ]
   }
 }
