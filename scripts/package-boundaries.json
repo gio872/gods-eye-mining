@@ -2775,7 +2775,9 @@
       "src/sources/requestDeadline.js",
       "src/data/local_data/osm_military_names/names.json",
       "src/layers/installations/namedMarkers.js",
-      "src/data/infrastructureOverlayEntry.js"
+      "src/data/infrastructureOverlayEntry.js",
+      "src/mining/layers/anmAreaIntelligence.js",
+      "src/mining/sources/anmAreaIntelligenceSource.js"
     ],
     "external": [
       "hls.js",
@@ -3633,7 +3635,6 @@
     ],
     "external": []
   },
-
   "ip-cameras": {
     "exports": [
       "./cameras"
