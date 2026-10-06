@@ -107,9 +107,53 @@ async function municipalityFeature(departmentCode, municipalityCode) {
   if (!feature?.geometry) throw new Error('ANM no devolvió la geometría del municipio solicitado');
   return feature;
 }
+function geometryBounds(geometry) {
+  const rings = Array.isArray(geometry?.rings) ? geometry.rings : [];
+  const points = rings.flat().filter((pair) => Array.isArray(pair) && Number.isFinite(Number(pair[0])) && Number.isFinite(Number(pair[1])));
+  if (!points.length) throw new Error('ANM no devolvió una geometría utilizable para el municipio');
+  return {
+    xmin: Math.min(...points.map(([lon]) => Number(lon))),
+    ymin: Math.min(...points.map(([, lat]) => Number(lat))),
+    xmax: Math.max(...points.map(([lon]) => Number(lon))),
+    ymax: Math.max(...points.map(([, lat]) => Number(lat))),
+  };
+}
+function pointOnSegment(point, a, b) {
+  const [x, y] = point;
+  const [ax, ay] = a;
+  const [bx, by] = b;
+  const cross = (y - ay) * (bx - ax) - (x - ax) * (by - ay);
+  if (Math.abs(cross) > 1e-10) return false;
+  return x >= Math.min(ax, bx) - 1e-10 && x <= Math.max(ax, bx) + 1e-10 &&
+    y >= Math.min(ay, by) - 1e-10 && y <= Math.max(ay, by) + 1e-10;
+}
+function pointInRing(point, ring) {
+  if (!Array.isArray(ring) || ring.length < 3) return false;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[i];
+    const b = ring[j];
+    if (pointOnSegment(point, a, b)) return true;
+    const xi = Number(a[0]), yi = Number(a[1]);
+    const xj = Number(b[0]), yj = Number(b[1]);
+    const intersects = ((yi > point[1]) !== (yj > point[1])) &&
+      (point[0] < ((xj - xi) * (point[1] - yi)) / ((yj - yi) || Number.EPSILON) + xi);
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+function pointInMunicipality(point, geometry) {
+  const rings = Array.isArray(geometry?.rings) ? geometry.rings : [];
+  if (!rings.length || !point) return false;
+  if (!pointInRing(point, rings[0])) return false;
+  for (const hole of rings.slice(1)) {
+    if (pointInRing(point, hole)) return false;
+  }
+  return true;
+}
 async function freeCellsForMunicipality(departmentCode, municipalityCode) {
   const municipality = await municipalityFeature(departmentCode, municipalityCode);
-  const geometry = municipality.geometry;
+  const bounds = geometryBounds(municipality.geometry);
   const cells = [];
   let offset = 0;
   let truncated = false;
@@ -117,17 +161,24 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
   for (;;) {
     const payload = await arcgisQuery(CELL_LAYER, {
       where: "CELL_STATUS_CODE = 'A'",
-      geometry: JSON.stringify(geometry),
-      geometryType: 'esriGeometryPolygon',
+      geometry: JSON.stringify({
+        xmin: bounds.xmin,
+        ymin: bounds.ymin,
+        xmax: bounds.xmax,
+        ymax: bounds.ymax,
+        spatialReference: { wkid: 4686 },
+      }),
+      geometryType: 'esriGeometryEnvelope',
       inSR: 4686,
       spatialRel: 'esriSpatialRelIntersects',
-      outFields: 'CELL_KEY_ID,CELL_REASON_CODE,CELL_STATUS_CODE,CELL_REOPENING_DATE,AREA_HA,LONGITUD_CENT,LATITUD_CENT,CELL_TYPE,CELL_REASON_CODE',
+      outFields: 'CELL_KEY_ID,CELL_REASON_CODE,CELL_STATUS_CODE,CELL_REOPENING_DATE,AREA_HA,LONGITUD_CENT,LATITUD_CENT,CELL_TYPE',
       returnGeometry: 'true',
       outSR: 4326,
       resultOffset: offset,
       resultRecordCount: PAGE_SIZE,
       orderByFields: 'CELL_KEY_ID ASC',
     });
+
     const page = payload.features || [];
     cells.push(...page);
     if (!payload.exceededTransferLimit && page.length < PAGE_SIZE) break;
@@ -140,28 +191,24 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
 
   const mapped = cells.slice(0, MAX_CELL_RESULTS).map((feature) => {
     const a = feature.attributes || {};
+    const centroid = {
+      lon: Number(a.LONGITUD_CENT),
+      lat: Number(a.LATITUD_CENT),
+    };
     return {
       cellKey: cleanText(a.CELL_KEY_ID),
       reasonCode: cleanText(a.CELL_REASON_CODE),
       statusCode: cleanText(a.CELL_STATUS_CODE),
       reopeningDate: a.CELL_REOPENING_DATE || null,
       areaHa: Number.isFinite(Number(a.AREA_HA)) ? Number(a.AREA_HA) : null,
-      centroid: {
-        lon: Number(a.LONGITUD_CENT),
-        lat: Number(a.LATITUD_CENT),
-      },
+      centroid,
       cellType: cleanText(a.CELL_TYPE),
       geometry: feature.geometry || null,
+      _insideMunicipality: pointInMunicipality([centroid.lon, centroid.lat], municipality.geometry),
     };
-  });
+  }).filter((cell) => cell._insideMunicipality).map(({ _insideMunicipality, ...cell }) => cell);
 
   const totalHa = mapped.reduce((sum, cell) => sum + (cell.areaHa || 0), 0);
-  const reasonCounts = Object.fromEntries(
-    [...new Set(mapped.map((cell) => cell.reasonCode || 'N'))].map((reason) => [
-      reason,
-      mapped.filter((cell) => (cell.reasonCode || 'N') === reason).length,
-    ])
-  );
 
   return {
     department: {
@@ -173,7 +220,8 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
       name: cleanText(municipality.attributes?.NOMBRE),
       category: cleanText(municipality.attributes?.CATEGORIA),
     },
-    municipalityGeometry: geometry,
+    municipalityGeometry: municipality.geometry,
+    bounds,
     cells: mapped,
     cellCount: mapped.length,
     totalHa,
@@ -183,9 +231,9 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
       provider: 'ANM · AnnA Minería · Sistema de Cuadrícula',
       endpoint: `${ANM_BASE}/${CELL_LAYER}`,
       statusDefinition: 'CELL_STATUS_CODE=A → Disponible',
-      areaDefinition: 'Suma de AREA_HA de celdas ANM disponibles que intersectan el municipio.',
+      areaDefinition: 'Suma de AREA_HA de celdas disponibles cuyo centroide cae dentro del límite municipal.',
     },
-    caveat: 'Resultado cartográfico de disponibilidad de celdas AnnA Minería. No constituye certificado de área libre ni garantiza la procedencia legal de una solicitud.',
+    caveat: 'Resultado cartográfico de disponibilidad de celdas AnnA Minería. Las celdas de borde se asignan por centroide y el resultado no constituye certificado de Área Libre.',
   };
 }
 
