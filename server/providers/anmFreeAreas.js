@@ -5,6 +5,7 @@ const CELL_LAYER = 7;
 const PAGE_SIZE = 2000;
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const MAX_CELL_RESULTS = 10000;
+const UPSTREAM_TIMEOUT_MS = 25000;
 
 const cache = new Map();
 
@@ -29,15 +30,26 @@ async function arcgisQuery(layerId, params) {
     if (value !== undefined && value !== null) body.set(key, typeof value === 'string' ? value : JSON.stringify(value));
   }
   body.set('f', 'json');
-  const response = await fetch(`${ANM_BASE}/${layerId}/query`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      Accept: 'application/json',
-      'User-Agent': "GodsEyeView/ANM-FreeAreas",
-    },
-    body,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(`${ANM_BASE}/${layerId}/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        Accept: 'application/json',
+        'User-Agent': "GodsEyeView/ANM-FreeAreas",
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error(`ANM query timed out after ${UPSTREAM_TIMEOUT_MS / 1000}s`);
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(`ANM HTTP ${response.status}`);
   if (payload?.error) throw new Error(payload.error.message || 'ANM query error');
@@ -152,6 +164,9 @@ function pointInMunicipality(point, geometry) {
   return true;
 }
 async function freeCellsForMunicipality(departmentCode, municipalityCode) {
+  const cacheKey = `free:${cleanText(departmentCode)}:${cleanText(municipalityCode)}`;
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
   const municipality = await municipalityFeature(departmentCode, municipalityCode);
   const bounds = geometryBounds(municipality.geometry);
   const cells = [];
@@ -210,7 +225,7 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
 
   const totalHa = mapped.reduce((sum, cell) => sum + (cell.areaHa || 0), 0);
 
-  return {
+  const result = {
     department: {
       code: cleanText(departmentCode),
       name: cleanText(municipality.attributes?.NOMBRE_DEPARTAMENTO || ''),
@@ -235,6 +250,7 @@ async function freeCellsForMunicipality(departmentCode, municipalityCode) {
     },
     caveat: 'Resultado cartográfico de disponibilidad de celdas AnnA Minería. Las celdas de borde se asignan por centroide y el resultado no constituye certificado de Área Libre.',
   };
+  return cacheSet(cacheKey, result);
 }
 
 export function anmFreeAreasProxy() {
