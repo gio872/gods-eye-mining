@@ -25,10 +25,10 @@ function splitLine(line, whitespace=false){
   if(line.includes(';')&&!line.includes(',')) return line.split(';').map((part)=>part.trim());
   return line.split(',').map((part)=>part.trim());
 }
-function parseCsv(text){
+function parseCsv(text,whitespace=false){
   const lines=String(text??'').split(/\r?\n/).map((line)=>line.trim()).filter(Boolean);
   if(!lines.length)return [];
-  const headers=splitLine(lines[0]).map(key);
+  const headers=splitLine(lines[0],whitespace).map(key);
   const indices=Object.fromEntries(Object.entries(HEADER_ALIASES).map(([name,aliases])=>[name,pickIndex(headers,aliases)]));
   return lines.slice(1).map((line,rowIndex)=>{
     const parts=splitLine(line,whitespace);
