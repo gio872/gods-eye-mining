@@ -31,7 +31,6 @@ import { createBhoteKoshiEventLayer } from '../data/bhoteKoshiEvent.js';
 import { createBhoteKoshiLocatorLayer } from '../data/bhoteKoshiLocator.js';
 import { createProspectivityLayer } from '../mining/layers/prospectivity.js';
 import { createAnmMiningCadastreLayer } from '../mining/sources/anmMiningCadastre.js';
-import { createMetalMarketsLayer } from '../mining/sources/metalMarkets.js';
 import { createApplicationPopulations } from './layers/populations.js';
 import { overlayHost } from './layers/overlayHost.js';
 import {
@@ -84,7 +83,6 @@ export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'local-adsb', disposition: 'local-only' }),
   Object.freeze({ id: 'gem-prospectivity', disposition: 'local-only' }),
   Object.freeze({ id: 'anm-mining-cadastre', disposition: 'local-only' }),
-  Object.freeze({ id: 'metal-markets', disposition: 'local-only' }),
   Object.freeze({ id: 'population-places', disposition: 'local-only' }),
   Object.freeze({ id: 'mining-economics', disposition: 'local-only' }),
   Object.freeze({ id: 'critical-minerals', disposition: 'local-only' }),
@@ -213,7 +211,6 @@ export function createApplicationCatalog({
         createGeophysicsLayer(),
         createGlobalPreciousMetalsLayer(),
         createGlobalSatelliteMiningLayer(),
-        createMetalMarketsLayer({ signal }),
         createApplicationPopulations({ source: sources.populations }),
         createProjectEconomicsLayer(),
         createCriticalMineralsLayer(),
