@@ -7,8 +7,10 @@ export function createGlobalPreciousMetalsSource({fetchImpl=fetch}={}){
     const params=new URLSearchParams({west:bbox.west,south:bbox.south,east:bbox.east,north:bbox.north,commodity,limit:String(limit)});
     return jsonResponse(await fetchImpl('/api/global-precious-metals/occurrences?'+params.toString(),{headers:{Accept:'application/json'}}));
   }
-  async function analyzePoint({latitude,longitude,commodity='gold'}={}){
+  async function analyzePoint({latitude,longitude,commodity='gold',spectralScore=null,spectralFeatures=null}={}){
     const params=new URLSearchParams({lat:String(latitude),lon:String(longitude),commodity});
+    if(spectralScore!==null&&spectralScore!==undefined)params.set('spectralScore',String(spectralScore));
+    if(spectralFeatures)params.set('spectral',JSON.stringify(spectralFeatures));
     return jsonResponse(await fetchImpl('/api/global-precious-metals/analyze?'+params.toString(),{headers:{Accept:'application/json'}}));
   }
   async function sources(){
