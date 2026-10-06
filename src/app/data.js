@@ -1,6 +1,23 @@
 import { LayerLifecycle } from '../data/lifecycle.js';
 import { LayerPresentation } from './layerPresentation.js';
 import { createCyberSonarScene } from '../cyberSonarScene.js';
+
+const MINING_DEFAULT_LAYER_IDS = Object.freeze([
+  'metal-markets',
+  'anm-mining-cadastre',
+  'anm-free-areas',
+  'anm-area-intelligence',
+  'geophysics-subsurface',
+  'global-precious-metals',
+  'global-satellite-mining',
+  'gem-prospectivity',
+  'intelligence-graph',
+  'mining-economics',
+  'critical-minerals',
+  'entity-intelligence',
+  'mineral-trade-intelligence',
+]);
+
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
   scene: { viewer, mapStackController },
@@ -63,6 +80,20 @@ export function createApplicationData({
     .catch((error) =>
       console.warn('[Data] population-places default enable failed:', error),
     );
+
+  // Mining Mode opens as a complete, synchronized module. The lifecycle manager
+  // owns the real ON state; UI toggles are therefore rendered from settled
+  // layer state instead of being visually forced.
+  void (async () => {
+    for (const layerId of MINING_DEFAULT_LAYER_IDS) {
+      if (!dataManager.layers.has(layerId)) continue;
+      try {
+        await dataManager.setEnabled(layerId, true, { origin: 'programmatic' });
+      } catch (error) {
+        console.warn('[Data] Mining default enable failed:', layerId, error);
+      }
+    }
+  })();
   defer(createCyberSonarScene(viewer, dataManager));
 
   return { dataManager, catalog, presentation };
