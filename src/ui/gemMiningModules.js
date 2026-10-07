@@ -144,8 +144,10 @@ export function installGemMiningModules(dataManager){
       if (controls) right.insertBefore(section, controls);
       else right.prepend(section);
     } else {
+      const targetHead = targetPanel.querySelector(".gem-target-head");
       const targetActions = targetPanel.querySelector(".gem-target-actions");
-      if (targetActions) targetPanel.insertBefore(section, targetActions);
+      if (targetHead) targetHead.after(section);
+      else if (targetActions) targetPanel.insertBefore(section, targetActions);
       else targetPanel.appendChild(section);
     }
     const status=section.querySelector(".gem-module-live");
