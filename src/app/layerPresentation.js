@@ -62,6 +62,13 @@ export class LayerPresentation {
           module?.setRowControlsListener?.(listener);
           return () => module?.setRowControlsListener?.(null);
         },
+        activateAllLayers: () =>
+          this.manager.restoreEnabledLayerIds(
+            this.manager.layers.keys(),
+            { origin: 'user' },
+          ),
+        deactivateAllLayers: () =>
+          this.manager.clearSelectedLayers({ origin: 'user' }),
         onHiddenRefresh: () => {
           this.pendingVisible = true;
         },
