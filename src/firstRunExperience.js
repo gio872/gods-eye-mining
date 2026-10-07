@@ -360,10 +360,14 @@ export function initFirstRunExperience({
     environmentalTitle.textContent = environmentalLabel().title;
 
   const gemEntry = root.querySelector('[data-first-run-gem]');
-  gemEntry?.addEventListener('click', () => {
-    if (busy || closing) return;
-    // The map keeps running underneath: this is a presentation switch, not a
-    // second application or a reload.
+  const gemBoot = documentRef.getElementById('gem-boot-sequence');
+  const gemBootPercent = gemBoot?.querySelector('[data-gem-boot-percent]');
+  const gemBootStatus = gemBoot?.querySelector('[data-gem-boot-status]');
+  const gemBootStream = gemBoot?.querySelector('[data-gem-boot-stream]');
+  let gemBootTimer = null;
+  let gemBootStarted = false;
+
+  const enterGemCenter = () => {
     documentRef.documentElement.dataset.gemExperience = 'center';
     documentRef.querySelectorAll('.gem-command-header,.gem-map-hud,.gem-sources-panel,.gem-target-panel,.gem-bottom-intelligence')
       .forEach((node) => {
@@ -372,8 +376,54 @@ export function initFirstRunExperience({
         node.style.setProperty('opacity', '1', 'important');
         node.style.setProperty('pointer-events', 'auto', 'important');
       });
-    dismiss({ restoreFocus: false });
-  });
+  };
+
+  const startGemBoot = () => {
+    if (busy || closing || gemBootStarted) return;
+    gemBootStarted = true;
+    busy = true;
+    root.setAttribute('aria-busy', 'true');
+    gemEntry?.setAttribute('aria-disabled', 'true');
+    gemBoot?.classList.add('is-active');
+
+    const reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const duration = reduced ? 1200 : 2600;
+    const startedAt = Date.now();
+    const phases = [
+      [0, 'INITIALIZING INTELLIGENCE CORE', 'CONNECTING · CESIUM / SATELLITE / SPECTRAL / GEOLOGY'],
+      [25, 'SYNCHRONIZING SATELLITE CONSTELLATIONS', 'SENTINEL-2 · EMIT · ENMAP · LANDSAT'],
+      [50, 'BUILDING GEOLOGICAL CONTEXT', 'STRUCTURES · LINEAMENTS · DEM · HYDROLOGY'],
+      [75, 'RUNNING MINERAL FUSION ENGINE', 'ALTERATION · GEOCHEMISTRY · TARGET PROSPECTIVITY'],
+      [100, 'GEM CORE ONLINE', 'MINERAL INTELLIGENCE CENTER · READY'],
+    ];
+
+    const tick = () => {
+      const elapsed = Date.now() - startedAt;
+      const pct = Math.min(100, Math.round((elapsed / duration) * 100));
+      const phase = phases.reduce((last, entry) => pct >= entry[0] ? entry : last, phases[0]);
+      if (gemBootPercent) gemBootPercent.textContent = String(pct).padStart(2, '0') + '%';
+      if (gemBootStatus) gemBootStatus.textContent = phase[1];
+      if (gemBootStream) gemBootStream.textContent = phase[2];
+      const progress = gemBoot?.querySelector('.gem-boot-progress i');
+      if (progress) progress.style.width = pct + '%';
+      if (pct < 100) {
+        gemBootTimer = globalThis.setTimeout(tick, 80);
+        return;
+      }
+      enterGemCenter();
+      gemBoot?.classList.remove('is-active');
+      gemBoot?.classList.add('is-leaving');
+      globalThis.setTimeout(() => {
+        gemBoot?.classList.remove('is-leaving');
+        gemBoot?.setAttribute('aria-hidden', 'true');
+        gemBoot?.style.setProperty('display', 'none');
+      }, 760);
+      dismiss({ restoreFocus: false });
+    };
+    tick();
+  };
+
+  gemEntry?.addEventListener('click', startGemBoot);
 
   const status = root.querySelector('[data-first-run-status]');
   const suppressBox = root.querySelector('[data-first-run-suppress]');
