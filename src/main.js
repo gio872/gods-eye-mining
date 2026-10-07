@@ -11,8 +11,10 @@ const application = createStandaloneApplication({
   allowQaRegistration: import.meta.env.DEV,
 });
 
-application.start().then(() => {
-  installMineralIntelligenceCenter();
+application.start().then((components) => {
+  const dataManager = components?.data?.dataManager;
+  installMineralIntelligenceCenter({ dataManager });
+  if (dataManager) installGemMiningModules(dataManager);
 }).catch((error) => {
   console.error("God's Eye View initialization failed:", error);
   installMineralIntelligenceCenter();
