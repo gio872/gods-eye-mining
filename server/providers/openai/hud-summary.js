@@ -75,8 +75,11 @@ async function handleHudSummary(req, res) {
     res.statusCode = response.ok && summary ? 200 : response.status || 502;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
-    if (!response.ok)
+    if (!response.ok) {
+      const upstreamRetryAfter = response.headers.get('retry-after');
+      if (upstreamRetryAfter) res.setHeader('Retry-After', upstreamRetryAfter);
       console.warn(`[hud-summary] upstream HTTP ${response.status}`);
+    }
     res.end(
       JSON.stringify({
         summary: summary || null,
