@@ -1,6 +1,7 @@
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter.js';
+import { flyToGlobeView } from './locations.js';
 
 installMineralIntelligenceCenter();
 
@@ -10,10 +11,20 @@ const application = createStandaloneApplication({
   allowQaRegistration: import.meta.env.DEV,
 });
 
-application.start().then(() => {
+application.start().then((components) => {
   installMineralIntelligenceCenter();
+  const viewer = components?.scene?.viewer;
+  if (viewer) {
+    window.setTimeout(() => {
+      try {
+        flyToGlobeView(viewer, { duration: 2.8 });
+      } catch (error) {
+        console.warn('[GEM] Global startup view unavailable:', error);
+      }
+    }, 350);
+  }
 }).catch((error) => {
-  console.error("God's Eye View initialization failed:", error);
+  console.error("GEM Mineral Intelligence initialization failed:", error);
   installMineralIntelligenceCenter();
   const message = describeError(error);
   const status = document.querySelector(".gem-start-error");
