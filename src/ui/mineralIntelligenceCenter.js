@@ -225,22 +225,9 @@ export function installMineralIntelligenceCenter(){
       document.body.append(targetPanel());
       document.body.append(bottomIntelligence());
     }
-    // Hard-disable the legacy God's Eye cockpit chrome in GEM mode. This is
-    // deliberate: GEM is a replacement command center, not an overlay toggle.
-    const legacySelectors=[
-      "#title-bar","#style-indicator","#top-center-actions","#left-panel-stack",
-      "#right-panel-stack","#right-context-rail","#command-dock","#view-switcher",
-      "#cockpit-hud","#intel-hud","#location-bar","#voice-bar","#traffic-sync-chip",
-      "#cctv-sync-chip","#safe-frame-overlay","#loading-screen"
-    ];
-    legacySelectors.forEach(selector=>{
-      document.querySelectorAll(selector).forEach(node=>{
-        node.setAttribute("aria-hidden","true");
-        node.style.setProperty("display","none","important");
-        node.style.setProperty("visibility","hidden","important");
-        node.style.setProperty("pointer-events","none","important");
-      });
-    });
+    // Future cockpit mode retains the original functional controls.
+    document.documentElement.dataset.gemExperience = "future-classic";
+
   };
   if(document.body) install();
   else document.addEventListener("DOMContentLoaded",install,{once:true});
