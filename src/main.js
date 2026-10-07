@@ -2,6 +2,8 @@ import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter.js';
 
+installMineralIntelligenceCenter();
+
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
   cesiumToken: import.meta.env.CESIUM_ION_TOKEN,
