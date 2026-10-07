@@ -28,9 +28,9 @@ module.exports = async (kernel) => {
             GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
             GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
           },
-          message: 'git fetch origin gem-core && git reset --hard origin/gem-core && node scripts/pinokio-start.mjs',
+          message: 'node scripts/pinokio-start.mjs',
           on: [{
-            event: '/\\[Pinokio\\] Ready at http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\//',
+            event: '/(http:\\/\\/127\\.0\\.0\\.1:[0-9]+)/',
             done: true,
           }],
         },
@@ -38,7 +38,13 @@ module.exports = async (kernel) => {
       {
         method: 'local.set',
         params: {
-          url: `http://127.0.0.1:${port}/`,
+          url: '{{input.event[1]}}/',
+        },
+      },
+      {
+        method: 'browser.open',
+        params: {
+          uri: '{{local.url}}',
         },
       },
     ],
