@@ -223,7 +223,7 @@ function topHeader() {
     <nav class="gem-main-nav">
       <button class="is-active">◉ <span>TERRAQUEEN MINING INTELLIGENCE</span></button><button>◇ <span>GLOBAL</span></button><button>□ <span>COUNTRY</span></button><button>⌂ <span>REGION</span></button><button>◎ <span>PROSPECT</span></button><button>⊙ <span>TARGET</span></button><button>◇ <span>3D</span></button><button>⌁ <span>AI ANALYSIS</span></button><button>▣ <span>REPORTS</span></button>
     </nav>
-    <div class="gem-user"><span class="gem-online"></span><strong>Gio</strong><small>TerraQueen</small><span>⌄</span></div>
+    <div class="gem-user"><span class="gem-online"></span><strong>CEO GIO CRUZ</strong><small>TERRAQUEEN</small><span>⌄</span></div>
   `;
   header.querySelectorAll(".gem-main-nav button").forEach(btn=>btn.addEventListener("click",()=>{
     header.querySelectorAll(".gem-main-nav button").forEach(x=>x.classList.remove("is-active"));
