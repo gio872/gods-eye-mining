@@ -123,6 +123,22 @@ function targetPanel() {
     </div>
     <div class="gem-score-wrap"><div class="gem-score-ring"><span>94.7</span><small>/ 100</small></div><div><div class="gem-label">MINERAL INTELLIGENCE SCORE</div><div class="gem-score-bar"><i></i></div><strong class="gem-high">VERY HIGH POTENTIAL</strong></div></div>
     <div class="gem-minerals"><span>Au <b>96%</b></span><span>Cu <b>81%</b></span><span>Mo <b>67%</b></span><span>Ag <b>54%</b></span></div>
+    <section class="gem-target-mining-modules" aria-label="Mining modules">
+      <div class="gem-target-mining-title"><span>MINING MODULES</span><small>GEM MINERAL INTELLIGENCE</small></div>
+      <div class="gem-target-mining-grid">
+        <button type="button" data-mining-module="exploration"><b>01</b><strong>EXPLORATION</strong><small>Regional screening</small></button>
+        <button type="button" data-mining-module="geology"><b>02</b><strong>GEOLOGY</strong><small>Lithology · structures</small></button>
+        <button type="button" data-mining-module="geophysics"><b>03</b><strong>GEOPHYSICS</strong><small>Magnetics · gravity · EM</small></button>
+        <button type="button" data-mining-module="geochemistry"><b>04</b><strong>GEOCHEMISTRY</strong><small>Au · Cu · Mo · REE</small></button>
+        <button type="button" data-mining-module="spectral"><b>05</b><strong>SPECTRAL</strong><small>EMIT · EnMAP · S2</small></button>
+        <button type="button" data-mining-module="targeting"><b>06</b><strong>AI TARGETING</strong><small>Prospectivity · ranking</small></button>
+        <button type="button" data-mining-module="resources"><b>07</b><strong>RESOURCES</strong><small>Grade · tonnage · 3D</small></button>
+        <button type="button" data-mining-module="drilling"><b>08</b><strong>DRILLING</strong><small>Holes · assays · zones</small></button>
+        <button type="button" data-mining-module="environment"><b>09</b><strong>ENVIRONMENT</strong><small>Water · land · ESG</small></button>
+        <button type="button" data-mining-module="economics"><b>10</b><strong>ECONOMICS</strong><small>NPV · IRR · CAPEX</small></button>
+      </div>
+    </section>
+
     <div class="gem-confidence"><span>CONFIDENCE</span><b>HIGH · 94%</b></div>
     <div class="gem-evidence"><div class="gem-section-title">EVIDENCE CONVERGENCE</div></div>
     <div class="gem-action"><div><span class="gem-section-title">RECOMMENDED ACTION</span><strong>FIELD VALIDATION</strong><small>High-priority target for detailed exploration.</small></div><span class="gem-action-arrow">›</span></div>
@@ -136,6 +152,17 @@ function targetPanel() {
     const row=el("div","gem-evidence-row");
     row.innerHTML=`<span>${label}</span><i><b style="width:${value}%"></b></i><em>${value}%</em>`;
     list.append(row);
+  });
+  panel.querySelectorAll("[data-mining-module]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      panel.querySelectorAll("[data-mining-module]").forEach(x=>x.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      document.dispatchEvent(new CustomEvent("gem:mining-module",{detail:{
+        module:btn.dataset.miningModule,
+        label:btn.querySelector("strong")?.textContent?.trim()||"MINING MODULE"
+      }}));
+      showToast((btn.querySelector("strong")?.textContent||"MINING")+" · MODULE");
+    });
   });
   panel.querySelectorAll(".gem-target-tabs button").forEach(btn=>{
     btn.addEventListener("click",()=>{
