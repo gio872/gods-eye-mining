@@ -212,8 +212,61 @@ function runAnalysis(button){
   },90);
 }
 
+function forceGemCommandCenter() {
+  if (!document.body || document.querySelector(".gem-command-center-force")) return;
+  document.documentElement.dataset.product = "GEM Mineral Intelligence Center";
+  document.documentElement.dataset.gemExperience = "center";
+  const legacy = "#first-run-launcher,#loading-screen,#intel-hud,#title-bar,#style-indicator,#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#location-bar,#voice-bar,#top-center-actions,#traffic-sync-chip,#cctv-sync-chip,#safe-frame-overlay";
+  const hideLegacy = () => document.querySelectorAll(legacy).forEach((n) => { n.style.setProperty("display","none","important"); n.style.setProperty("visibility","hidden","important"); n.style.setProperty("pointer-events","none","important"); });
+  hideLegacy();
+
+  const shell = document.createElement("div");
+  shell.className = "gem-command-center-force";
+  shell.innerHTML = `
+    <header class="gcf-header">
+      <div class="gcf-brand"><span class="gcf-mark">◈</span><div><strong>TERRAQUEEN</strong><b>GEM <small>MINERAL INTELLIGENCE CENTER</small></b><em>GEOSPATIAL EXPLORATION · AI TARGETING · SATELLITE FUSION · MINING INTELLIGENCE</em></div></div>
+      <nav><button class="active">◉<span>EXPLORE</span></button><button>⌁<span>ANALYZE</span></button><button>◎<span>TARGETS</span></button><button>▱<span>LAYERS</span></button><button>◈<span>AI</span></button><button>▣<span>REPORTS</span></button></nav>
+      <div class="gcf-status"><i></i><strong>GEM CORE ONLINE</strong><small>MINING ANALYTICS WORKSPACE</small></div>
+      <time>LIVE · MULTI-SENSOR<br>2026-10-07 04:07Z</time>
+    </header>
+    <aside class="gcf-left"><h3>DATA LAYERS</h3><div class="gcf-tabs"><b>MINERAL</b><span>GEOSCIENCE</span><span>ENVIRONMENT</span><span>INFRASTRUCTURE</span></div>
+      <div class="gcf-layer"><i>◉</i><b>Satellite Imagery</b><small>Sentinel-2 · Landsat · Planet</small><em>✓</em></div>
+      <div class="gcf-layer"><i>◈</i><b>Spectral Analysis</b><small>EMIT · EnMAP · ASTER</small><em>✓</em></div>
+      <div class="gcf-layer"><i>◇</i><b>Geological Mapping</b><small>Lithology · Structures · Alteration</small><em>✓</em></div>
+      <div class="gcf-layer"><i>◌</i><b>Geochemistry</b><small>Anomalies · Pathfinder elements</small><em>✓</em></div>
+      <div class="gcf-layer"><i>✦</i><b>Mineral Prospectivity (AI)</b><small>GEM Target Engine</small><em>✓</em></div>
+      <div class="gcf-layer"><i>▱</i><b>Mining Concessions</b><small>Titles · Claim Boundaries</small><em>✓</em></div>
+      <div class="gcf-layer"><i>△</i><b>Infrastructure</b><small>Roads · Power · Ports</small><em>✓</em></div>
+      <div class="gcf-layer"><i>♢</i><b>Hydrology</b><small>Rivers · Drainage · Water Index</small><em>✓</em></div>
+    </aside>
+    <aside class="gcf-right"><h3>VIEW CONTROLS</h3><div class="gcf-views"><button>2D MAP</button><button class="active">3D GLOBE</button><button>SPLIT VIEW</button></div><h3>ANALYTICS TOOLS</h3><button>⌘ Spectral Analysis <b>›</b></button><button>◉ Target Detection (AI) <b>›</b></button><button>⌁ Geological Interpretation <b>›</b></button><button>◌ Change Detection <b>›</b></button><button>⇩ Export & Reports <b>›</b></button><h3>CONTEXT</h3><button>▣ CCTV / Live Feeds <b>3</b></button><button>◇ External Maps <b>4</b></button><button>□ Project Area <b>›</b></button></aside>
+    <section class="gcf-center">
+      <div class="gcf-kicker">TERRAQUEEN · GEM CORE · MINERAL INTELLIGENCE</div>
+      <h1>TERRAQUEEN <strong>GEM</strong><b>MINERAL INTELLIGENCE CENTER</b></h1>
+      <p>Satellite intelligence · hyperspectral analysis · geological interpretation · AI mineral targeting</p>
+      <div class="gcf-satellites"><span>◈<b>Sentinel-2</b></span><span>◈<b>EMIT</b></span><span>◈<b>EnMAP</b></span><span>◈<b>Landsat</b></span></div>
+      <div class="gcf-metrics"><div><b>SATELLITE FUSION</b><small>Sentinel-2 · EMIT · EnMAP · Landsat</small></div><div><b>GEOLOGY</b><small>Lithology · Structures · Alteration</small></div><div><b>AI TARGETING</b><small>Mineral Prospectivity · GEM Engine</small></div><div><b>ENVIRONMENT</b><small>Hydrology · Land Use</small></div><div><b>INFRASTRUCTURE</b><small>Access · Energy · Logistics</small></div></div>
+      <button class="gcf-init" type="button">INITIALIZE GEM <small>MINERAL INTELLIGENCE CENTER</small><b>›</b></button>
+    </section>
+    <footer class="gcf-bottom"><span>⌖ LOCATION<br><b>30°16'01.92&quot;N · 097°44'35.16&quot;W</b></span><nav><button>BASEMAP</button><button>🎙 VOICE</button><button>◷ TIME</button><button>∕ MEASURE</button><button>▣ SCREENSHOT</button></nav><span>COORDINATES (CURSOR)<br><b>30°16'02.10&quot;N · 097°44'28.73&quot;W</b></span></footer>
+  `;
+  document.body.append(shell);
+  const init = shell.querySelector(".gcf-init");
+  init.addEventListener("click", () => {
+    shell.classList.add("gcf-launching");
+    setTimeout(() => {
+      shell.remove();
+      document.documentElement.dataset.gemExperience = "center";
+      hideLegacy();
+      document.querySelector(".gem-command-header")?.scrollIntoView?.({block:"nearest"});
+      if (typeof window.startGemBoot === "function") window.startGemBoot();
+    }, 520);
+  });
+}
+
 export function installMineralIntelligenceCenter(){
   const install=()=>{
+    forceGemCommandCenter();
     document.body.classList.add("gem-mineral-center");
     document.documentElement.dataset.gemCenterInstalled="true";
     // Static scene chrome owns the GEM shell. Runtime mounting remains as a
