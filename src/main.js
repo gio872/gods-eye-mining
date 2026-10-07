@@ -14,9 +14,16 @@ application.start().then(() => {
   installMineralIntelligenceCenter();
 }).catch((error) => {
   console.error("God's Eye View initialization failed:", error);
-  const loaderStatus = document.querySelector('#loading-screen .loader-status');
-  loaderStatus.textContent = `Error: ${describeError(error)}`;
-  loaderStatus.style.color = '#ff4444';
+  installMineralIntelligenceCenter();
+  const message = describeError(error);
+  const status = document.querySelector(".gem-start-error");
+  if (status) status.textContent = message;
+  else {
+    const fallback = document.createElement("div");
+    fallback.className = "gem-start-error";
+    fallback.textContent = "GEM CORE START ERROR · " + message;
+    document.body.append(fallback);
+  }
 });
 
 export { application };
