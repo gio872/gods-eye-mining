@@ -17,12 +17,11 @@ function ensureStyles() {
   style.id = "gem-main-mining-styles";
   style.textContent = `
     .gem-main-mining-modules{
-      position:fixed;left:292px;right:380px;bottom:180px;z-index:1495;
-      padding:9px 11px 10px;box-sizing:border-box;
-      border:1px solid rgba(34,219,241,.28);border-radius:9px;
-      background:linear-gradient(180deg,rgba(3,18,27,.94),rgba(3,12,19,.92));
-      box-shadow:0 12px 35px rgba(0,0,0,.48),inset 0 0 24px rgba(29,209,234,.035);
-      backdrop-filter:blur(12px);pointer-events:auto;font-family:Inter,system-ui,sans-serif;
+      position:relative;z-index:4;width:100%;margin:10px 0 0;padding:9px 9px 10px;box-sizing:border-box;
+      border:1px solid rgba(34,219,241,.28);border-radius:8px;
+      background:linear-gradient(180deg,rgba(3,18,27,.92),rgba(3,12,19,.96));
+      box-shadow:inset 0 0 24px rgba(29,209,234,.035);
+      font-family:Inter,system-ui,sans-serif;
     }
     .gem-main-mining-modules-head{
       display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;
@@ -33,7 +32,7 @@ function ensureStyles() {
     .gem-main-mining-modules-head span{
       color:#658890;font:700 6px JetBrains Mono,monospace;letter-spacing:.08em;
     }
-    .gem-main-mining-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+    .gem-main-mining-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
     .gem-main-mining-grid button{
       min-width:0;height:56px;padding:6px 5px;
       display:grid;grid-template-columns:17px 1fr;grid-template-rows:auto auto;
@@ -63,12 +62,9 @@ function ensureStyles() {
       margin-top:7px;padding:5px 8px;border:1px solid rgba(47,224,179,.16);border-radius:5px;
       color:#8fe7d2;font:700 6px JetBrains Mono,monospace;letter-spacing:.05em;background:rgba(10,78,66,.10);
     }
-    @media(max-width:1200px){
-      .gem-main-mining-modules{left:285px;right:295px;bottom:171px}
-      .gem-main-mining-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
-    }
+    .gcf-right .gem-main-mining-modules{overflow:hidden}
+    .gcf-right .gem-main-mining-modules .gem-main-mining-modules-head{position:sticky;top:0;background:linear-gradient(180deg,rgba(3,18,27,.98),rgba(3,18,27,.82));padding-bottom:6px;z-index:2}
     @media(max-width:900px){
-      .gem-main-mining-modules{left:8px;right:8px;bottom:175px}
       .gem-main-mining-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   `;
@@ -109,8 +105,8 @@ export function installGemMiningModules(dataManager){
     if(disposed||document.getElementById("gem-main-mining-modules"))return true;
     const header=document.querySelector(".gem-command-header");
     const mapHud=document.querySelector(".gem-map-hud");
-    const bottom=document.querySelector(".gem-bottom-intelligence");
-    if(!header||!mapHud||!bottom)return false;
+    const right=document.querySelector(".gcf-right");
+    if(!header||!mapHud||!right)return false;
 
     ensureStyles();
     const section=document.createElement("section");
@@ -119,8 +115,8 @@ export function installGemMiningModules(dataManager){
     section.setAttribute("aria-label","TerraQueen Mining Intelligence modules");
     section.innerHTML=`
       <div class="gem-main-mining-modules-head">
-        <strong>MINING INTELLIGENCE MODULES</strong>
-        <span>GEOLOGY · GEOPHYSICS · GEOCHEMISTRY · SPECTRAL · AI · RESOURCES</span>
+        <strong>MINING MODULES</strong>
+        <span>LIVE GEM ENGINE</span>
       </div>
       <div class="gem-main-mining-grid">
         ${MODULES.map(([id,label,sub],i)=>`
@@ -131,9 +127,9 @@ export function installGemMiningModules(dataManager){
           </button>
         `).join("")}
       </div>
-      <div class="gem-module-live">SELECT A MODULE · ACTIVATE REAL GEM LAYERS · ANALYSIS REMAINS ON THE LIVE CESIUM MAP</div>
+      <div class="gem-module-live">SELECT MODULE · ACTIVATE REAL LAYERS</div>
     `;
-    bottom.before(section);
+    right.appendChild(section);
     const status=section.querySelector(".gem-module-live");
     section.querySelectorAll("[data-gem-mining-module]").forEach((button)=>{
       button.addEventListener("click",()=>{
