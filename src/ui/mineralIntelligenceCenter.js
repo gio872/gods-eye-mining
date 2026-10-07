@@ -255,6 +255,20 @@ function forceGemCommandCenter() {
     <aside class="gcf-left">
       <div class="gcf-panel-head"><h3>DATA LAYERS</h3><button type="button" aria-label="Collapse data layers">⌃</button></div>
       <div class="gcf-tabs"><b>MINERAL</b><span>GEOSCIENCE</span><span>ENVIRONMENT</span><span>INFRASTRUCTURE</span></div>
+      <section class="gcf-module-section">
+        <div class="gcf-module-title"><span>MINING MODULES</span><small>GEM WORKSPACE</small></div>
+        <div class="gcf-module-grid">
+          <button type="button" data-gem-module="exploration"><b>01</b><span>EXPLORATION</span><small>Regional screening</small></button>
+          <button type="button" data-gem-module="geology"><b>02</b><span>GEOLOGY</span><small>Lithology & structure</small></button>
+          <button type="button" data-gem-module="geochemistry"><b>03</b><span>GEOCHEMISTRY</span><small>Pathfinders & anomalies</small></button>
+          <button type="button" data-gem-module="spectral"><b>04</b><span>SPECTRAL</span><small>EMIT · EnMAP · S2</small></button>
+          <button type="button" data-gem-module="targets"><b>05</b><span>AI TARGETS</span><small>Prospectivity engine</small></button>
+          <button type="button" data-gem-module="resources"><b>06</b><span>RESOURCES</span><small>Volumes & grade</small></button>
+          <button type="button" data-gem-module="planning"><b>07</b><span>MINE PLANNING</span><small>Access & scenarios</small></button>
+          <button type="button" data-gem-module="environment"><b>08</b><span>ENVIRONMENT</span><small>Water · land · ESG</small></button>
+          <button type="button" data-gem-module="concessions"><b>09</b><span>CONCESSIONS</span><small>Claims & titles</small></button>
+        </div>
+      </section>
       <div class="gcf-layer-list">
         ${layer("◌","Satellite Imagery","Sentinel-2 · Landsat · Planet")}
         ${layer("◈","Spectral Analysis","EMIT · EnMAP · ASTER")}
@@ -378,6 +392,13 @@ function forceGemCommandCenter() {
     showToast(btn.textContent.trim());
   }));
   shell.querySelectorAll(".gcf-right > button,.gcf-views button,.gcf-bottom nav button").forEach((btn) => btn.addEventListener("click", () => showToast(btn.textContent.replace(/\s+/g," ").trim())));
+  shell.querySelectorAll("[data-gem-module]").forEach((btn) => btn.addEventListener("click", () => {
+    shell.querySelectorAll("[data-gem-module]").forEach((x) => x.classList.remove("active"));
+    btn.classList.add("active");
+    const moduleName = btn.querySelector("span")?.textContent?.trim() || "MINING MODULE";
+    document.dispatchEvent(new CustomEvent("gem:mining-module", { detail: { module: btn.dataset.gemModule, label: moduleName } }));
+    showToast(moduleName + " · GEM MODULE");
+  }));
 
   shell.querySelector(".gcf-init")?.addEventListener("click", () => {
     shell.classList.add("gcf-launching");
