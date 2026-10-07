@@ -25,7 +25,7 @@ module.exports = {
           GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
           GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
         },
-        message: 'npm run dev -- --host 127.0.0.1 --port {{port}}',
+        message: 'git fetch origin gem-core && git reset --hard origin/gem-core && node scripts/pinokio-start.mjs',
         on: [{
           event: '/http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\//',
           done: true,
