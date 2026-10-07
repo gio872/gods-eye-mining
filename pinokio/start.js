@@ -2,15 +2,6 @@ module.exports = {
   daemon: true,
   run: [
     {
-      // Publish the exact fixed local URL immediately. Pinokio can open it
-      // while Vite is starting, avoiding any dependency on event-capture
-      // template expansion.
-      method: 'local.set',
-      params: {
-        url: 'http://127.0.0.1:{{port}}/',
-      },
-    },
-    {
       method: 'shell.run',
       params: {
         path: '..',
@@ -34,11 +25,17 @@ module.exports = {
           GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
           GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
         },
-        message: 'node scripts/pinokio-start.mjs',
+        message: 'npm run dev -- --host 127.0.0.1 --port {{port}}',
         on: [{
-          event: '/\\[Pinokio\\] Ready at http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\//',
+          event: '/http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\//',
           done: true,
         }],
+      },
+    },
+    {
+      method: 'local.set',
+      params: {
+        url: 'http://127.0.0.1:{{port}}/',
       },
     },
   ],
