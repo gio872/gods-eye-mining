@@ -20,7 +20,7 @@ module.exports = {
           GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
           GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
         },
-        message: 'node scripts/pinokio-update.mjs',
+        message: 'git fetch origin gem-core && git reset --hard origin/gem-core && node scripts/pinokio-update.mjs',
       },
     },
   ],
