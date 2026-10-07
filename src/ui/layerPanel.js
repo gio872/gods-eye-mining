@@ -208,36 +208,6 @@ export class LayerPanel {
     this._releaseBindings();
     this._toggleContainer.innerHTML = '';
 
-    const globalBar = document.createElement('div');
-    globalBar.className = 'data-layer-global-controls';
-    globalBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;padding:7px;border:1px solid rgba(47,224,179,.18);background:rgba(47,224,179,.035);border-radius:6px;position:sticky;top:0;z-index:5;backdrop-filter:blur(8px);';
-    const makeGlobalButton = (label, handler, primary = false) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = label;
-      button.className = 'data-toggle-chip';
-      button.style.cssText = primary
-        ? 'border:1px solid rgba(47,224,179,.35);background:rgba(47,224,179,.10);color:#8df1d4;border-radius:5px;padding:6px 9px;font:700 8px monospace;cursor:pointer;'
-        : 'border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);color:#b9cbce;border-radius:5px;padding:6px 9px;font:700 8px monospace;cursor:pointer;';
-      this._bind(button, 'click', async () => {
-        if (button.getAttribute('aria-busy') === 'true') return;
-        button.setAttribute('aria-busy', 'true');
-        button.textContent = 'WORKING…';
-        try { await handler?.(); } catch (error) { console.warn('[Data] global layer control error:', error); }
-        finally { button.setAttribute('aria-busy', 'false'); button.textContent = label; }
-      });
-      return button;
-    };
-    globalBar.append(
-      makeGlobalButton('ACTIVAR TODO', () => this.activateAllLayers?.(), true),
-      makeGlobalButton('DESACTIVAR TODO', () => this.deactivateAllLayers?.()),
-    );
-    const status = document.createElement('span');
-    status.style.cssText = 'margin-left:auto;align-self:center;color:#78989e;font:8px monospace;';
-    status.textContent = 'GEM · RED DE DATOS COMPLETA';
-    globalBar.appendChild(status);
-    this._toggleContainer.appendChild(globalBar);
-
     const generation = this._generation;
     const layers = this.getAll()
       .slice()
