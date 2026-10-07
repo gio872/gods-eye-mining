@@ -1,6 +1,6 @@
 module.exports = {
   version: '3.6',
-  title: "TERRAQUEEN MINERAL INTELLIGENCE",
+  title: "TERRAQUEEN MINING INTELLIGENCE",
   description: 'TerraQueen mineral intelligence and geospatial exploration center.',
   menu: async (kernel, info) => {
     const installed = await kernel.exists(__dirname, '.installed');
