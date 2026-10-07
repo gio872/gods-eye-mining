@@ -5,6 +5,9 @@ module.exports = {
       method: 'shell.run',
       params: {
         path: '..',
+        // Always launch the exact published main revision. This prevents Pinokio
+        // from silently serving an older local checkout after an update.
+        message: 'git fetch origin main && git merge --ff-only origin/main && node scripts/pinokio-start.mjs',
         env: {
           HOST: '127.0.0.1',
           PORT: '{{port}}',
@@ -24,7 +27,6 @@ module.exports = {
           GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
           GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
         },
-        message: 'node scripts/pinokio-start.mjs',
         on: [{
           event: '/\\[Pinokio\\] Ready at (http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\/)/',
           done: true,
