@@ -515,3 +515,18 @@ html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel.is-launch
 .gem-command-center-force .gcf-init{margin-top:22px;padding:12px 28px;border:1px solid #19d9e8;background:rgba(25,217,232,.08);color:#19d9e8;font:700 10px JetBrains Mono;letter-spacing:.12em}.gem-command-center-force .gcf-init small{display:block;color:#6c888e;font-size:7px;margin-top:3px}
 .gem-command-center-force .gcf-bottom{grid-row:3;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-top:1px solid rgba(25,217,232,.2);background:rgba(3,9,12,.98);color:#69868d;font:8px JetBrains Mono}.gem-command-center-force .gcf-bottom b{color:#b5d1d5}
 .gem-start-error{position:fixed;z-index:100000;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 16px;background:#2b1010;border:1px solid #ff3e35;color:#ff8b80;font:10px JetBrains Mono}
+
+/* Mining modules embedded directly in TARGET MINING */
+.gem-target-mining-modules{margin:10px 0 11px;padding:8px;border:1px solid rgba(25,217,232,.22);border-radius:7px;background:linear-gradient(180deg,rgba(7,26,35,.78),rgba(3,14,20,.88));box-shadow:inset 0 0 18px rgba(25,217,232,.035)}
+.gem-target-mining-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.gem-target-mining-title span{color:var(--gem-cyan);font:700 8px JetBrains Mono;letter-spacing:.13em}
+.gem-target-mining-title small{color:#607d84;font:600 5.5px JetBrains Mono;letter-spacing:.05em}
+.gem-target-mining-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.gem-target-mining-grid button{min-width:0;min-height:39px;padding:5px 5px;display:grid;grid-template-columns:18px 1fr;grid-template-rows:auto auto;gap:1px 4px;text-align:left;border:1px solid rgba(25,217,232,.13);border-radius:5px;background:rgba(4,21,29,.82);color:#dceff2;cursor:pointer}
+.gem-target-mining-grid button:hover,.gem-target-mining-grid button.is-active{border-color:#19d9e8;background:rgba(12,73,87,.55);box-shadow:0 0 10px rgba(25,217,232,.11)}
+.gem-target-mining-grid button b{grid-row:1/span 2;color:var(--gem-cyan);font:800 6px JetBrains Mono;border-right:1px solid rgba(25,217,232,.12);padding-right:3px}
+.gem-target-mining-grid button strong{min-width:0;color:#e8f5f7;font:800 6px Inter,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gem-target-mining-grid button small{min-width:0;color:#66858d;font:600 5px JetBrains Mono;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1200px){.gem-target-mining-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-height:800px){.gem-target-mining-modules{margin-top:7px;padding:6px}.gem-target-mining-grid button{min-height:35px}}
+
