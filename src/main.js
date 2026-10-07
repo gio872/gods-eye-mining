@@ -1,6 +1,7 @@
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter.js';
+import { installGemMiningModules } from './ui/gemMiningModules.js';
 
 installMineralIntelligenceCenter();
 
