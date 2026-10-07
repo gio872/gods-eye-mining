@@ -213,11 +213,10 @@ function runAnalysis(button){
 }
 
 export function installMineralIntelligenceCenter(){
-  if(document.documentElement.dataset.gemCenterInstalled==="true") return;
-  document.documentElement.dataset.gemCenterInstalled="true";
   const install=()=>{
     if(document.querySelector(".gem-command-header")) return;
     document.body.classList.add("gem-mineral-center");
+    document.documentElement.dataset.gemCenterInstalled="true";
     document.body.append(topHeader());
     document.body.append(mapHud());
     document.body.append(sourcePanel());
