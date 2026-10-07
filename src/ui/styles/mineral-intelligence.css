@@ -327,3 +327,142 @@ html[data-product="GEM Mineral Intelligence Center"] #cesiumContainer::after{
 @media(prefers-reduced-motion:reduce){
   .gem-classic-status .gem-status-dot{box-shadow:none}
 }
+
+/* GEM COMMAND CENTER — FINAL VISUAL TAKEOVER */
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-header,
+html[data-product="GEM Mineral Intelligence Center"] .gem-map-hud,
+html[data-product="GEM Mineral Intelligence Center"] .gem-sources-panel,
+html[data-product="GEM Mineral Intelligence Center"] .gem-target-panel,
+html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence,
+html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel{
+  display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-header{display:flex!important}
+html[data-product="GEM Mineral Intelligence Center"] #title-bar,
+html[data-product="GEM Mineral Intelligence Center"] #style-indicator,
+html[data-product="GEM Mineral Intelligence Center"] #left-panel-stack,
+html[data-product="GEM Mineral Intelligence Center"] #right-panel-stack,
+html[data-product="GEM Mineral Intelligence Center"] #right-context-rail,
+html[data-product="GEM Mineral Intelligence Center"] #command-dock,
+html[data-product="GEM Mineral Intelligence Center"] #view-switcher,
+html[data-product="GEM Mineral Intelligence Center"] #cockpit-hud,
+html[data-product="GEM Mineral Intelligence Center"] #intel-hud,
+html[data-product="GEM Mineral Intelligence Center"] #location-bar,
+html[data-product="GEM Mineral Intelligence Center"] #voice-bar,
+html[data-product="GEM Mineral Intelligence Center"] #traffic-sync-chip,
+html[data-product="GEM Mineral Intelligence Center"] #cctv-sync-chip,
+html[data-product="GEM Mineral Intelligence Center"] #safe-frame-overlay{
+  opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #cesiumContainer{
+  filter:saturate(.98) brightness(.70) contrast(1.10)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-header{
+  left:10px!important;right:10px!important;top:10px!important;height:68px!important;padding:0 16px!important;
+  border:1px solid rgba(71,233,255,.28)!important;border-radius:12px!important;
+  background:linear-gradient(105deg,rgba(2,12,21,.96),rgba(4,24,37,.90),rgba(2,10,18,.96))!important;
+  box-shadow:0 14px 45px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.08)!important;
+  backdrop-filter:blur(22px)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-brand-mark{
+  color:#f2bd55!important;border-color:#f2bd55!important;box-shadow:0 0 24px rgba(242,189,85,.18)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-brand strong{font-size:18px!important;color:#f4fbff!important}
+html[data-product="GEM Mineral Intelligence Center"] .gem-brand strong small{color:#49e9ff!important;font-size:13px!important}
+html[data-product="GEM Mineral Intelligence Center"] .gem-main-nav button{
+  height:50px!important;border-radius:8px!important;padding:0 12px!important;border-color:rgba(71,233,255,.10)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-main-nav button.is-active{
+  color:#061017!important;background:#48e8ff!important;border-color:#48e8ff!important;box-shadow:0 0 22px rgba(72,232,255,.20)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-map-hud{
+  left:285px!important;right:365px!important;top:88px!important;height:44px!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-map-search{
+  border-color:rgba(71,233,255,.34)!important;background:rgba(2,12,20,.76)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-map-modes{
+  max-width:calc(100vw - 690px);overflow:hidden;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-sources-panel{
+  left:10px!important;top:92px!important;bottom:105px!important;width:270px!important;
+  border-radius:12px!important;border:1px solid rgba(71,233,255,.27)!important;
+  background:linear-gradient(180deg,rgba(3,19,31,.94),rgba(2,10,18,.84))!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.52),inset 0 1px rgba(145,238,255,.08)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-panel-kicker,
+html[data-product="GEM Mineral Intelligence Center"] .gem-section-title{
+  color:#55e9ff!important;letter-spacing:.16em!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-source-row{
+  border-bottom:1px solid rgba(71,233,255,.08)!important;padding:8px 4px!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-toggle.is-on{
+  background:#48e8ff!important;box-shadow:0 0 12px rgba(72,232,255,.45)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-engine-card{
+  border-color:rgba(241,189,85,.30)!important;background:linear-gradient(145deg,rgba(18,27,32,.96),rgba(5,15,22,.92))!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-primary-button{
+  border-color:#f2bd55!important;color:#f2bd55!important;background:rgba(242,189,85,.08)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-target-panel{
+  right:10px!important;top:92px!important;bottom:105px!important;width:335px!important;
+  border-radius:12px!important;border:1px solid rgba(71,233,255,.27)!important;
+  background:linear-gradient(180deg,rgba(3,19,31,.94),rgba(2,10,18,.84))!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.52),inset 0 1px rgba(145,238,255,.08)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-score-ring{
+  border-color:#48e8ff!important;box-shadow:0 0 28px rgba(72,232,255,.14),inset 0 0 22px rgba(72,232,255,.08)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence{
+  left:295px!important;right:350px!important;bottom:10px!important;height:86px!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-card{
+  border-color:rgba(71,233,255,.20)!important;background:rgba(3,17,27,.88)!important;border-radius:10px!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel{
+  position:fixed!important;z-index:2147483005!important;left:50%!important;top:50%!important;
+  transform:translate(-50%,-48%)!important;width:min(730px,calc(100vw - 600px))!important;min-width:620px!important;
+  padding:28px 30px 20px!important;border-radius:16px!important;
+  border:1px solid rgba(71,233,255,.42)!important;
+  background:radial-gradient(circle at 50% 28%,rgba(14,76,98,.30),transparent 45%),linear-gradient(145deg,rgba(2,14,25,.97),rgba(3,23,35,.94))!important;
+  box-shadow:0 30px 100px rgba(0,0,0,.68),0 0 55px rgba(71,233,255,.10),inset 0 1px rgba(255,255,255,.10)!important;
+  backdrop-filter:blur(24px)!important;text-align:center!important;font-family:Inter,system-ui,sans-serif!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel::before{
+  content:"";position:absolute;inset:8px;border:1px solid rgba(71,233,255,.08);border-radius:11px;pointer-events:none;
+}
+.gem-launch-kicker{color:#f2bd55;font:700 8px JetBrains Mono,monospace;letter-spacing:.24em}
+.gem-launch-panel h2{margin:12px 0 5px}
+.gem-launch-panel h2 span{display:block;color:#f2bd55;font:700 12px JetBrains Mono,monospace;letter-spacing:.32em}
+.gem-launch-panel h2 strong{display:block;color:#f4fcff;font:800 58px/1 Inter,system-ui,sans-serif;letter-spacing:.12em;text-shadow:0 0 28px rgba(71,233,255,.32)}
+.gem-launch-panel h2 b{display:block;color:#55e9ff;font:700 14px JetBrains Mono,monospace;letter-spacing:.20em;margin-top:4px}
+.gem-launch-panel>p{margin:10px auto 16px;color:#8baab3;font-size:10px;letter-spacing:.06em}
+.gem-sensor-orbit{display:flex;justify-content:center;gap:9px;margin:0 auto 16px}
+.gem-sensor-orbit span{width:86px;height:42px;display:grid;place-items:center;border:1px solid rgba(71,233,255,.24);border-radius:8px;background:rgba(5,29,42,.72);box-shadow:inset 0 0 20px rgba(71,233,255,.04)}
+.gem-sensor-orbit i{color:#cceff5;font:600 9px JetBrains Mono,monospace;font-style:normal}
+.gem-launch-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:0 0 17px}
+.gem-launch-metrics>div{min-height:58px;padding:8px 5px;border:1px solid rgba(71,233,255,.16);border-radius:7px;background:rgba(5,27,39,.65)}
+.gem-launch-metrics b{display:block;color:#55e9ff;font:700 8px Inter,sans-serif;letter-spacing:.08em}
+.gem-launch-metrics small{display:block;color:#6f929c;font:500 7px/1.35 Inter,sans-serif;margin-top:5px}
+.gem-initialize-button{position:relative;width:min(490px,90%);height:64px;border:1px solid #f2bd55;border-radius:10px;background:linear-gradient(180deg,rgba(242,189,85,.13),rgba(242,189,85,.04));color:#f2bd55;box-shadow:0 0 30px rgba(242,189,85,.10),inset 0 0 20px rgba(242,189,85,.05);cursor:pointer}
+.gem-initialize-button:hover{background:rgba(242,189,85,.18);box-shadow:0 0 38px rgba(242,189,85,.20);transform:translateY(-1px)}
+.gem-initialize-button span{display:block;font:800 16px Inter,sans-serif;letter-spacing:.15em}
+.gem-initialize-button small{display:block;color:#d7b978;font:600 8px JetBrains Mono,monospace;letter-spacing:.16em;margin-top:4px}
+.gem-initialize-button b{position:absolute;right:18px;top:11px;font-size:34px;font-weight:300}
+.gem-launch-footer{display:flex;justify-content:space-between;margin-top:12px;color:#66848c;font:500 7px JetBrains Mono,monospace;letter-spacing:.10em}
+.gem-launch-footer input{accent-color:#48e8ff}
+@media(max-width:1200px){
+  html[data-product="GEM Mineral Intelligence Center"] .gem-target-panel{width:300px!important}
+  html[data-product="GEM Mineral Intelligence Center"] .gem-map-hud{left:292px!important;right:320px!important}
+  html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence{left:292px!important;right:315px!important}
+  html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel{width:560px!important;min-width:560px!important}
+  .gem-launch-metrics{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:850px){
+  html[data-product="GEM Mineral Intelligence Center"] .gem-target-panel{display:none!important}
+  html[data-product="GEM Mineral Intelligence Center"] .gem-map-hud{left:285px!important;right:10px!important}
+  html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence{left:285px!important;right:10px!important}
+  html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel{width:calc(100vw - 40px)!important;min-width:0!important}
+}
