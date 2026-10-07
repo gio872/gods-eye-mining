@@ -2,9 +2,19 @@ module.exports = {
   daemon: true,
   run: [
     {
+      // Publish the exact fixed local URL immediately. Pinokio can open it
+      // while Vite is starting, avoiding any dependency on event-capture
+      // template expansion.
+      method: 'local.set',
+      params: {
+        url: 'http://127.0.0.1:{{port}}/',
+      },
+    },
+    {
       method: 'shell.run',
       params: {
         path: '..',
+        buffer: 10240,
         env: {
           HOST: '127.0.0.1',
           PORT: '{{port}}',
@@ -24,19 +34,11 @@ module.exports = {
           GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
           GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
         },
-        // Update is responsible for syncing the published gem-core revision. Start only launches the local server.\n        message: 'node scripts/pinokio-start.mjs',
+        message: 'node scripts/pinokio-start.mjs',
         on: [{
           event: '/\\[Pinokio\\] Ready at http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\//',
           done: true,
         }],
-      },
-    },
-    {
-      // Pinokio requires local.url for ready/Open state. PINOKIO_SHARE_VAR is
-      // pinned to a different sentinel so local.set cannot trigger sharing.
-      method: 'local.set',
-      params: {
-        url: 'http://127.0.0.1:{{port}}/',
       },
     },
   ],
