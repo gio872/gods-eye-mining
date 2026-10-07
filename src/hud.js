@@ -695,6 +695,9 @@ export class IntelHUD {
    *   by character; otherwise sets it instantly.
    */
   async _updateSummary(animate = false, force = false) {
+    // GEM main screen owns its own intelligence UI; do not poll the legacy
+    // OpenAI HUD-summary endpoint while the GEM experience is active.
+    if (document.documentElement.dataset.gemExperience === 'center') return;
     const fallbackText = this._composeSummary();
     if (!this._latestMetrics) {
       this._setSummaryText(fallbackText, animate);
