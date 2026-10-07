@@ -127,6 +127,9 @@ export class IntelHUD {
     this._summaryRequest = null;
     this._lastSummarySignature = '';
     this._summaryRevision = 0;
+    // Provider throttling guard: a 429 must never become a 15-second retry loop.
+    // The HUD falls back to deterministic telemetry while this cooldown is active.
+    this._summaryRetryAt = 0;
     // One-shot guards so the very first summary lands immediately instead of
     // waiting for the 15s interval tick: B) swap the "Awaiting telemetry..."
     // placeholder for the deterministic line as soon as metrics exist, then
@@ -700,6 +703,10 @@ export class IntelHUD {
       this._setSummaryText(fallbackText, animate);
       return;
     }
+    if (Date.now() < this._summaryRetryAt) {
+      this._setSummaryText(fallbackText, false);
+      return;
+    }
     if (!force && !this._summaryDirty) return;
     if (this.summaryPolicy.canRequest?.() === false) return;
 
@@ -746,6 +753,16 @@ export class IntelHUD {
         return;
       }
       if (!response.ok || !data?.summary) {
+        if (response.status === 429) {
+          const retryAfter = Number(response.headers?.get?.('Retry-After'));
+          const retryMs = Number.isFinite(retryAfter) && retryAfter >= 0
+            ? Math.min(Math.max(retryAfter * 1000, 30_000), 300_000)
+            : 120_000;
+          this._summaryRetryAt = Date.now() + retryMs;
+          this._summaryDirty = false;
+          this._setSummaryText(fallbackText, false);
+          return;
+        }
         throw new Error(data?.error || `HTTP ${response.status}`);
       }
       this._setSummaryText(
