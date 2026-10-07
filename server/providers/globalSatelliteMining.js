@@ -1,9 +1,13 @@
-import { calculateSentinel2MineralFeatures } from '../../src/mining/core/spectralFeatures.js';
+import { calculateHyperspectralMineralFeatures, calculateSentinel2MineralFeatures, adaptEmitMineralEvidence } from '../../src/mining/core/spectralFeatures.js';
 
 const STAC_BASE='https://planetarycomputer.microsoft.com/api/stac/v1';
 const STAC_SEARCH=STAC_BASE+'/search';
 const SIGN_URL='https://planetarycomputer.microsoft.com/api/sas/v1/sign';
 const DATA_API='https://planetarycomputer.microsoft.com/api/data/v1';
+const ENMAP_STAC='https://geoservice.dlr.de/eoc/ogc/stac/v1';
+const ENMAP_COLLECTION='ENMAP_HSI_L2A';
+const CMR='https://cmr.earthdata.nasa.gov/search';
+const HARMONY='https://harmony.earthdata.nasa.gov/ogc-api-edr/1.1.0/collections/EMITL2BMIN/position';
 const MINETHGAP_COG='https://maps.minethegap.eu/assets/data/material_areas_km2-20251227.tif';
 const MINETHGAP_MAP='https://maps.minethegap.eu/';
 const GLOBAL_MINING_FOOTPRINT='https://doi.org/10.5281/zenodo.7894216';
@@ -14,172 +18,29 @@ const cache=new Map();
 function finite(v){const n=Number(v);return Number.isFinite(n)?n:null;}
 function clean(v){return String(v??'').trim();}
 function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-function bbox(input){
-  const west=finite(input?.west),south=finite(input?.south),east=finite(input?.east),north=finite(input?.north);
-  if([west,south,east,north].some((v)=>v===null)||west>=east||south>=north)throw new Error('Bounding box inválido');
-  if(east-west>20||north-south>20)throw new Error('Acerca el mapa: la búsqueda satelital admite hasta 20° × 20°');
-  return {west,south,east,north};
-}
-function validatePoint(lat,lon){
-  const latitude=finite(lat),longitude=finite(lon);
-  if(latitude===null||longitude===null||latitude<-90||latitude>90||longitude<-180||longitude>180)throw new Error('Coordenadas inválidas');
-  return {lat:latitude,lon:longitude};
-}
+function validatePoint(lat,lon){const latitude=finite(lat),longitude=finite(lon);if(latitude===null||longitude===null||latitude<-90||latitude>90||longitude<-180||longitude>180)throw new Error('Coordenadas inválidas');return {lat:latitude,lon:longitude};}
+function bbox(input){const west=finite(input?.west),south=finite(input?.south),east=finite(input?.east),north=finite(input?.north);if([west,south,east,north].some((v)=>v===null)||west>=east||south>=north)throw new Error('Bounding box inválido');if(east-west>20||north-south>20)throw new Error('Acerca el mapa: la búsqueda satelital admite hasta 20° × 20°');return {west,south,east,north};}
 function cacheGet(key){const hit=cache.get(key);if(!hit||Date.now()-hit.at>10*60*1000){cache.delete(key);return null;}return hit.value;}
 function cacheSet(key,value){cache.set(key,{at:Date.now(),value});return value;}
+async function jsonFetch(url,options={}){const response=await fetch(url,{...options,signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS)});const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error('HTTP '+response.status);if(payload?.error)throw new Error(payload.error.message||payload.error.details?.join('; ')||'Upstream error');return payload;}
+async function textFetch(url){const response=await fetch(url,{signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS),headers:{Accept:'application/xml,text/xml,text/plain'}});const text=await response.text();if(!response.ok)throw new Error('HTTP '+response.status);return text;}
+async function signedHref(href){if(!href)return null;try{const payload=await jsonFetch(SIGN_URL+'?href='+encodeURIComponent(href));return clean(payload?.href)||href;}catch{return href;}}
+function assetFor(item,keys=[]){for(const key of keys){const asset=item?.assets?.[key];if(asset?.href)return {key,asset};}return null;}
+async function normalizeItem(item){const keys=['rendered_preview','visual','red','green','blue','nir08','swir16','swir22'];const signed={};for(const key of keys){const href=item?.assets?.[key]?.href;if(href)signed[key]=await signedHref(href);}return {id:item?.id||null,collection:Array.isArray(item?.collection)?item.collection[0]:(item?.collection||null),datetime:item?.properties?.datetime||item?.properties?.start_datetime||null,platform:item?.properties?.platform||null,constellation:item?.properties?.constellation||null,cloudCover:finite(item?.properties?.['eo:cloud_cover']),geometry:item?.geometry||null,bbox:item?.bbox||null,tile:item?.properties?.['s2:mgrs_tile']||null,assets:signed,roles:Object.fromEntries(Object.entries(item?.assets||{}).map(([key,a])=>[key,a?.title||a?.roles||null]))};}
+async function searchScenes({bboxValue,collection='sentinel-2-l2a',startDate='2025-01-01',endDate=new Date().toISOString().slice(0,10),maxCloud=20,limit=12}){const safeBbox=bbox(bboxValue),safeLimit=clamp(Number.parseInt(limit,10)||12,1,25),safeCloud=clamp(Number(maxCloud)||20,0,100),safeCollection=['sentinel-2-l2a','landsat-c2-l2'].includes(collection)?collection:'sentinel-2-l2a',key=JSON.stringify({safeBbox,safeCollection,startDate,endDate,safeCloud,safeLimit});const hit=cacheGet(key);if(hit)return hit;const body={collections:[safeCollection],bbox:[safeBbox.west,safeBbox.south,safeBbox.east,safeBbox.north],datetime:String(startDate)+'T00:00:00Z/'+String(endDate)+'T23:59:59Z',limit:safeLimit,query:{'eo:cloud_cover':{lte:safeCloud}},sortby:[{field:'properties.datetime',direction:'desc'}]};const payload=await jsonFetch(STAC_SEARCH,{method:'POST',headers:{Accept:'application/geo+json','Content-Type':'application/json'},body:JSON.stringify(body)});const items=await Promise.all((payload?.features||[]).map(normalizeItem));return cacheSet(key,{collection:safeCollection,count:items.length,items,generatedAt:new Date().toISOString(),source:STAC_SEARCH});}
 
-async function jsonFetch(url,options={}){
-  const response=await fetch(url,{...options,signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS)});
-  const payload=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  if(payload?.error)throw new Error(payload.error.message||payload.error.details?.join('; ')||'Upstream error');
-  return payload;
-}
-async function signedHref(href){
-  if(!href)return null;
-  const payload=await jsonFetch(SIGN_URL+'?href='+encodeURIComponent(href));
-  return clean(payload?.href)||href;
-}
-function assetFor(item,keys=[]){
-  for(const key of keys){
-    const asset=item?.assets?.[key];
-    if(asset?.href)return {key,asset};
-  }
-  return null;
-}
-async function normalizeItem(item){
-  const keys=['rendered_preview','visual','red','green','blue','nir08','swir16','swir22'];
-  const signed={};
-  for(const key of keys){const href=item?.assets?.[key]?.href;if(href)signed[key]=await signedHref(href);}
-  return {
-    id:item?.id||null,
-    collection:Array.isArray(item?.collection)?item.collection[0]:(item?.collection||null),
-    datetime:item?.properties?.datetime||item?.properties?.start_datetime||null,
-    platform:item?.properties?.platform||null,
-    constellation:item?.properties?.constellation||null,
-    cloudCover:finite(item?.properties?.['eo:cloud_cover']),
-    geometry:item?.geometry||null,
-    bbox:item?.bbox||null,
-    tile:item?.properties?.['s2:mgrs_tile']||null,
-    assets:signed,
-    roles:Object.fromEntries(Object.entries(item?.assets||{}).map(([key,a])=>[key,a?.title||a?.roles||null])),
-  };
-}
-async function searchScenes({bboxValue,collection='sentinel-2-l2a',startDate='2025-01-01',endDate=new Date().toISOString().slice(0,10),maxCloud=20,limit=12}){
-  const safeBbox=bbox(bboxValue);
-  const safeLimit=clamp(Number.parseInt(limit,10)||12,1,25);
-  const safeCloud=clamp(Number(maxCloud)||20,0,100);
-  const safeCollection=['sentinel-2-l2a','landsat-c2-l2'].includes(collection)?collection:'sentinel-2-l2a';
-  const key=JSON.stringify({safeBbox,safeCollection,startDate,endDate,safeCloud,safeLimit});
-  const hit=cacheGet(key);if(hit)return hit;
-  const body={
-    collections:[safeCollection],
-    bbox:[safeBbox.west,safeBbox.south,safeBbox.east,safeBbox.north],
-    datetime:String(startDate)+'T00:00:00Z/'+String(endDate)+'T23:59:59Z',
-    limit:safeLimit,
-    query:{'eo:cloud_cover':{lte:safeCloud}},
-    sortby:[{field:'properties.datetime',direction:'desc'}],
-  };
-  const payload=await jsonFetch(STAC_SEARCH,{method:'POST',headers:{Accept:'application/geo+json','Content-Type':'application/json'},body:JSON.stringify(body)});
-  const items=await Promise.all((payload?.features||[]).map(normalizeItem));
-  return cacheSet(key,{collection:safeCollection,count:items.length,items,generatedAt:new Date().toISOString(),source:STAC_SEARCH});
-}
+const SENTINEL2_BAND_KEYS=Object.freeze({B2:['B02','blue'],B3:['B03','green'],B4:['B04','red'],B6:['B06'],B8:['B08','nir08'],B11:['B11','swir16'],B12:['B12','swir22']});
+function scaledReflectance(value,asset){const n=finite(value);if(n===null)return null;const bandInfo=Array.isArray(asset?.['raster:bands'])?asset['raster:bands'][0]:null;const scale=finite(bandInfo?.scale),offset=finite(bandInfo?.offset);if(scale!==null)return n*scale+(offset??0);return Math.abs(n)>2?n/10000:n;}
+async function sampleCogPoint({href,lat,lon,bidx=1,scale=1,offset=0}){const url=DATA_API+'/cog/point/'+encodeURIComponent(lon)+','+encodeURIComponent(lat)+'?url='+encodeURIComponent(href)+'&bidx='+encodeURIComponent(bidx)+'&resampling=nearest';const payload=await jsonFetch(url,{headers:{Accept:'application/json'}});const raw=Array.isArray(payload?.values)?payload.values[0]:payload?.value??null;const n=finite(raw);return n===null?null:n*scale+offset;}
+async function sampleSentinel2({sceneId,latitude,longitude}){const point=validatePoint(latitude,longitude),safeSceneId=clean(sceneId);if(!safeSceneId)throw new Error('sceneId es requerido');const key='s2sample:'+safeSceneId+':'+point.lat.toFixed(6)+':'+point.lon.toFixed(6);const hit=cacheGet(key);if(hit)return hit;const item=await jsonFetch(STAC_BASE+'/collections/sentinel-2-l2a/items/'+encodeURIComponent(safeSceneId));const bands={},rawBands={},errors=[];await Promise.all(Object.entries(SENTINEL2_BAND_KEYS).map(async([band,keys])=>{try{const found=assetFor(item,keys);if(!found)throw new Error('Asset '+band+' no disponible');const href=await signedHref(found.asset.href);const raw=await sampleCogPoint({href,lat:point.lat,lon:point.lon});rawBands[band]=raw;bands[band]=scaledReflectance(raw,found.asset);}catch(error){errors.push({band,error:String(error?.message||error)});}}));const features=calculateSentinel2MineralFeatures(bands);return cacheSet(key,{sensor:'Sentinel-2 MSI L2A',scene:{id:item?.id||safeSceneId,datetime:item?.properties?.datetime||null,cloudCover:finite(item?.properties?.['eo:cloud_cover']),tile:item?.properties?.['s2:mgrs_tile']||null},point,bands,rawBands,rawAvailable:Object.keys(bands).length,features,errors,partial:errors.length>0,generatedAt:new Date().toISOString(),source:{stac:STAC_BASE,dataApi:DATA_API,collection:'sentinel-2-l2a'}});}
 
-const SENTINEL2_BAND_KEYS=Object.freeze({
-  B2:['B02','blue'],
-  B3:['B03','green'],
-  B4:['B04','red'],
-  B6:['B06'],
-  B8:['B08','nir08'],
-  B11:['B11','swir16'],
-  B12:['B12','swir22'],
-});
+async function emitGranules(latitude,longitude){const p=validatePoint(latitude,longitude),d=.15,params=new URLSearchParams({short_name:'EMITL2BMIN',version:'001',bounding_box:[p.lon-d,p.lat-d,p.lon+d,p.lat+d].join(','),page_size:'10'});const payload=await jsonFetch(CMR+'/granules.json?'+params.toString(),{headers:{Accept:'application/json'}});return (payload?.feed?.entry||[]).map((g)=>({id:g.id,title:g.title,timeStart:g.time_start,timeEnd:g.time_end,updated:g.updated,links:(g.links||[]).filter((l)=>l.href).map((l)=>({rel:l.rel,type:l.type,title:l.title,href:l.href}))}));}
+async function emitPoint(latitude,longitude){const point=validatePoint(latitude,longitude),key='emit:'+point.lat.toFixed(5)+':'+point.lon.toFixed(5),hit=cacheGet(key);if(hit)return hit;const granules=await emitGranules(point.lat,point.lon);let harmony=null;try{harmony=await jsonFetch(HARMONY+'?coords=POINT('+point.lon+'%20'+point.lat+')&f=json',{headers:{Accept:'application/json'}});}catch(error){harmony={error:String(error?.message||error)};}const result={sensor:'NASA EMIT L2BMIN',product:'EMITL2BMIN v001',point,granuleCount:granules.length,granules:granules.slice(0,5),directPositionQuery:{url:HARMONY,available:!harmony?.error,response:harmony?.error?null:harmony},evidence:null,caveat:'EMITL2BMIN es un producto mineralógico de 60 m; la identificación es de superficie y requiere controles de calidad y validación para exploración mineral. La cobertura se concentra entre 52°N y 52°S.'};return cacheSet(key,result);}
 
-function scaledReflectance(value,asset){
-  const n=finite(value);if(n===null)return null;
-  const bandInfo=Array.isArray(asset?.['raster:bands'])?asset['raster:bands'][0]:null;
-  const scale=finite(bandInfo?.scale),offset=finite(bandInfo?.offset);
-  if(scale!==null)return n*scale+(offset??0);
-  return Math.abs(n)>2?n/10000:n;
-}
-async function sampleCogPoint({href,lat,lon}){
-  const url=DATA_API+'/cog/point/'+encodeURIComponent(lon)+','+encodeURIComponent(lat)+'?url='+encodeURIComponent(href)+'&bidx=1&resampling=nearest';
-  const payload=await jsonFetch(url,{headers:{Accept:'application/json'}});
-  const raw=Array.isArray(payload?.values)?payload.values[0]:payload?.value??null;
-  return {raw,bandNames:payload?.band_names||null};
-}
-async function sampleSentinel2({sceneId,latitude,longitude}){
-  const point=validatePoint(latitude,longitude);
-  const safeSceneId=clean(sceneId);if(!safeSceneId)throw new Error('sceneId es requerido');
-  const key='s2sample:'+safeSceneId+':'+point.lat.toFixed(6)+':'+point.lon.toFixed(6);
-  const hit=cacheGet(key);if(hit)return hit;
-  const item=await jsonFetch(STAC_BASE+'/collections/sentinel-2-l2a/items/'+encodeURIComponent(safeSceneId));
-  const bands={};const rawBands={};const errors=[];
-  await Promise.all(Object.entries(SENTINEL2_BAND_KEYS).map(async([band,keys])=>{
-    try{
-      const found=assetFor(item,keys);
-      if(!found)throw new Error('Asset '+band+' no disponible');
-      const href=await signedHref(found.asset.href);
-      const result=await sampleCogPoint({href,lat:point.lat,lon:point.lon});
-      rawBands[band]=result.raw;
-      bands[band]=scaledReflectance(result.raw,found.asset);
-    }catch(error){errors.push({band,error:String(error?.message||error)});}
-  }));
-  const features=calculateSentinel2MineralFeatures(bands);
-  const result={
-    sensor:'Sentinel-2 MSI L2A',
-    scene:{id:item?.id||safeSceneId,datetime:item?.properties?.datetime||null,cloudCover:finite(item?.properties?.['eo:cloud_cover']),tile:item?.properties?.['s2:mgrs_tile']||null},
-    point,
-    bands:Object.freeze(bands),
-    rawBands:Object.freeze(rawBands),
-    rawAvailable:Object.keys(bands).length,
-    features,
-    errors,
-    partial:errors.length>0,
-    generatedAt:new Date().toISOString(),
-    source:{stac:STAC_BASE,dataApi:DATA_API,collection:'sentinel-2-l2a'},
-  };
-  return cacheSet(key,result);
-}
-function sourceCatalog(){
-  return [
-    {id:'mine-the-gap',name:'MINE-THE-GAP Global Commodity-specific Mining Land Use',type:'satellite-derived mining intelligence',url:MINETHGAP_MAP,cog:MINETHGAP_COG,coverage:'Global',license:'CC BY-NC-SA 4.0',role:'Commodity-linked global mining-land-use raster.'},
-    {id:'global-mining-footprint',name:'Global Mining Footprint Tang & Werner',type:'satellite-derived mining footprint',url:GLOBAL_MINING_FOOTPRINT,coverage:'135 countries/regions',role:'74,548 satellite-interpreted mining polygons.'},
-    {id:'global-mining-80k',name:'Global Mining Land Use Classification',type:'Sentinel-2 + TanDEM-X + Random Forest',url:GLOBAL_MINING_80K,coverage:'150 countries',role:'>80,000 recognised mining extents with land-use classes.'},
-    {id:'sentinel-2',name:'Sentinel-2 L2A · Planetary Computer',type:'multispectral satellite',url:STAC_BASE,coverage:'Global land',role:'13-band bottom-of-atmosphere surface reflectance; pixel sampling enabled in GEM.'},
-    {id:'landsat',name:'Landsat Collection 2 L2 · Planetary Computer',type:'multispectral satellite archive',url:STAC_BASE,coverage:'Global land',role:'Long temporal archive for surface change.'},
-    {id:'emit-l2b',name:'NASA EMIT L2BMIN',type:'imaging spectroscopy / mineral identification',url:'https://search.earthdata.nasa.gov/search?fpj=GEMx%21EMIT',coverage:'Arid regions, approximately 52°N to 52°S',role:'Mineral identification + band depth + uncertainty + fit score.'},
-    {id:'enmap',name:'DLR EnMAP',type:'hyperspectral satellite',url:'https://www.enmap.org/data_access/',coverage:'Global tasking/archive; access controlled by DLR portal',role:'420–2450 nm hyperspectral mineral/alteration feature extraction.'},
-  ];
-}
-export function globalSatelliteMiningProxy(){
-  const install=(server)=>{
-    server.middlewares.use('/api/global-satellite-mining',async(req,res)=>{
-      const reply=(status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(body));};
-      try{
-        if(req.method!=='GET')return reply(405,{error:'GET required'});
-        const url=new URL(req.url||'http://localhost','http://localhost');
-        if(url.pathname==='/sources')return reply(200,{sources:sourceCatalog(),generatedAt:new Date().toISOString()});
-        if(url.pathname==='/scenes'){
-          const result=await searchScenes({
-            bboxValue:{west:url.searchParams.get('west'),south:url.searchParams.get('south'),east:url.searchParams.get('east'),north:url.searchParams.get('north')},
-            collection:clean(url.searchParams.get('collection'))||'sentinel-2-l2a',
-            startDate:clean(url.searchParams.get('start'))||'2025-01-01',
-            endDate:clean(url.searchParams.get('end'))||new Date().toISOString().slice(0,10),
-            maxCloud:url.searchParams.get('maxCloud')??20,
-            limit:url.searchParams.get('limit')??12,
-          });
-          return reply(200,result);
-        }
-        if(url.pathname==='/sample-sentinel2'){
-          return reply(200,await sampleSentinel2({sceneId:url.searchParams.get('sceneId'),latitude:url.searchParams.get('lat'),longitude:url.searchParams.get('lon')}));
-        }
-        return reply(404,{error:'Not found'});
-      }catch(error){
-        console.error('[Global Satellite Mining]',error?.message||String(error));
-        return reply(502,{error:'Global satellite-mining query failed',detail:String(error?.message||error).slice(0,600)});
-      }
-    });
-  };
-  return {name:'global-satellite-mining',configureServer:install,configurePreviewServer:install};
-}
+function extractEnmapWavelengths(item){const bands=item?.assets?.image?.['raster:bands']||item?.assets?.image?.['eo:bands']||[];const values=bands.map((b,i)=>({index:i+1,wavelength:finite(b?.center_wavelength??b?.centerWavelength??b?.wavelength),scale:finite(b?.scale),offset:finite(b?.offset)})).filter((b)=>b.wavelength!==null);return values.length?values:null;}
+async function enmapSearch(latitude,longitude){const p=validatePoint(latitude,longitude),d=.2,body={collections:[ENMAP_COLLECTION],bbox:[p.lon-d,p.lat-d,p.lon+d,p.lat+d],limit:10,sortby:[{field:'properties.datetime',direction:'desc'}]};const payload=await jsonFetch(ENMAP_STAC+'/search',{method:'POST',headers:{Accept:'application/geo+json','Content-Type':'application/json'},body:JSON.stringify(body)});return (payload?.features||[]).filter((item)=>item?.geometry||item?.bbox).map((item)=>({id:item.id,datetime:item.properties?.datetime||null,cloudCover:finite(item.properties?.['eo:cloud_cover']),bbox:item.bbox,geometry:item.geometry,assets:{image:item.assets?.image?.href||null,metadata:item.assets?.metadata?.href||null},properties:item.properties}));}
+function nearestBandIndex(wavelengths,target){if(!wavelengths?.length)return null;return wavelengths.reduce((best,row)=>Math.abs(row.wavelength-target)<Math.abs(best.wavelength-target)?row:best,wavelengths[0]);}
+async function enmapPoint(latitude,longitude){const point=validatePoint(latitude,longitude),items=await enmapSearch(point.lat,point.lon);const item=items.find((candidate)=>{const b=candidate.bbox;return Array.isArray(b)&&point.lon>=b[0]&&point.lon<=b[2]&&point.lat>=b[1]&&point.lat<=b[3];})||items[0]||null;if(!item)return {sensor:'EnMAP HSI L2A',point,available:false,items:[]};const full=await jsonFetch(ENMAP_STAC+'/collections/'+ENMAP_COLLECTION+'/items/'+encodeURIComponent(item.id));let wavelengths=extractEnmapWavelengths(full);if(!wavelengths&&full.assets?.metadata?.href){try{const xml=await textFetch(full.assets.metadata.href);const matches=[...xml.matchAll(/<CenterWavelength>\s*([0-9.]+)\s*<\/CenterWavelength>/gi)].map((m,i)=>({index:i+1,wavelength:Number(m[1])*1000}));if(matches.length)wavelengths=matches;}catch{}}if(!wavelengths)throw new Error('EnMAP no publicó metadatos de longitud de onda en el STAC/metadata disponible');const targets=[820,1000,1100,2050,2150,2200,2250,2300,2350,2400],spectrum=[],errors=[];for(const target of targets){const band=nearestBandIndex(wavelengths,target);if(!band)continue;try{const href=full.assets?.image?.href;if(!href)throw new Error('COG espectral no disponible');const raw=await sampleCogPoint({href,lat:point.lat,lon:point.lon,bidx:band.index});const info=full.assets?.image?.['raster:bands']?.[band.index-1];const scale=finite(info?.scale)??0.0001;const offset=finite(info?.offset)??0;spectrum.push({wavelength:band.wavelength,value:raw===null?null:raw*scale+offset,band:band.index,target});}catch(error){errors.push({target,error:String(error?.message||error)});}}const valid=spectrum.filter((x)=>x.value!==null);const features=calculateHyperspectralMineralFeatures({wavelengths:valid.map((x)=>x.wavelength),values:valid.map((x)=>x.value),sensor:'EnMAP'});return {sensor:'EnMAP HSI L2A',point,available:true,scene:{id:item.id,datetime:item.datetime,cloudCover:item.cloudCover,bbox:item.bbox},spectrum,features,errors,partial:errors.length>0,source:{stac:ENMAP_STAC,collection:ENMAP_COLLECTION}};}
+
+function sourceCatalog(){return [{id:'mine-the-gap',name:'MINE-THE-GAP Global Commodity-specific Mining Land Use',type:'satellite-derived mining intelligence',url:MINETHGAP_MAP,cog:MINETHGAP_COG,coverage:'Global',license:'CC BY-NC-SA 4.0',role:'Commodity-linked global mining-land-use raster.'},{id:'global-mining-footprint',name:'Global Mining Footprint Tang & Werner',type:'satellite-derived mining footprint',url:GLOBAL_MINING_FOOTPRINT,coverage:'135 countries/regions',role:'74,548 satellite-interpreted mining polygons.'},{id:'global-mining-80k',name:'Global Mining Land Use Classification',type:'Sentinel-2 + TanDEM-X + Random Forest',url:GLOBAL_MINING_80K,coverage:'150 countries',role:'>80,000 recognised mining extents with land-use classes.'},{id:'sentinel-2',name:'Sentinel-2 L2A · Planetary Computer',type:'multispectral satellite',url:STAC_BASE,coverage:'Global land',role:'13-band surface reflectance; pixel sampling enabled.'},{id:'landsat',name:'Landsat Collection 2 L2 · Planetary Computer',type:'multispectral archive',url:STAC_BASE,coverage:'Global land',role:'Long temporal archive.'},{id:'emit-l2bmin',name:'NASA EMIT L2BMIN',type:'imaging spectroscopy / mineral identification',url:'https://search.earthdata.nasa.gov/search?fpj=GEMx%21EMIT',coverage:'Approximately 52°N to 52°S, arid dust-source regions',role:'60 m mineral IDs, band depth, uncertainty and fit.'},{id:'enmap-l2a',name:'DLR EnMAP HSI L2A',type:'hyperspectral satellite',url:ENMAP_STAC,coverage:'Global mission archive',role:'Hyperspectral COG sampling by coordinate; 420–2450 nm.'}];}
+export function globalSatelliteMiningProxy(){const install=(server)=>{server.middlewares.use('/api/global-satellite-mining',async(req,res)=>{const reply=(status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(body));};try{if(req.method!=='GET')return reply(405,{error:'GET required'});const url=new URL(req.url||'http://localhost','http://localhost');if(url.pathname==='/sources')return reply(200,{sources:sourceCatalog(),generatedAt:new Date().toISOString()});if(url.pathname==='/scenes'){return reply(200,await searchScenes({bboxValue:{west:url.searchParams.get('west'),south:url.searchParams.get('south'),east:url.searchParams.get('east'),north:url.searchParams.get('north')},collection:clean(url.searchParams.get('collection'))||'sentinel-2-l2a',startDate:clean(url.searchParams.get('start'))||'2025-01-01',endDate:clean(url.searchParams.get('end'))||new Date().toISOString().slice(0,10),maxCloud:url.searchParams.get('maxCloud')??20,limit:url.searchParams.get('limit')??12}));}if(url.pathname==='/sample-sentinel2')return reply(200,await sampleSentinel2({sceneId:url.searchParams.get('sceneId'),latitude:url.searchParams.get('lat'),longitude:url.searchParams.get('lon')}));if(url.pathname==='/emit/point')return reply(200,await emitPoint(url.searchParams.get('lat'),url.searchParams.get('lon')));if(url.pathname==='/enmap/point')return reply(200,await enmapPoint(url.searchParams.get('lat'),url.searchParams.get('lon')));return reply(404,{error:'Not found'});}catch(error){console.error('[Global Satellite Mining]',error?.message||String(error));return reply(502,{error:'Global satellite-mining query failed',detail:String(error?.message||error).slice(0,600)});}});};return {name:'global-satellite-mining',configureServer:install,configurePreviewServer:install};}
