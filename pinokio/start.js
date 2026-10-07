@@ -7,7 +7,7 @@ module.exports = {
         path: '..',
         // Always launch the exact published main revision. This prevents Pinokio
         // from silently serving an older local checkout after an update.
-        message: 'git fetch origin main && git merge --ff-only origin/main && node scripts/pinokio-start.mjs',
+        message: 'git fetch origin main && git reset --hard origin/main && node scripts/pinokio-start.mjs',
         env: {
           HOST: '127.0.0.1',
           PORT: '{{port}}',
