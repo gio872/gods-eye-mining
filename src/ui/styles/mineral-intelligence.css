@@ -697,3 +697,113 @@ html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel.is-launch
 @media(max-height:820px){
  .gem-mining-command{margin-top:6px;padding:7px}.gem-mining-module-grid button{min-height:38px}.gem-mining-stats{margin-top:5px}.gem-mining-targets{margin-top:5px}
 }
+
+/* ================================================================
+   GEM FUTURISTIC MINING DASHBOARD — visual integration
+   ================================================================ */
+.gcf-nav-rail{
+  position:fixed!important;left:9px!important;top:124px!important;bottom:102px!important;width:112px!important;
+  z-index:5!important;padding:7px!important;border:1px solid rgba(53,220,243,.30)!important;
+  border-radius:9px!important;background:linear-gradient(180deg,rgba(3,17,28,.94),rgba(2,10,17,.91))!important;
+  box-shadow:0 16px 48px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.04)!important;
+  backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;
+  display:flex!important;flex-direction:column!important;gap:3px!important;overflow:auto!important;
+}
+.gcf-nav-rail button{
+  min-height:42px!important;width:100%!important;border:1px solid transparent!important;border-radius:6px!important;
+  background:transparent!important;color:#789da5!important;cursor:pointer!important;
+  display:grid!important;grid-template-columns:24px 1fr!important;align-items:center!important;gap:5px!important;
+  text-align:left!important;padding:4px 5px!important;font:800 7px Inter,sans-serif!important;letter-spacing:.05em!important;
+}
+.gcf-nav-rail button b{color:#30dced!important;font:400 17px Inter,sans-serif!important;text-align:center!important}
+.gcf-nav-rail button:hover,.gcf-nav-rail button.active{
+  color:#edfbfd!important;border-color:rgba(51,220,243,.35)!important;
+  background:linear-gradient(90deg,rgba(18,103,123,.42),rgba(7,38,51,.35))!important;
+  box-shadow:inset 3px 0 #38dff4,0 0 16px rgba(30,211,237,.08)!important;
+}
+.gcf-left{left:130px!important;width:292px!important}
+.gcf-center{left:435px!important;right:350px!important}
+.gcf-hero-card{display:none!important}
+.gcf-analytics-deck{
+  position:fixed!important;left:435px!important;right:350px!important;bottom:92px!important;height:180px!important;
+  z-index:4!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-template-rows:1fr 1fr!important;
+  gap:5px!important;pointer-events:auto!important;
+}
+.gcf-analytics-deck article{
+  min-width:0!important;padding:7px 8px!important;border:1px solid rgba(49,218,241,.23)!important;border-radius:7px!important;
+  background:linear-gradient(145deg,rgba(3,20,31,.94),rgba(2,11,19,.91))!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.30),inset 0 1px rgba(255,255,255,.035)!important;
+  overflow:hidden!important;cursor:pointer!important;transition:.18s ease!important;
+}
+.gcf-analytics-deck article:hover{border-color:#35def4!important;box-shadow:0 0 18px rgba(36,216,240,.10),inset 0 0 14px rgba(36,216,240,.04)!important;transform:translateY(-1px)!important}
+.gcf-analytics-deck header{display:flex;align-items:center;gap:6px;height:18px!important;border:0!important;background:transparent!important;padding:0!important}
+.gcf-analytics-deck header b{color:#35e0f4!important;font-size:15px!important;font-weight:400!important}
+.gcf-analytics-deck header span{color:#e7f7fa!important;font:800 7px JetBrains Mono,monospace!important;letter-spacing:.08em!important}
+.gcf-analytics-deck small{display:block;color:#6d9199!important;font:600 5px/1.25 JetBrains Mono,monospace!important;margin-top:4px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.gcf-mini-map{height:53px!important;margin-top:4px!important;border:1px solid rgba(54,205,226,.10)!important;border-radius:4px!important;position:relative!important;overflow:hidden!important;
+  background:
+    radial-gradient(circle at 53% 49%,rgba(255,66,39,.96) 0 7%,transparent 8%),
+    radial-gradient(circle at 65% 63%,rgba(255,183,31,.75) 0 9%,transparent 10%),
+    linear-gradient(145deg,#0b2630 5%,#133f47 28%,#17253b 55%,#07131b 100%)!important;
+}
+.gcf-mini-map::before{content:"";position:absolute;inset:0;background:
+ linear-gradient(25deg,transparent 43%,rgba(244,54,125,.75) 44%,rgba(244,54,125,.75) 45%,transparent 46%),
+ linear-gradient(155deg,transparent 57%,rgba(46,224,255,.72) 58%,rgba(46,224,255,.72) 59%,transparent 60%),
+ repeating-linear-gradient(90deg,rgba(51,215,241,.05) 0 1px,transparent 1px 18px),
+ repeating-linear-gradient(0deg,rgba(51,215,241,.04) 0 1px,transparent 1px 16px)!important}
+.gcf-mini-map.geology{background:
+ linear-gradient(20deg,#e6ad3d 0 16%,#376b43 17% 34%,#246881 35% 49%,#964f67 50% 63%,#31466f 64% 100%)!important}
+.gcf-mini-map.geophysics{background:
+ radial-gradient(circle at 56% 50%,#f13d2f 0 13%,#e88d24 14% 27%,#36d1c4 28% 43%,#214675 44% 72%,#071620 73% 100%)!important}
+.gcf-mini-map.geochemistry{background:
+ radial-gradient(circle at 22% 35%,#ff5739 0 3%,transparent 4%),radial-gradient(circle at 52% 55%,#f2d52b 0 4%,transparent 5%),radial-gradient(circle at 76% 40%,#37e2af 0 3%,transparent 4%),#101d2a!important}
+.gcf-mini-map.spectral{background:
+ linear-gradient(135deg,#e15bba 0 18%,#4255af 19% 36%,#49bc80 37% 54%,#d2c32e 55% 71%,#5d4c95 72% 100%)!important}
+.gcf-mini-map.targeting{background:
+ radial-gradient(circle at 55% 42%,#ffef46 0 6%,#ff7c1c 7% 15%,#f33235 16% 25%,transparent 26%),
+ linear-gradient(150deg,#113d56,#182938 50%,#0c1824)!important}
+.gcf-mini-map.resources{background:
+ conic-gradient(from 30deg at 45% 55%,#179ec7,#75df65,#ffd342,#e34f38,#9134a9,#179ec7)!important;clip-path:polygon(8% 21%,74% 6%,97% 28%,90% 82%,43% 98%,5% 70%)!important}
+.gcf-mini-map.drilling{background:
+ repeating-linear-gradient(72deg,transparent 0 13px,rgba(244,190,66,.75) 14px 15px),
+ linear-gradient(140deg,#193942,#6b4c3d 45%,#15252e)!important}
+.gcf-mini-chart{height:53px!important;margin-top:4px!important;border-bottom:1px solid rgba(49,221,241,.18)!important;position:relative!important;background:
+ linear-gradient(180deg,transparent 0 83%,rgba(45,221,241,.08) 84%),
+ repeating-linear-gradient(90deg,transparent 0 35px,rgba(61,213,235,.05) 36px),
+ repeating-linear-gradient(0deg,transparent 0 15px,rgba(61,213,235,.05) 16px)!important}
+.gcf-mini-chart::before{content:"";position:absolute;left:3%;right:3%;top:18%;height:58%;
+ background:linear-gradient(140deg,transparent 0 18%,#ff4d42 19% 20%,transparent 21% 36%,#20d1a4 37% 38%,transparent 39% 49%,#21ddea 50% 51%,transparent 52% 63%,#21ddea 64% 65%,transparent 66% 100%);
+ clip-path:polygon(0 78%,12% 71%,24% 82%,35% 60%,46% 67%,58% 42%,68% 32%,78% 20%,88% 28%,100% 8%,100% 13%,88% 34%,78% 26%,68% 38%,58% 49%,46% 74%,35% 67%,24% 88%,12% 77%,0 84%)!important}
+.gcf-ai-target-box{
+  margin-top:9px!important;padding:9px!important;border:1px solid rgba(46,220,242,.23)!important;border-radius:7px!important;
+  background:linear-gradient(145deg,rgba(5,35,50,.74),rgba(3,16,25,.84))!important;
+}
+.gcf-ai-title{display:flex;align-items:center;gap:7px!important;margin-bottom:8px!important}
+.gcf-ai-title span{width:22px;height:22px;display:grid;place-items:center;border:1px solid #2edcf2;border-radius:5px;color:#38e1f5;font:900 9px JetBrains Mono}
+.gcf-ai-title strong{color:#ecfbfd;font:800 8px JetBrains Mono;letter-spacing:.07em}
+.gcf-ai-target-box label{display:block;color:#75949c;font:700 6px JetBrains Mono;letter-spacing:.06em;margin-top:5px}
+.gcf-ai-target-box select{width:100%;height:28px;margin-top:3px;padding:0 7px;border:1px solid rgba(58,196,219,.24);border-radius:5px;background:#071c28;color:#d9edf1;font:600 7px Inter}
+.gcf-generate-targets{width:100%;height:30px;margin-top:8px;border:1px solid rgba(55,218,244,.44);border-radius:5px;background:linear-gradient(90deg,#087eb7,#1cb6df);color:white;font:800 7px JetBrains Mono;letter-spacing:.05em}
+.gcf-target-summary{display:grid;grid-template-columns:60px 1fr;gap:0 7px;align-items:end;margin-top:8px}
+.gcf-target-summary strong{grid-row:span 2;color:#edfaff;font:900 24px JetBrains Mono}
+.gcf-target-summary span{color:#6e9199;font:700 6px JetBrains Mono}.gcf-target-summary i{color:#8ca7ad;font:600 5px JetBrains Mono;font-style:normal;line-height:1.3}
+.gcf-top-targets{margin-top:9px;padding:7px 8px;border:1px solid rgba(49,216,239,.18);border-radius:7px;background:rgba(3,17,26,.72)}
+.gcf-section-row{display:flex;align-items:center;justify-content:space-between}.gcf-section-row h3{padding:0!important;border:0!important;margin:0!important}
+.gcf-section-row button{border:0;background:transparent;color:#76969d;font:700 6px JetBrains Mono}
+.gcf-top-target-row{display:grid;grid-template-columns:45px 1fr 50px 35px;align-items:center;gap:4px;padding:5px 2px;border-top:1px solid rgba(49,216,239,.09);font:600 6px JetBrains Mono;color:#88a4aa}
+.gcf-top-target-row:first-of-type{margin-top:5px}.gcf-top-target-row b{color:#dbf3f6}.gcf-top-target-row em{font-style:normal;color:#7f9da3}.gcf-top-target-row strong{justify-self:end;color:#f2cf55;border:1px solid rgba(242,207,85,.34);padding:2px 4px;border-radius:3px}
+
+/* Hide the old source/target dashboard overlays when the new integrated dashboard is active. */
+html[data-product="GEM Mineral Intelligence Center"] .gem-sources-panel,
+html[data-product="GEM Mineral Intelligence Center"] .gem-target-panel,
+html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence{display:none!important}
+
+@media(max-width:1200px){
+  .gcf-nav-rail{width:92px!important}.gcf-left{left:108px!important;width:245px!important}.gcf-center{left:365px!important;right:300px!important}
+  .gcf-analytics-deck{left:365px!important;right:300px!important}.gcf-top-target-row{grid-template-columns:40px 1fr 42px 32px}
+}
+@media(max-width:900px){
+  .gcf-nav-rail{display:none!important}.gcf-left{left:8px!important;width:235px!important}.gcf-center{left:255px!important;right:8px!important}
+  .gcf-analytics-deck{left:255px!important;right:8px!important}.gcf-analytics-deck{grid-template-columns:repeat(2,1fr)!important}
+}
+
