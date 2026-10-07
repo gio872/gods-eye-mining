@@ -657,3 +657,18 @@ html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel.is-launch
   .gcf-hero-orbit{height:215px!important}.gcf-metrics div{min-height:86px!important}.gcf-init{height:58px!important;margin-top:13px!important}
   .gcf-suppress,.gcf-esc{bottom:11px!important}.gcf-bottom{height:60px!important}.gcf-bottom nav{height:54px!important}
 }
+
+/* GEM — visible mining module navigator */
+.gcf-module-section{margin:8px 0 10px;padding:10px 0 11px;border-top:1px solid rgba(58,204,225,.18);border-bottom:1px solid rgba(58,204,225,.18)}
+.gcf-module-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.gcf-module-title span{color:#f2c45a;font:800 9px JetBrains Mono,monospace;letter-spacing:.14em}
+.gcf-module-title small{color:#63858d;font:700 7px JetBrains Mono,monospace;letter-spacing:.08em}
+.gcf-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.gcf-module-grid button{min-height:52px;padding:7px 8px;text-align:left;border:1px solid rgba(48,207,231,.18);border-radius:6px;background:linear-gradient(145deg,rgba(6,36,49,.82),rgba(3,19,28,.86));color:#dff5f8;cursor:pointer;display:grid;grid-template-columns:26px 1fr;grid-template-rows:auto auto;column-gap:6px;align-items:center}
+.gcf-module-grid button:hover{border-color:rgba(48,221,244,.52);background:linear-gradient(145deg,rgba(10,61,78,.9),rgba(3,21,31,.9));box-shadow:0 0 14px rgba(39,214,237,.08)}
+.gcf-module-grid button.active{border-color:#2fdcf3;background:linear-gradient(145deg,rgba(12,91,109,.86),rgba(5,34,43,.94));box-shadow:inset 0 0 18px rgba(32,216,240,.08),0 0 12px rgba(32,216,240,.12)}
+.gcf-module-grid b{grid-row:1 / span 2;color:#39def3;font:800 9px JetBrains Mono,monospace;border-right:1px solid rgba(54,205,226,.15);padding-right:5px}
+.gcf-module-grid span{font:800 8px Inter,sans-serif;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcf-module-grid small{color:#6d939c;font:600 6px JetBrains Mono,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1200px){.gcf-module-grid{grid-template-columns:1fr}.gcf-module-grid button{min-height:46px}}
+
