@@ -71,3 +71,55 @@ html[data-product="GEM Mineral Intelligence Center"] #cesiumContainer{filter:sat
 
 .gem-build-marker{font-size:8px!important;letter-spacing:.16em!important;color:rgba(54,232,255,.78)!important;border:1px solid rgba(54,232,255,.24);padding:5px 8px;margin-left:12px;white-space:nowrap}
 @media (max-width:1100px){.gem-build-marker{display:none!important}}
+
+
+/* GEM FUTURE CLASSIC — keep original cockpit functionality, upgrade its visual language. */
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-header,
+html[data-product="GEM Mineral Intelligence Center"] .gem-map-hud,
+html[data-product="GEM Mineral Intelligence Center"] .gem-sources-panel,
+html[data-product="GEM Mineral Intelligence Center"] .gem-target-panel,
+html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence{display:none!important}
+html[data-product="GEM Mineral Intelligence Center"] #title-bar,
+html[data-product="GEM Mineral Intelligence Center"] #style-indicator,
+html[data-product="GEM Mineral Intelligence Center"] #top-center-actions,
+html[data-product="GEM Mineral Intelligence Center"] #left-panel-stack,
+html[data-product="GEM Mineral Intelligence Center"] #right-panel-stack,
+html[data-product="GEM Mineral Intelligence Center"] #right-context-rail,
+html[data-product="GEM Mineral Intelligence Center"] #command-dock,
+html[data-product="GEM Mineral Intelligence Center"] #view-switcher,
+html[data-product="GEM Mineral Intelligence Center"] #cockpit-hud,
+html[data-product="GEM Mineral Intelligence Center"] #intel-hud,
+html[data-product="GEM Mineral Intelligence Center"] #location-bar,
+html[data-product="GEM Mineral Intelligence Center"] #voice-bar,
+html[data-product="GEM Mineral Intelligence Center"] #traffic-sync-chip,
+html[data-product="GEM Mineral Intelligence Center"] #cctv-sync-chip,
+html[data-product="GEM Mineral Intelligence Center"] #loading-screen{display:revert-layer!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+html[data-product="GEM Mineral Intelligence Center"] #safe-frame-overlay{display:none!important}
+html[data-product="GEM Mineral Intelligence Center"] body{background:#020b16!important}
+html[data-product="GEM Mineral Intelligence Center"] #cesiumContainer{filter:saturate(1.03) brightness(.83) contrast(1.08)!important}
+html[data-product="GEM Mineral Intelligence Center"] :is(#title-bar,#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#cockpit-hud,#intel-hud,#location-bar,#voice-bar,#top-center-actions,#view-switcher){
+  font-family:Inter,system-ui,sans-serif;
+  --accent:#48e8ff;--accent-color:#48e8ff;--border-color:rgba(77,219,255,.34);
+}
+html[data-product="GEM Mineral Intelligence Center"] :is(#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#cockpit-hud,#intel-hud) :is(button,[role="button"],input,select){
+  border-radius:10px;
+  transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,transform .22s ease;
+}
+html[data-product="GEM Mineral Intelligence Center"] :is(#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#cockpit-hud,#intel-hud) :is(button,[role="button"]):hover{
+  border-color:rgba(75,235,255,.75)!important;
+  box-shadow:0 0 0 1px rgba(65,220,255,.17),0 0 18px rgba(35,205,245,.19);
+}
+html[data-product="GEM Mineral Intelligence Center"] :is(#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#cockpit-hud,#intel-hud) :is(.panel,.card,.section,.dock-panel){
+  border-color:rgba(62,215,255,.27)!important;
+  background:linear-gradient(145deg,rgba(6,22,36,.92),rgba(3,12,24,.83))!important;
+  box-shadow:0 12px 42px rgba(0,0,0,.42),inset 0 1px rgba(109,230,255,.09);
+  backdrop-filter:blur(22px);
+}
+html[data-product="GEM Mineral Intelligence Center"] #title-bar{
+  background:linear-gradient(90deg,rgba(2,12,27,.96),rgba(7,29,44,.88),rgba(2,12,27,.96))!important;
+  border-bottom:1px solid rgba(75,222,255,.33)!important;
+  box-shadow:0 12px 38px rgba(0,0,0,.35),0 1px 20px rgba(31,205,247,.12)!important;
+  backdrop-filter:blur(22px);
+}
+html[data-product="GEM Mineral Intelligence Center"] :is(#left-panel-stack,#right-panel-stack,#command-dock) button:focus-visible{outline:2px solid #55e9ff;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){html[data-product="GEM Mineral Intelligence Center"] *{transition:none!important;animation:none!important}}
