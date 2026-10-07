@@ -47,7 +47,7 @@ function createPanel(viewer) {
   `;
   const style = document.createElement('style');
   style.textContent = `
-    #gem-ip-cameras{position:absolute;top:90px;right:calc(var(--right-rail-x,52px) + 350px);width:min(900px,calc(100vw - 430px));max-height:calc(100vh - 145px);overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;padding:14px 15px 10px;color:#eaf8fa;background:rgba(3,15,21,.97);border:1px solid rgba(44,220,226,.3);border-radius:11px;box-shadow:0 18px 55px rgba(0,0,0,.58);backdrop-filter:blur(12px);z-index:161;font-family:monospace}
+    #gem-ip-cameras[hidden]{display:none!important}\n    #gem-ip-cameras{position:absolute;top:90px;right:calc(var(--right-rail-x,52px) + 350px);width:min(900px,calc(100vw - 430px));max-height:calc(100vh - 145px);overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;padding:14px 15px 10px;color:#eaf8fa;background:rgba(3,15,21,.97);border:1px solid rgba(44,220,226,.3);border-radius:11px;box-shadow:0 18px 55px rgba(0,0,0,.58);backdrop-filter:blur(12px);z-index:161;font-family:monospace}
     #gem-ip-cameras .gem-ip-header{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px}
     #gem-ip-cameras .gem-ip-kicker{font-size:8px;letter-spacing:.16em;color:#4fe2e8;font-weight:700}
     #gem-ip-cameras .gem-ip-title{font:700 19px system-ui,sans-serif;letter-spacing:.08em;margin-top:3px}
