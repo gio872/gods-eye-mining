@@ -26,4 +26,5 @@ application.start().then(() => {
   }
 });
 
+// GEM main-screen mining modules are wired after the live data catalog is ready.
 export { application };
