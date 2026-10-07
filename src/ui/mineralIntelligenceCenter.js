@@ -116,7 +116,7 @@ function sourcePanel() {
 function targetPanel() {
   const panel = el("aside", "gem-target-panel");
   panel.innerHTML = `
-    <div class="gem-target-head"><div><span class="gem-panel-kicker">TARGET INTELLIGENCE</span><strong>GEM-004281</strong></div><span class="gem-tier tier-1">TIER 1</span></div>
+    <div class="gem-target-head"><div><span class="gem-panel-kicker">TARGET MINING</span><strong>GEM-004281</strong></div><span class="gem-tier tier-1">TIER 1</span></div>
     <div class="gem-target-location">4.6231° S · 72.1885° W <span>•</span> Elevation 1,245 m</div>
     <div class="gem-target-tabs" role="tablist">
       <button class="is-active" data-tab="overview">Overview</button><button data-tab="spectral">Spectral</button><button data-tab="geology">Geology</button><button data-tab="structure">Structure</button><button data-tab="3d">3D View</button>
