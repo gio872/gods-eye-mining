@@ -2,6 +2,8 @@ import { LayerLifecycle } from '../data/lifecycle.js';
 import { LayerPresentation } from './layerPresentation.js';
 import { createCyberSonarScene } from '../cyberSonarScene.js';
 
+const AUTO_ENABLE_ALL_LAYERS = true;
+
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
   scene: { viewer, mapStackController },
@@ -56,6 +58,17 @@ export function createApplicationData({
     });
   }
   presentation.mount(document.getElementById('data-toggles'));
+  if (AUTO_ENABLE_ALL_LAYERS) {
+    queueMicrotask(() => {
+      void dataManager
+        .restoreEnabledLayerIds(catalog.layers.map((layer) => layer.id), {
+          origin: 'startup-all-layers',
+        })
+        .catch((error) => {
+          console.warn('[Data] startup all-layer activation completed with provider failures:', error);
+        });
+    });
+  }
   styleManager.attachDataManager(dataManager);
   defer(createCyberSonarScene(viewer, dataManager));
 
