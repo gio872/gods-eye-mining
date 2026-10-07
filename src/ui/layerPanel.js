@@ -30,6 +30,8 @@ const PANEL_GROUPS = [
     ids: [
       'satellites',
       'flights',
+      'military-awareness',
+      'local-adsb',
     ],
   },
   {
@@ -84,6 +86,8 @@ const PANEL_LABELS = {
   'global-precious-metals': 'Global Precious Metals',
   'global-satellite-mining': 'Satellite Mining Intelligence',
   'local-datacenters': 'Data Centers',
+  'military-awareness': 'Military Awareness',
+  'local-adsb': 'Local ADS-B',
   'local-firms': 'Active Fires',
 };
 
