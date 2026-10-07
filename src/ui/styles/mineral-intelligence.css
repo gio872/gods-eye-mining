@@ -123,3 +123,207 @@ html[data-product="GEM Mineral Intelligence Center"] #title-bar{
 }
 html[data-product="GEM Mineral Intelligence Center"] :is(#left-panel-stack,#right-panel-stack,#command-dock) button:focus-visible{outline:2px solid #55e9ff;outline-offset:2px}
 @media(prefers-reduced-motion:reduce){html[data-product="GEM Mineral Intelligence Center"] *{transition:none!important;animation:none!important}}
+
+
+/* ================================================================
+   GEM FUTURE CLASSIC v2 — functional God's Eye base, redesigned
+   command-center chrome. No legacy controls are removed.
+   ================================================================ */
+html[data-product="GEM Mineral Intelligence Center"]{
+  --gem-ui-cyan:#47e9ff;
+  --gem-ui-cyan-soft:rgba(71,233,255,.18);
+  --gem-ui-gold:#f1bd5a;
+  --gem-ui-panel:rgba(3,14,24,.78);
+  --gem-ui-panel-strong:rgba(4,18,30,.92);
+}
+html[data-product="GEM Mineral Intelligence Center"] body{
+  background:#01070d!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #cesiumContainer{
+  filter:saturate(1.08) brightness(.76) contrast(1.12)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #title-bar{
+  position:fixed!important;
+  z-index:1800!important;
+  top:14px!important;
+  left:18px!important;
+  right:18px!important;
+  width:auto!important;
+  height:58px!important;
+  min-height:58px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  padding:0 16px!important;
+  box-sizing:border-box!important;
+  background:linear-gradient(105deg,rgba(2,12,21,.96),rgba(5,24,36,.88) 55%,rgba(2,10,18,.96))!important;
+  border:1px solid rgba(71,233,255,.30)!important;
+  border-radius:12px!important;
+  box-shadow:0 12px 42px rgba(0,0,0,.48),0 0 30px rgba(37,205,236,.07),inset 0 1px rgba(255,255,255,.07)!important;
+  backdrop-filter:blur(24px) saturate(1.3)!important;
+  transform:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #title-bar .title-glow{
+  position:absolute!important;
+  inset:auto 12% -1px 12%!important;
+  height:1px!important;
+  background:linear-gradient(90deg,transparent,rgba(71,233,255,.85),rgba(241,189,90,.7),transparent)!important;
+  box-shadow:0 0 18px rgba(71,233,255,.45)!important;
+}
+.gem-classic-brand{display:flex;align-items:center;gap:11px;min-width:330px}
+.gem-classic-mark{
+  width:36px;height:36px;display:grid;place-items:center;border:1px solid rgba(241,189,90,.8);
+  border-radius:50%;color:#f1bd5a;font:700 18px JetBrains Mono,monospace;
+  box-shadow:0 0 20px rgba(241,189,90,.12),inset 0 0 12px rgba(241,189,90,.08);
+}
+.gem-classic-wordmark strong{display:block;color:#f1bd5a;font:700 10px/1 JetBrains Mono,monospace;letter-spacing:.27em}
+.gem-classic-wordmark b{display:block;color:#e9fbff;font:700 15px/1.15 Inter,system-ui,sans-serif;letter-spacing:.09em;margin-top:3px}
+.gem-classic-wordmark small{display:block;color:rgba(131,188,200,.58);font:500 6px/1.3 JetBrains Mono,monospace;letter-spacing:.13em;margin-top:3px}
+.gem-classic-status{display:flex;align-items:center;gap:8px;color:rgba(191,229,236,.62);font:600 7px JetBrains Mono,monospace;letter-spacing:.12em}
+.gem-classic-status i{width:1px;height:16px;background:rgba(71,233,255,.22)}
+.gem-status-dot{width:7px;height:7px;border-radius:50%;background:#20e0a0;box-shadow:0 0 12px #20e0a0}
+
+/* Data / context panels become glass intelligence modules. */
+html[data-product="GEM Mineral Intelligence Center"] #left-panel-stack,
+html[data-product="GEM Mineral Intelligence Center"] #right-panel-stack,
+html[data-product="GEM Mineral Intelligence Center"] #right-context-rail{
+  filter:none!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #left-panel-stack .panel-collapsible,
+html[data-product="GEM Mineral Intelligence Center"] #right-panel-stack .panel-collapsible,
+html[data-product="GEM Mineral Intelligence Center"] #right-context-rail .panel-collapsible{
+  background:linear-gradient(145deg,rgba(3,19,31,.91),rgba(2,9,17,.82))!important;
+  border:1px solid rgba(71,233,255,.25)!important;
+  border-radius:12px!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.50),inset 0 1px rgba(145,238,255,.08),0 0 25px rgba(25,203,232,.035)!important;
+  backdrop-filter:blur(20px)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .panel-header,
+html[data-product="GEM Mineral Intelligence Center"] .pp-header-row{
+  min-height:34px!important;
+  padding:0 10px!important;
+  background:linear-gradient(90deg,rgba(10,42,55,.38),transparent)!important;
+  border-bottom:1px solid rgba(71,233,255,.13)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .panel-title,
+html[data-product="GEM Mineral Intelligence Center"] .pp-header-label{
+  color:#65eaff!important;
+  font:700 8px JetBrains Mono,monospace!important;
+  letter-spacing:.19em!important;
+  text-shadow:0 0 12px rgba(71,233,255,.25);
+}
+html[data-product="GEM Mineral Intelligence Center"] .panel-divider{
+  background:linear-gradient(90deg,rgba(71,233,255,.32),transparent)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .panel-collapse-btn{
+  color:#65eaff!important;
+  border:1px solid rgba(71,233,255,.24)!important;
+  background:rgba(7,35,48,.62)!important;
+  border-radius:6px!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #data-toggles .data-toggle,
+html[data-product="GEM Mineral Intelligence Center"] #data-toggles button,
+html[data-product="GEM Mineral Intelligence Center"] .scene-btn,
+html[data-product="GEM Mineral Intelligence Center"] .pp-toggle-btn,
+html[data-product="GEM Mineral Intelligence Center"] .context-mode-button{
+  border-color:rgba(71,233,255,.18)!important;
+  background:linear-gradient(100deg,rgba(7,35,49,.68),rgba(3,17,27,.58))!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #data-toggles button:hover,
+html[data-product="GEM Mineral Intelligence Center"] .scene-btn:hover,
+html[data-product="GEM Mineral Intelligence Center"] .pp-toggle-btn:hover,
+html[data-product="GEM Mineral Intelligence Center"] .context-mode-button:hover{
+  border-color:rgba(71,233,255,.72)!important;
+  box-shadow:0 0 18px rgba(71,233,255,.12),inset 0 0 16px rgba(71,233,255,.05)!important;
+  transform:translateY(-1px);
+}
+html[data-product="GEM Mineral Intelligence Center"] #pp-toggles,
+html[data-product="GEM Mineral Intelligence Center"] #global-context-panel{
+  border-color:rgba(71,233,255,.30)!important;
+}
+
+/* Top camera controls become a compact orbital command ring. */
+html[data-product="GEM Mineral Intelligence Center"] #top-center-actions{
+  z-index:1900!important;
+  top:18px!important;
+  transform:translateX(-50%)!important;
+  gap:5px!important;
+  padding:4px!important;
+  border:1px solid rgba(71,233,255,.22)!important;
+  border-radius:12px!important;
+  background:rgba(2,14,23,.72)!important;
+  box-shadow:0 8px 30px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.06)!important;
+  backdrop-filter:blur(18px)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #top-center-actions button{
+  width:34px!important;height:34px!important;
+  border-radius:9px!important;
+  border:1px solid rgba(71,233,255,.18)!important;
+  background:rgba(6,31,43,.72)!important;
+  color:#9debf4!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #top-center-actions button:hover{
+  border-color:rgba(71,233,255,.75)!important;
+  color:#fff!important;
+  box-shadow:0 0 20px rgba(71,233,255,.18)!important;
+}
+
+/* Bottom command dock: three independent functional trays, visually unified. */
+html[data-product="GEM Mineral Intelligence Center"] #command-dock{
+  z-index:1800!important;
+  gap:8px!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #command-dock > *{
+  border:1px solid rgba(71,233,255,.22)!important;
+  border-radius:11px!important;
+  background:linear-gradient(145deg,rgba(4,24,36,.91),rgba(2,12,21,.82))!important;
+  box-shadow:0 14px 38px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.06)!important;
+  backdrop-filter:blur(20px)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .panel-title,
+html[data-product="GEM Mineral Intelligence Center"] .location-toolbar-label{
+  text-shadow:0 0 10px rgba(71,233,255,.18);
+}
+
+/* Tactical telemetry gets a cleaner intelligence readout instead of competing
+   with the map. */
+html[data-product="GEM Mineral Intelligence Center"] #style-indicator{
+  z-index:1700!important;
+  top:88px!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  padding:6px 12px!important;
+  border:1px solid rgba(71,233,255,.18)!important;
+  border-radius:8px!important;
+  background:rgba(2,12,20,.68)!important;
+  backdrop-filter:blur(14px)!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #style-indicator .indicator-label{
+  color:rgba(129,188,200,.55)!important;
+  font-size:6px!important;
+  letter-spacing:.14em!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] #style-indicator .indicator-value{
+  color:#65eaff!important;
+  text-shadow:0 0 12px rgba(71,233,255,.25);
+}
+
+/* Subtle scanline / edge telemetry makes the map read as a live intelligence
+   surface without changing Cesium or its controls. */
+html[data-product="GEM Mineral Intelligence Center"] #cesiumContainer::after{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,rgba(71,233,255,.018) 50%,transparent 100%);
+  mix-blend-mode:screen;
+}
+@media(max-width:900px){
+  .gem-classic-brand{min-width:0}
+  .gem-classic-wordmark small,.gem-classic-status span:not(.gem-status-dot){display:none}
+  .gem-classic-wordmark b{font-size:11px}
+  html[data-product="GEM Mineral Intelligence Center"] #title-bar{left:8px!important;right:8px!important;top:8px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .gem-classic-status .gem-status-dot{box-shadow:none}
+}
