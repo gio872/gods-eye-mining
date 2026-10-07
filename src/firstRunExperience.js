@@ -359,6 +359,22 @@ export function initFirstRunExperience({
   if (environmentalTitle)
     environmentalTitle.textContent = environmentalLabel().title;
 
+  const gemEntry = root.querySelector('[data-first-run-gem]');
+  gemEntry?.addEventListener('click', () => {
+    if (busy || closing) return;
+    // The map keeps running underneath: this is a presentation switch, not a
+    // second application or a reload.
+    documentRef.documentElement.dataset.gemExperience = 'center';
+    documentRef.querySelectorAll('.gem-command-header,.gem-map-hud,.gem-sources-panel,.gem-target-panel,.gem-bottom-intelligence')
+      .forEach((node) => {
+        node.style.setProperty('display', node.classList.contains('gem-command-header') ? 'flex' : 'block', 'important');
+        node.style.setProperty('visibility', 'visible', 'important');
+        node.style.setProperty('opacity', '1', 'important');
+        node.style.setProperty('pointer-events', 'auto', 'important');
+      });
+    dismiss({ restoreFocus: false });
+  });
+
   const status = root.querySelector('[data-first-run-status]');
   const suppressBox = root.querySelector('[data-first-run-suppress]');
   const buttons = [...root.querySelectorAll('[data-first-run-choice]')];
