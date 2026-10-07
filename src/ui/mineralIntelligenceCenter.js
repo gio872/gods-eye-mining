@@ -439,28 +439,7 @@ function forceGemCommandCenter() {
       </div>
     </main>
 
-    <section class="gcf-analytics-deck" aria-label="Mining analytics">
-      <article><header><b>⌬</b><span>GEOLOGY</span></header><div class="gcf-mini-map geology"></div><small>Lithology · Faults · Lineaments · Alteration</small></article>
-      <article><header><b>⌁</b><span>GEOPHYSICS</span></header><div class="gcf-mini-map geophysics"></div><small>Magnetics · Gravity · Radiometrics · EM</small></article>
-      <article><header><b>◈</b><span>GEOCHEMISTRY</span></header><div class="gcf-mini-map geochemistry"></div><small>Au · Cu · Mo · Ag · REE · Multi-element</small></article>
-      <article><header><b>◌</b><span>SPECTRAL</span></header><div class="gcf-mini-map spectral"></div><small>Clay minerals · Iron oxides · Alteration</small></article>
-      <article><header><b>◎</b><span>TARGETING</span></header><div class="gcf-mini-map targeting"></div><small>AI targets · Prospectivity · Ranking</small></article>
-      <article><header><b>▱</b><span>RESOURCES</span></header><div class="gcf-mini-map resources"></div><small>3D model · Grade · Tonnage · Scenario</small></article>
-      <article><header><b>△</b><span>DRILLING</span></header><div class="gcf-mini-map drilling"></div><small>Planned holes · Target zones · Assays</small></article>
-      <article><header><b>▥</b><span>ECONOMICS</span></header><div class="gcf-mini-chart"></div><small>NPV · IRR · OPEX · CAPEX · Payback</small></article>
-    </section>
 
-    <footer class="gcf-bottom">
-      <div class="gcf-location"><span>⌖ LOCATION</span><b>30°16'01.92"N · 097°44'35.16"W</b><small>Elev: 142 m</small></div>
-      <nav>
-        <button type="button">⌂<span>BASEMAP</span></button>
-        <button type="button" class="active">♩<span>VOICE</span></button>
-        <button type="button">◷<span>TIME</span></button>
-        <button type="button">∕<span>MEASURE</span></button>
-        <button type="button">▣<span>SCREENSHOT</span></button>
-      </nav>
-      <div class="gcf-location cursor"><span>COORDINATES (CURSOR)</span><b>30°16'02.10"N · 097°44'28.73"W</b><small>Elev: 138 m</small></div>
-    </footer>
   `;
   document.body.append(shell);
 
@@ -481,7 +460,6 @@ function forceGemCommandCenter() {
     btn.classList.add("active");
     showToast(btn.textContent.trim());
   }));
-  shell.querySelectorAll(".gcf-analytics-deck article").forEach((card) => card.addEventListener("click", () => showToast(card.querySelector("span")?.textContent?.trim() + " · ANALYSIS")));
   shell.querySelector(".gcf-generate-targets")?.addEventListener("click", () => showToast("GEM AI · GENERATING TARGETS"));
   shell.querySelector(".gcf-top-targets .gcf-section-row button")?.addEventListener("click", () => showToast("TOP TARGETS · OPENING"));
   shell.querySelectorAll(".gcf-header nav button").forEach((btn) => btn.addEventListener("click", () => {
@@ -489,7 +467,7 @@ function forceGemCommandCenter() {
     btn.classList.add("active");
     showToast(btn.textContent.trim());
   }));
-  shell.querySelectorAll(".gcf-right > button,.gcf-views button,.gcf-bottom nav button").forEach((btn) => btn.addEventListener("click", () => showToast(btn.textContent.replace(/\s+/g," ").trim())));
+  shell.querySelectorAll(".gcf-right > button,.gcf-views button").forEach((btn) => btn.addEventListener("click", () => showToast(btn.textContent.replace(/\s+/g," ").trim())));
   shell.querySelectorAll("[data-gem-module]").forEach((btn) => btn.addEventListener("click", () => {
     shell.querySelectorAll("[data-gem-module]").forEach((x) => x.classList.remove("active"));
     btn.classList.add("active");
