@@ -114,34 +114,91 @@ function sourcePanel() {
 }
 
 function targetPanel() {
-  const panel = el("aside", "gem-target-panel");
+  const panel = el("aside", "gem-target-panel gem-mining-panel");
   panel.innerHTML = `
-    <div class="gem-target-head"><div><span class="gem-panel-kicker">TARGET INTELLIGENCE</span><strong>GEM-004281</strong></div><span class="gem-tier tier-1">TIER 1</span></div>
-    <div class="gem-target-location">4.6231° S · 72.1885° W <span>•</span> Elevation 1,245 m</div>
-    <div class="gem-target-tabs" role="tablist">
-      <button class="is-active" data-tab="overview">Overview</button><button data-tab="spectral">Spectral</button><button data-tab="geology">Geology</button><button data-tab="structure">Structure</button><button data-tab="3d">3D View</button>
+    <div class="gem-target-head">
+      <div><span class="gem-panel-kicker">MINING INTELLIGENCE</span><strong>TERRAQUEEN MINING</strong></div>
+      <span class="gem-tier tier-1">GEM CORE</span>
     </div>
-    <div class="gem-score-wrap"><div class="gem-score-ring"><span>94.7</span><small>/ 100</small></div><div><div class="gem-label">MINERAL INTELLIGENCE SCORE</div><div class="gem-score-bar"><i></i></div><strong class="gem-high">VERY HIGH POTENTIAL</strong></div></div>
-    <div class="gem-minerals"><span>Au <b>96%</b></span><span>Cu <b>81%</b></span><span>Mo <b>67%</b></span><span>Ag <b>54%</b></span></div>
-    <div class="gem-confidence"><span>CONFIDENCE</span><b>HIGH · 94%</b></div>
-    <div class="gem-evidence"><div class="gem-section-title">EVIDENCE CONVERGENCE</div></div>
-    <div class="gem-action"><div><span class="gem-section-title">RECOMMENDED ACTION</span><strong>FIELD VALIDATION</strong><small>High-priority target for detailed exploration.</small></div><span class="gem-action-arrow">›</span></div>
-    <div class="gem-target-actions"><button data-action="open">OPEN TARGET</button><button data-action="3d">3D ANALYSIS</button><button data-action="report">GENERATE REPORT</button></div>
+    <div class="gem-target-location">GLOBAL MINING WORKSPACE <span>•</span> MULTI-SENSOR ANALYSIS</div>
+
+    <div class="gem-target-tabs gem-mining-tabs" role="tablist">
+      <button class="is-active" data-tab="overview">Overview</button>
+      <button data-tab="geology">Geology</button>
+      <button data-tab="geophysics">Geophysics</button>
+      <button data-tab="geochemistry">Geochemistry</button>
+      <button data-tab="spectral">Spectral</button>
+      <button data-tab="resources">Resources</button>
+    </div>
+
+    <section class="gem-mining-command">
+      <div class="gem-section-title">MINING MODULES</div>
+      <div class="gem-mining-module-grid">
+        <button data-mining-module="exploration"><b>01</b><span>EXPLORATION</span><small>Regional screening</small></button>
+        <button data-mining-module="geology"><b>02</b><span>GEOLOGY</span><small>Lithology · structures</small></button>
+        <button data-mining-module="geophysics"><b>03</b><span>GEOPHYSICS</span><small>Subsurface · anomalies</small></button>
+        <button data-mining-module="geochemistry"><b>04</b><span>GEOCHEMISTRY</span><small>Pathfinders · soil</small></button>
+        <button data-mining-module="spectral"><b>05</b><span>SPECTRAL</span><small>EMIT · EnMAP · S2</small></button>
+        <button data-mining-module="targets"><b>06</b><span>AI TARGETS</span><small>Prospectivity engine</small></button>
+        <button data-mining-module="resources"><b>07</b><span>RESOURCES</span><small>Grade · volume</small></button>
+        <button data-mining-module="planning"><b>08</b><span>MINE PLANNING</span><small>Access · scenarios</small></button>
+        <button data-mining-module="environment"><b>09</b><span>ENVIRONMENT</span><small>Water · land · ESG</small></button>
+        <button data-mining-module="concessions"><b>10</b><span>CONCESSIONS</span><small>Titles · boundaries</small></button>
+      </div>
+    </section>
+
+    <section class="gem-mining-stats">
+      <div><span>COMMODITY</span><b>Au · Cu · Mo · Ag</b></div>
+      <div><span>PROSPECTIVITY</span><b>94.7 / 100</b></div>
+      <div><span>CONFIDENCE</span><b>HIGH · 94%</b></div>
+      <div><span>ACTIVE SENSORS</span><b>S2 · EMIT · EnMAP</b></div>
+    </section>
+
+    <section class="gem-mining-evidence">
+      <div class="gem-section-title">MINING EVIDENCE CONVERGENCE</div>
+      <div class="gem-evidence-row"><span>Geological compatibility</span><i><b style="width:95%"></b></i><em>95%</em></div>
+      <div class="gem-evidence-row"><span>Geophysical response</span><i><b style="width:91%"></b></i><em>91%</em></div>
+      <div class="gem-evidence-row"><span>Geochemical support</span><i><b style="width:82%"></b></i><em>82%</em></div>
+      <div class="gem-evidence-row"><span>Spectral alteration</span><i><b style="width:96%"></b></i><em>96%</em></div>
+      <div class="gem-evidence-row"><span>AI target confidence</span><i><b style="width:94%"></b></i><em>94%</em></div>
+    </section>
+
+    <section class="gem-mining-targets">
+      <div class="gem-section-title">TARGET QUEUE</div>
+      <div class="gem-mining-target-row"><b>GEM-004281</b><span>TIER 1</span><em>94.7</em></div>
+      <div class="gem-mining-target-row"><b>GEM-004279</b><span>TIER 2</span><em>88.3</em></div>
+      <div class="gem-mining-target-row"><b>GEM-004266</b><span>TIER 2</span><em>84.9</em></div>
+    </section>
+
+    <div class="gem-action">
+      <div><span class="gem-section-title">NEXT MINING ACTION</span><strong>FIELD VALIDATION</strong><small>Prioritize geological, geochemical and spectral validation.</small></div>
+      <span class="gem-action-arrow">›</span>
+    </div>
+
+    <div class="gem-target-actions">
+      <button data-action="analysis">RUN MINING ANALYSIS</button>
+      <button data-action="target">OPEN TARGET</button>
+      <button data-action="report">MINING REPORT</button>
+    </div>
   `;
-  const evidence = [
-    ["Spectral signature (EMIT / EnMAP)",96],["Hydrothermal alteration",93],["Structural setting",91],["Geological compatibility",95],["Sentinel-2 agreement",97],["Geochemical support",82],["AI model confidence",94]
-  ];
-  const list = panel.querySelector(".gem-evidence");
-  evidence.forEach(([label,value]) => {
-    const row=el("div","gem-evidence-row");
-    row.innerHTML=`<span>${label}</span><i><b style="width:${value}%"></b></i><em>${value}%</em>`;
-    list.append(row);
-  });
+
   panel.querySelectorAll(".gem-target-tabs button").forEach(btn=>{
     btn.addEventListener("click",()=>{
       panel.querySelectorAll(".gem-target-tabs button").forEach(x=>x.classList.remove("is-active"));
       btn.classList.add("is-active");
-      document.dispatchEvent(new CustomEvent("gem:target-tab",{detail:{tab:btn.dataset.tab}}));
+      document.dispatchEvent(new CustomEvent("gem:mining-tab",{detail:{tab:btn.dataset.tab}}));
+      showToast("MINING · "+btn.textContent.trim());
+    });
+  });
+  panel.querySelectorAll("[data-mining-module]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      panel.querySelectorAll("[data-mining-module]").forEach(x=>x.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      document.dispatchEvent(new CustomEvent("gem:mining-module",{detail:{
+        module:btn.dataset.miningModule,
+        label:btn.querySelector("span")?.textContent?.trim()||"MINING MODULE"
+      }}));
+      showToast((btn.querySelector("span")?.textContent||"MINING")+" · ACTIVATING");
     });
   });
   panel.querySelectorAll(".gem-target-actions button").forEach(btn=>btn.addEventListener("click",()=>showToast(btn.textContent)));
