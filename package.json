@@ -292,6 +292,7 @@
     "./mining/sources/spectral-minerals": "./src/mining/sources/spectralMineralSource.js",
     "./server/providers/emit-enmap": {
       "node": "./server/providers/emitEnmap.js"
-    }
+    },
+    "./mining/sources/spectral-mineral": "./src/mining/sources/spectralMineralSource.js"
   }
 }
