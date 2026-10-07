@@ -214,14 +214,33 @@ function runAnalysis(button){
 
 export function installMineralIntelligenceCenter(){
   const install=()=>{
-    if(document.querySelector(".gem-command-header")) return;
     document.body.classList.add("gem-mineral-center");
     document.documentElement.dataset.gemCenterInstalled="true";
-    document.body.append(topHeader());
-    document.body.append(mapHud());
-    document.body.append(sourcePanel());
-    document.body.append(targetPanel());
-    document.body.append(bottomIntelligence());
+    // Static scene chrome owns the GEM shell. Runtime mounting remains as a
+    // fallback for alternate hosts, but never duplicates the static shell.
+    if(!document.querySelector(".gem-command-header")){
+      document.body.append(topHeader());
+      document.body.append(mapHud());
+      document.body.append(sourcePanel());
+      document.body.append(targetPanel());
+      document.body.append(bottomIntelligence());
+    }
+    // Hard-disable the legacy God's Eye cockpit chrome in GEM mode. This is
+    // deliberate: GEM is a replacement command center, not an overlay toggle.
+    const legacySelectors=[
+      "#title-bar","#style-indicator","#top-center-actions","#left-panel-stack",
+      "#right-panel-stack","#right-context-rail","#command-dock","#view-switcher",
+      "#cockpit-hud","#intel-hud","#location-bar","#voice-bar","#traffic-sync-chip",
+      "#cctv-sync-chip","#safe-frame-overlay","#loading-screen"
+    ];
+    legacySelectors.forEach(selector=>{
+      document.querySelectorAll(selector).forEach(node=>{
+        node.setAttribute("aria-hidden","true");
+        node.style.setProperty("display","none","important");
+        node.style.setProperty("visibility","hidden","important");
+        node.style.setProperty("pointer-events","none","important");
+      });
+    });
   };
   if(document.body) install();
   else document.addEventListener("DOMContentLoaded",install,{once:true});
