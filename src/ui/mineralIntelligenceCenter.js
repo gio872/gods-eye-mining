@@ -298,11 +298,17 @@ function forceGemCommandCenter() {
         </div>
       </div>
       <nav aria-label="GEM navigation">
-        <button class="active" type="button"><span class="gcf-nav-icon">◉</span><span>EXPLORE</span></button>
-        <button type="button"><span class="gcf-nav-icon">⌁</span><span>ANALYZE</span></button>
-        <button type="button"><span class="gcf-nav-icon">◎</span><span>TARGETS</span></button>
-        <button type="button"><span class="gcf-nav-icon">▱</span><span>LAYERS</span></button>
-        <button type="button"><span class="gcf-nav-icon">◈</span><span>AI</span></button>
+        <button class="active" type="button"><span class="gcf-nav-icon">◎</span><span>GLOBAL VIEW</span></button>
+        <button type="button"><span class="gcf-nav-icon">⌬</span><span>GEOLOGY</span></button>
+        <button type="button"><span class="gcf-nav-icon">⌁</span><span>GEOPHYSICS</span></button>
+        <button type="button"><span class="gcf-nav-icon">◈</span><span>GEOCHEMISTRY</span></button>
+        <button type="button"><span class="gcf-nav-icon">◌</span><span>SPECTRAL</span></button>
+        <button type="button"><span class="gcf-nav-icon">◎</span><span>TARGETING</span></button>
+        <button type="button"><span class="gcf-nav-icon">▱</span><span>RESOURCES</span></button>
+        <button type="button"><span class="gcf-nav-icon">△</span><span>DRILLING</span></button>
+        <button type="button"><span class="gcf-nav-icon">✦</span><span>ESG &amp; RISKS</span></button>
+        <button type="button"><span class="gcf-nav-icon">▥</span><span>ECONOMICS</span></button>
+        <button type="button"><span class="gcf-nav-icon">◈</span><span>AI ASSISTANT</span></button>
         <button type="button"><span class="gcf-nav-icon">▣</span><span>REPORTS</span></button>
       </nav>
       <div class="gcf-status"><i></i><strong>GEM CORE ONLINE</strong><small>MINING ANALYTICS WORKSPACE</small></div>
