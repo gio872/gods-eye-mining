@@ -466,3 +466,8 @@ html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel::before{
   html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence{left:285px!important;right:10px!important}
   html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel{width:calc(100vw - 40px)!important;min-width:0!important}
 }
+
+/* GEM owns the first-launch presentation. The legacy mission launcher remains in the DOM for compatibility but never covers the command center. */
+html[data-product="GEM Mineral Intelligence Center"] #first-run-launcher{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important}
+html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel.is-launching{animation:gemLaunchFade .55s ease forwards}
+@keyframes gemLaunchFade{to{opacity:0;transform:translate(-50%,-54%) scale(.985);visibility:hidden}}
