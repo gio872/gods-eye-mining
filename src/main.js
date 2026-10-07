@@ -2,6 +2,7 @@ import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter.js';
 import { installGemMiningModules } from './ui/gemMiningModules.js';
+import { flyToGlobeView } from './locations.js';
 
 installMineralIntelligenceCenter();
 
@@ -15,6 +16,16 @@ application.start().then((components) => {
   const dataManager = components?.data?.dataManager;
   installMineralIntelligenceCenter({ dataManager });
   if (dataManager) installGemMiningModules(dataManager);
+  const viewer = components?.scene?.viewer;
+  if (viewer) {
+    window.requestAnimationFrame(() => {
+      try {
+        flyToGlobeView(viewer, { duration: 2.4 });
+      } catch (error) {
+        console.warn('[GEM] Global startup view unavailable:', error);
+      }
+    });
+  }
 }).catch((error) => {
   console.error("God's Eye View initialization failed:", error);
   installMineralIntelligenceCenter();
