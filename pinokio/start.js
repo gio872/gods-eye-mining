@@ -26,7 +26,7 @@ module.exports = {
         },
         // Always run the exact published GEM core revision used by Pinokio Update.\n        message: 'git fetch origin gem-core && git reset --hard origin/gem-core && node scripts/pinokio-start.mjs',
         on: [{
-          event: '/\\[Pinokio\\] Ready at (http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\/)/',
+          event: '/\\[Pinokio\\] Ready at http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\//',
           done: true,
         }],
       },
@@ -36,7 +36,7 @@ module.exports = {
       // pinned to a different sentinel so local.set cannot trigger sharing.
       method: 'local.set',
       params: {
-        url: '{{input.event[1]}}',
+        url: 'http://127.0.0.1:{{port}}/',
       },
     },
   ],
