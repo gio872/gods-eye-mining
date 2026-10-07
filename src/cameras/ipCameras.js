@@ -109,9 +109,22 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
   const closePanel = () => {
     enabled = false;
     stopEvents();
-    for (const id of hls.keys()) stopHls(id);
-    if (panel) panel.hidden = true;
-    dataManager?.setEnabled?.('ip-cameras', false, { origin: 'user' });
+    for (const id of [...hls.keys()]) stopHls(id);
+    if (panel) {
+      panel.hidden = true;
+      panel.style.display = 'none';
+      panel.setAttribute('aria-hidden', 'true');
+    }
+    try {
+      dataManager?.setEnabled?.('ip-cameras', false, { origin: 'user' });
+    } catch {}
+    setTimeout(() => {
+      if (!enabled && panel) {
+        panel.hidden = true;
+        panel.style.display = 'none';
+        panel.setAttribute('aria-hidden', 'true');
+      }
+    }, 0);
   };
   const setMessage = (message, error = false) => {
     const el = panel?.querySelector('.gem-ip-message');
@@ -516,11 +529,25 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
         form.reset();
         form.hidden = true;
       };
-      panel.querySelector('.gem-ip-close').onclick = (event) => {
+      const closeButton = panel.querySelector('.gem-ip-close');
+      const closeFromUser = (event) => {
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation?.();
         closePanel();
       };
+      closeButton.addEventListener('pointerdown', closeFromUser, { capture: true });
+      closeButton.addEventListener('click', closeFromUser, { capture: true });
+      closeButton.setAttribute('type', 'button');
+      closeButton.setAttribute('aria-label', 'Cerrar control de cámaras IP');
+      closeButton.setAttribute('title', 'Cerrar');
+      const onEscape = (event) => {
+        if (event.key === 'Escape' && panel && !panel.hidden) {
+          closePanel();
+        }
+      };
+      document.addEventListener('keydown', onEscape);
+      panel.__gemIpCloseCleanup = () => document.removeEventListener('keydown', onEscape);
       panel.querySelector('.gem-ip-form').onsubmit = async (event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
@@ -539,15 +566,23 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
     enable(nextViewer) {
       viewer = nextViewer || viewer;
       enabled = true;
-      if (panel) panel.hidden = false;
+      if (panel) {
+        panel.hidden = false;
+        panel.style.display = 'flex';
+        panel.setAttribute('aria-hidden', 'false');
+      }
       void refresh();
       return true;
     },
     disable() {
       enabled = false;
       stopEvents();
-      for (const id of hls.keys()) stopHls(id);
-      if (panel) panel.hidden = true;
+      for (const id of [...hls.keys()]) stopHls(id);
+      if (panel) {
+        panel.hidden = true;
+        panel.style.display = 'none';
+        panel.setAttribute('aria-hidden', 'true');
+      }
       return true;
     },
     async update() {
@@ -563,6 +598,7 @@ export function createIpCamerasLayer({ source = createIpCameraSource() } = {}) {
       entities.clear();
       onvifDiscovery?.destroy?.();
       onvifDiscovery = null;
+      panel?.__gemIpCloseCleanup?.();
       panel?.remove();
       panel = null;
       viewer = null;
