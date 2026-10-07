@@ -309,6 +309,22 @@ function forceGemCommandCenter() {
       <time>LIVE · MULTI-SENSOR<br><b>2026-10-07 04:07:28Z</b><br><small>ORB: 4769 · PASS: DESC-117</small></time>
     </header>
 
+    <aside class="gcf-nav-rail" aria-label="Mining intelligence navigation">
+      <button class="active" type="button"><b>◎</b><span>GLOBAL VIEW</span></button>
+      <button type="button"><b>◇</b><span>PROJECTS</span></button>
+      <button type="button"><b>⌬</b><span>GEOLOGY</span></button>
+      <button type="button"><b>⌁</b><span>GEOPHYSICS</span></button>
+      <button type="button"><b>◈</b><span>GEOCHEMISTRY</span></button>
+      <button type="button"><b>◌</b><span>SPECTRAL</span></button>
+      <button type="button"><b>◎</b><span>TARGETING</span></button>
+      <button type="button"><b>▱</b><span>RESOURCES</span></button>
+      <button type="button"><b>△</b><span>DRILLING</span></button>
+      <button type="button"><b>✦</b><span>ESG & RISKS</span></button>
+      <button type="button"><b>▥</b><span>ECONOMICS</span></button>
+      <button type="button"><b>◈</b><span>AI ASSISTANT</span></button>
+      <button type="button"><b>▣</b><span>REPORTS</span></button>
+    </aside>
+
     <aside class="gcf-left">
       <div class="gcf-panel-head"><h3>DATA LAYERS</h3><button type="button" aria-label="Collapse data layers">⌃</button></div>
       <div class="gcf-tabs"><b>MINERAL</b><span>GEOSCIENCE</span><span>ENVIRONMENT</span><span>INFRASTRUCTURE</span></div>
@@ -336,6 +352,20 @@ function forceGemCommandCenter() {
       <button type="button">⌁ <span>Geological Interpretation</span><b>›</b></button>
       <button type="button">◍ <span>Change Detection</span><b>›</b></button>
       <button type="button">⇩ <span>Export & Reports</span><b>›</b></button>
+      <section class="gcf-ai-target-box">
+        <div class="gcf-ai-title"><span>AI</span><strong>AI TARGET GENERATION</strong></div>
+        <label>TARGET TYPE<select><option>All Commodities</option><option>Gold · Au</option><option>Copper · Cu</option><option>REE</option></select></label>
+        <label>MODEL<select><option>Multi-Source AI · GEM</option><option>Geology + Geophysics</option><option>Spectral Fusion</option></select></label>
+        <button type="button" class="gcf-generate-targets">✦ GENERATE TARGETS</button>
+        <div class="gcf-target-summary"><strong>1,248</strong><span>TARGETS IDENTIFIED</span><i>Very High 15% · High 32% · Moderate 38% · Low 15%</i></div>
+      </section>
+      <section class="gcf-top-targets">
+        <div class="gcf-section-row"><h3>TOP TARGETS</h3><button type="button">VIEW ALL</button></div>
+        <div class="gcf-top-target-row"><b>T-001</b><span>Porphyry</span><em>Cu-Au</em><strong>0.92</strong></div>
+        <div class="gcf-top-target-row"><b>T-002</b><span>Epitermal</span><em>Au-Ag</em><strong>0.88</strong></div>
+        <div class="gcf-top-target-row"><b>T-003</b><span>VMS</span><em>Cu-Zn</em><strong>0.85</strong></div>
+        <div class="gcf-top-target-row"><b>T-004</b><span>Ni-Cu-Co</span><em>Ni-Cu-Co</em><strong>0.80</strong></div>
+      </section>
       <h3>CONTEXT</h3>
       <button type="button">▣ <span>CCTV / Live Feeds</span><b class="count">3</b></button>
       <button type="button">◇ <span>External Maps</span><b class="count">4</b></button>
@@ -403,6 +433,17 @@ function forceGemCommandCenter() {
       </div>
     </main>
 
+    <section class="gcf-analytics-deck" aria-label="Mining analytics">
+      <article><header><b>⌬</b><span>GEOLOGY</span></header><div class="gcf-mini-map geology"></div><small>Lithology · Faults · Lineaments · Alteration</small></article>
+      <article><header><b>⌁</b><span>GEOPHYSICS</span></header><div class="gcf-mini-map geophysics"></div><small>Magnetics · Gravity · Radiometrics · EM</small></article>
+      <article><header><b>◈</b><span>GEOCHEMISTRY</span></header><div class="gcf-mini-map geochemistry"></div><small>Au · Cu · Mo · Ag · REE · Multi-element</small></article>
+      <article><header><b>◌</b><span>SPECTRAL</span></header><div class="gcf-mini-map spectral"></div><small>Clay minerals · Iron oxides · Alteration</small></article>
+      <article><header><b>◎</b><span>TARGETING</span></header><div class="gcf-mini-map targeting"></div><small>AI targets · Prospectivity · Ranking</small></article>
+      <article><header><b>▱</b><span>RESOURCES</span></header><div class="gcf-mini-map resources"></div><small>3D model · Grade · Tonnage · Scenario</small></article>
+      <article><header><b>△</b><span>DRILLING</span></header><div class="gcf-mini-map drilling"></div><small>Planned holes · Target zones · Assays</small></article>
+      <article><header><b>▥</b><span>ECONOMICS</span></header><div class="gcf-mini-chart"></div><small>NPV · IRR · OPEX · CAPEX · Payback</small></article>
+    </section>
+
     <footer class="gcf-bottom">
       <div class="gcf-location"><span>⌖ LOCATION</span><b>30°16'01.92"N · 097°44'35.16"W</b><small>Elev: 142 m</small></div>
       <nav>
@@ -429,6 +470,14 @@ function forceGemCommandCenter() {
     });
   });
 
+  shell.querySelectorAll(".gcf-nav-rail button").forEach((btn) => btn.addEventListener("click", () => {
+    shell.querySelectorAll(".gcf-nav-rail button").forEach((x) => x.classList.remove("active"));
+    btn.classList.add("active");
+    showToast(btn.textContent.trim());
+  }));
+  shell.querySelectorAll(".gcf-analytics-deck article").forEach((card) => card.addEventListener("click", () => showToast(card.querySelector("span")?.textContent?.trim() + " · ANALYSIS")));
+  shell.querySelector(".gcf-generate-targets")?.addEventListener("click", () => showToast("GEM AI · GENERATING TARGETS"));
+  shell.querySelector(".gcf-top-targets .gcf-section-row button")?.addEventListener("click", () => showToast("TOP TARGETS · OPENING"));
   shell.querySelectorAll(".gcf-header nav button").forEach((btn) => btn.addEventListener("click", () => {
     shell.querySelectorAll(".gcf-header nav button").forEach((x) => x.classList.remove("active"));
     btn.classList.add("active");
