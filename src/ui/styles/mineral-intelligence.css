@@ -807,3 +807,21 @@ html[data-product="GEM Mineral Intelligence Center"] .gem-bottom-intelligence{di
   .gcf-analytics-deck{left:255px!important;right:8px!important}.gcf-analytics-deck{grid-template-columns:repeat(2,1fr)!important}
 }
 
+/* GEM map interaction: the fullscreen shell must not intercept Cesium input. */
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-center-force{
+  pointer-events:none!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-center-force > .gcf-header,
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-center-force > .gcf-nav-rail,
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-center-force > .gcf-left,
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-center-force > .gcf-right{
+  pointer-events:auto!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gem-command-center-force > .gcf-center{
+  pointer-events:none!important;
+}
+html[data-product="GEM Mineral Intelligence Center"] .gcf-analytics-deck,
+html[data-product="GEM Mineral Intelligence Center"] .gcf-bottom{
+  display:none!important;
+}
+
