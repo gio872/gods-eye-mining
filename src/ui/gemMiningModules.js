@@ -17,7 +17,7 @@ function ensureStyles() {
   style.id = "gem-main-mining-styles";
   style.textContent = `
     .gem-main-mining-modules{
-      position:relative;z-index:4;width:100%;margin:10px 0 0;padding:9px 9px 10px;box-sizing:border-box;
+      position:relative;z-index:20;width:100%;margin:10px 0 10px;padding:9px 9px 10px;box-sizing:border-box;
       border:1px solid rgba(34,219,241,.28);border-radius:8px;
       background:linear-gradient(180deg,rgba(3,18,27,.92),rgba(3,12,19,.96));
       box-shadow:inset 0 0 24px rgba(29,209,234,.035);
@@ -62,8 +62,8 @@ function ensureStyles() {
       margin-top:7px;padding:5px 8px;border:1px solid rgba(47,224,179,.16);border-radius:5px;
       color:#8fe7d2;font:700 6px JetBrains Mono,monospace;letter-spacing:.05em;background:rgba(10,78,66,.10);
     }
-    .gcf-right .gem-main-mining-modules{overflow:hidden}
-    .gcf-right .gem-main-mining-modules .gem-main-mining-modules-head{position:sticky;top:0;background:linear-gradient(180deg,rgba(3,18,27,.98),rgba(3,18,27,.82));padding-bottom:6px;z-index:2}
+    .gcf-right .gem-main-mining-modules{overflow:visible;display:block}
+    .gcf-right .gem-main-mining-modules .gem-main-mining-modules-head{position:relative;background:linear-gradient(180deg,rgba(3,18,27,.98),rgba(3,18,27,.82));padding-bottom:6px;z-index:2}
     @media(max-width:900px){
       .gem-main-mining-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
@@ -129,7 +129,9 @@ export function installGemMiningModules(dataManager){
       </div>
       <div class="gem-module-live">SELECT MODULE · ACTIVATE REAL LAYERS</div>
     `;
-    right.appendChild(section);
+    const controls = right.querySelector(".gcf-views");
+    if (controls) right.insertBefore(section, controls);
+    else right.prepend(section);
     const status=section.querySelector(".gem-module-live");
     section.querySelectorAll("[data-gem-mining-module]").forEach((button)=>{
       button.addEventListener("click",()=>{
