@@ -442,3 +442,58 @@ body.scene-playback-mode #first-run-launcher {
   .first-run-gem-entry{grid-template-columns:2.6rem 1fr 1.2rem}
   .first-run-gem-orb{width:2.2rem;height:2.2rem}
 }
+
+
+/* ── GEM cinematic boot sequence ───────────────────────────────── */
+#gem-boot-sequence{
+  position:fixed;inset:0;z-index:5000;display:grid;place-items:center;
+  overflow:hidden;background:
+    radial-gradient(circle at 50% 45%,rgba(24,108,132,.16),transparent 22%),
+    radial-gradient(circle at 50% 50%,rgba(2,14,25,.2),#01060d 68%);
+  color:#dffbff;opacity:0;visibility:hidden;pointer-events:none;
+}
+#gem-boot-sequence.is-active{
+  visibility:visible;opacity:1;pointer-events:auto;
+  animation:gemBootIn .35s ease both;
+}
+#gem-boot-sequence.is-leaving{animation:gemBootOut .75s ease both}
+.gem-boot-grid{
+  position:absolute;inset:-20%;opacity:.28;
+  background-image:linear-gradient(rgba(62,221,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(62,221,255,.09) 1px,transparent 1px);
+  background-size:46px 46px;
+  transform:perspective(650px) rotateX(62deg) translateY(24%);
+  transform-origin:center bottom;
+  mask-image:linear-gradient(to top,black,transparent 78%);
+  animation:gemGridDrift 8s linear infinite;
+}
+.gem-boot-orbit{position:absolute;width:min(35vw,380px);height:min(35vw,380px);border:1px solid rgba(71,225,255,.23);border-radius:50%;box-shadow:0 0 35px rgba(45,214,244,.07)}
+.gem-boot-orbit-a{transform:rotateX(68deg) rotateZ(15deg);animation:gemOrbitA 5s linear infinite}
+.gem-boot-orbit-b{width:min(28vw,300px);height:min(28vw,300px);transform:rotateY(70deg) rotateZ(-25deg);border-color:rgba(241,185,77,.2);animation:gemOrbitB 7s linear infinite}
+.gem-boot-core{
+  position:absolute;width:76px;height:76px;display:grid;place-items:center;border-radius:50%;
+  color:#65edff;font-size:30px;border:1px solid rgba(90,234,255,.75);
+  background:radial-gradient(circle,rgba(60,225,255,.28),rgba(4,25,37,.8) 58%,rgba(4,12,20,.3));
+  box-shadow:0 0 35px rgba(54,224,255,.28),inset 0 0 25px rgba(54,224,255,.16);
+  animation:gemCorePulse 1.8s ease-in-out infinite;
+}
+.gem-boot-brand{position:absolute;transform:translateY(-112px);font:600 10px/1 JetBrains Mono,monospace;letter-spacing:.42em;color:rgba(244,194,91,.78)}
+.gem-boot-title{position:absolute;transform:translateY(100px);font:700 31px/1 JetBrains Mono,monospace;letter-spacing:.3em;text-shadow:0 0 24px rgba(67,227,255,.35)}
+.gem-boot-subtitle{position:absolute;transform:translateY(137px);font:500 9px/1 JetBrains Mono,monospace;letter-spacing:.22em;color:rgba(181,226,234,.62)}
+.gem-boot-status{position:absolute;left:50%;bottom:105px;transform:translateX(-50%);width:min(520px,72vw);display:flex;justify-content:space-between;gap:20px;font:500 9px/1 JetBrains Mono,monospace;letter-spacing:.12em;color:rgba(159,220,230,.58)}
+.gem-boot-status b{color:#65eaff;font-weight:500}
+.gem-boot-progress{position:absolute;left:50%;bottom:91px;transform:translateX(-50%);width:min(520px,72vw);height:2px;background:rgba(74,197,219,.12);overflow:hidden}
+.gem-boot-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,transparent,#55e9ff,#f0ba55);box-shadow:0 0 14px rgba(62,224,255,.65);transition:width .18s linear}
+.gem-boot-stream{position:absolute;bottom:62px;left:50%;transform:translateX(-50%);width:90%;text-align:center;font:500 7px/1 JetBrains Mono,monospace;letter-spacing:.15em;color:rgba(109,190,205,.38)}
+@keyframes gemBootIn{from{opacity:0}to{opacity:1}}
+@keyframes gemBootOut{from{opacity:1}to{opacity:0}}
+@keyframes gemGridDrift{to{background-position:0 46px,46px 0}}
+@keyframes gemOrbitA{to{transform:rotateX(68deg) rotateZ(375deg)}}
+@keyframes gemOrbitB{to{transform:rotateY(70deg) rotateZ(-385deg)}}
+@keyframes gemCorePulse{50%{transform:scale(1.08);box-shadow:0 0 55px rgba(54,224,255,.38),inset 0 0 25px rgba(54,224,255,.22)}}
+@media(max-width:700px){
+ .gem-boot-orbit-a{width:270px;height:270px}.gem-boot-orbit-b{width:210px;height:210px}
+ .gem-boot-status{bottom:90px}.gem-boot-progress{bottom:76px}.gem-boot-stream{bottom:50px;font-size:6px}
+}
+@media(prefers-reduced-motion:reduce){
+ #gem-boot-sequence.is-active,#gem-boot-sequence.is-leaving,.gem-boot-grid,.gem-boot-orbit-a,.gem-boot-orbit-b,.gem-boot-core{animation:none}
+}
