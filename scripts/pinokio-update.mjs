@@ -202,9 +202,9 @@ export function reportIncomingChanges(io = {}) {
 export function updateFromRemote(io = {}) {
   const { apply = (args) => runChecked('git', args) } = io;
   const plan = reportIncomingChanges(io);
-  // `merge --ff-only <revision>` applies the object the report named. A second
-  // `pull` would fetch again and could land a different one.
-  if (plan.apply) apply(['merge', '--ff-only', plan.apply]);
+  // Reset to the exact disclosed revision. Pinokio must never keep a stale tracked
+  // checkout when the published main branch is the source of truth.
+  if (plan.apply) apply(['reset', '--hard', plan.apply]);
   else if (plan.fallback) apply(['pull', '--ff-only']);
   return plan;
 }
