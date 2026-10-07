@@ -68,3 +68,6 @@ html[data-product="GEM Mineral Intelligence Center"] #loading-screen{
 }
 html[data-product="GEM Mineral Intelligence Center"] body{background:#05090c!important;overflow:hidden!important}
 html[data-product="GEM Mineral Intelligence Center"] #cesiumContainer{filter:saturate(.78) brightness(.68) contrast(1.08)!important}
+
+.gem-build-marker{font-size:8px!important;letter-spacing:.16em!important;color:rgba(54,232,255,.78)!important;border:1px solid rgba(54,232,255,.24);padding:5px 8px;margin-left:12px;white-space:nowrap}
+@media (max-width:1100px){.gem-build-marker{display:none!important}}
