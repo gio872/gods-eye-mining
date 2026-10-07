@@ -15,13 +15,34 @@ application.start().then((components) => {
   installMineralIntelligenceCenter();
   const viewer = components?.scene?.viewer;
   if (viewer) {
-    window.setTimeout(() => {
+    const forceGlobalWorldView = () => {
       try {
-        flyToGlobeView(viewer, { duration: 2.8 });
+        viewer.camera.cancelFlight();
+        viewer.camera.setView({
+          destination: Cesium.Cartesian3.fromDegrees(0, 18, 18000000),
+          orientation: {
+            heading: 0,
+            pitch: Cesium.Math.toRadians(-90),
+            roll: 0,
+          },
+        });
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(0, 18, 18000000),
+          orientation: {
+            heading: 0,
+            pitch: Cesium.Math.toRadians(-90),
+            roll: 0,
+          },
+          duration: 2.2,
+        });
       } catch (error) {
         console.warn('[GEM] Global startup view unavailable:', error);
       }
-    }, 350);
+    };
+    // Force the initial camera to the full Earth rather than restoring a prior city.
+    forceGlobalWorldView();
+    window.setTimeout(forceGlobalWorldView, 1200);
+    window.setTimeout(forceGlobalWorldView, 3200);
   }
 }).catch((error) => {
   console.error("GEM Mineral Intelligence initialization failed:", error);
