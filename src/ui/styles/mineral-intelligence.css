@@ -672,3 +672,28 @@ html[data-product="GEM Mineral Intelligence Center"] .gem-launch-panel.is-launch
 .gcf-module-grid small{color:#6d939c;font:600 6px JetBrains Mono,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:1200px){.gcf-module-grid{grid-template-columns:1fr}.gcf-module-grid button{min-height:46px}}
 
+
+
+/* GEM — full mining intelligence panel */
+.gem-mining-panel .gem-mining-tabs{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:4px!important;flex-wrap:wrap!important}
+.gem-mining-panel .gem-mining-tabs button{min-width:0!important;padding:7px 4px!important;font-size:7px!important}
+.gem-mining-command{margin-top:10px;padding:9px;border:1px solid rgba(45,216,240,.2);border-radius:8px;background:rgba(3,24,34,.58)}
+.gem-mining-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin-top:7px}
+.gem-mining-module-grid button{min-height:43px;padding:5px 5px;text-align:left;display:grid;grid-template-columns:20px 1fr;grid-template-rows:auto auto;gap:1px 4px;border:1px solid rgba(45,207,230,.17);border-radius:5px;background:rgba(5,30,41,.8);color:#e5f7f9;cursor:pointer}
+.gem-mining-module-grid button:hover,.gem-mining-module-grid button.is-active{border-color:#32ddf3;background:rgba(9,74,91,.86);box-shadow:0 0 10px rgba(40,220,243,.1)}
+.gem-mining-module-grid b{grid-row:1/span 2;color:#36dff4;font:800 6px JetBrains Mono;border-right:1px solid rgba(54,205,226,.15);padding-right:3px}
+.gem-mining-module-grid span{font:800 6.5px Inter,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gem-mining-module-grid small{color:#70959e;font:600 5px JetBrains Mono;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gem-mining-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:8px}
+.gem-mining-stats div{padding:6px 7px;border:1px solid rgba(45,207,230,.16);border-radius:5px;background:rgba(3,22,31,.7)}
+.gem-mining-stats span{display:block;color:#638891;font:700 5px JetBrains Mono;letter-spacing:.08em}
+.gem-mining-stats b{display:block;color:#dff7fa;font:800 7px JetBrains Mono;margin-top:4px}
+.gem-mining-evidence{margin-top:9px}
+.gem-mining-evidence .gem-evidence-row{margin-top:6px}
+.gem-mining-targets{margin-top:9px;padding-top:8px;border-top:1px solid rgba(45,207,230,.14)}
+.gem-mining-target-row{display:grid;grid-template-columns:1fr 45px 35px;align-items:center;padding:6px 5px;border-bottom:1px solid rgba(45,207,230,.09);font:700 6px JetBrains Mono}
+.gem-mining-target-row b{color:#dff7fa}.gem-mining-target-row span{color:#f2c45a}.gem-mining-target-row em{color:#35dff4;font-style:normal;text-align:right}
+.gem-mining-panel .gem-action{margin-top:9px}
+@media(max-height:820px){
+ .gem-mining-command{margin-top:6px;padding:7px}.gem-mining-module-grid button{min-height:38px}.gem-mining-stats{margin-top:5px}.gem-mining-targets{margin-top:5px}
+}
