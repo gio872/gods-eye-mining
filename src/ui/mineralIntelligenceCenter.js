@@ -74,7 +74,7 @@ function icon(name) {
 function sourcePanel() {
   const panel = el("aside", "gem-sources-panel");
   panel.innerHTML = '<div class="gem-panel-kicker">INTELLIGENCE SOURCES</div>';
-  SOURCE_GROUPS.forEach(([groupTitle, items]) => {
+  SOURCE_GROUPS.forEach(({ title: groupTitle, items }) => {
     const section = el("section", "gem-source-group");
     const head = el("button", "gem-source-heading", groupTitle);
     head.type = "button";
