@@ -24,7 +24,7 @@ module.exports = {
           GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
           GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
         },
-        // Always run the exact published GEM core revision used by Pinokio Update.\n        message: 'git fetch origin gem-core && git reset --hard origin/gem-core && node scripts/pinokio-start.mjs',
+        // Update is responsible for syncing the published gem-core revision. Start only launches the local server.\n        message: 'node scripts/pinokio-start.mjs',
         on: [{
           event: '/\\[Pinokio\\] Ready at http:\\/\\/127\\.0\\.0\\.1:[0-9]+\\//',
           done: true,
