@@ -18,13 +18,17 @@ application.start().then((components) => {
   if (dataManager) installGemMiningModules(dataManager);
   const viewer = components?.scene?.viewer;
   if (viewer) {
-    window.requestAnimationFrame(() => {
+    const openGlobal = () => {
       try {
         flyToGlobeView(viewer, { duration: 2.4 });
       } catch (error) {
         console.warn('[GEM] Global startup view unavailable:', error);
       }
-    });
+    };
+    window.requestAnimationFrame(openGlobal);
+    // Initial share/location restoration can finish after application.start().
+    // Reassert the GEM startup world view once those startup transitions settle.
+    window.setTimeout(openGlobal, 3200);
   }
 }).catch((error) => {
   console.error("God's Eye View initialization failed:", error);
