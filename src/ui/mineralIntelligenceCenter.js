@@ -216,54 +216,179 @@ function forceGemCommandCenter() {
   if (!document.body || document.querySelector(".gem-command-center-force")) return;
   document.documentElement.dataset.product = "GEM Mineral Intelligence Center";
   document.documentElement.dataset.gemExperience = "center";
+
   const legacy = "#first-run-launcher,#loading-screen,#intel-hud,#title-bar,#style-indicator,#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#location-bar,#voice-bar,#top-center-actions,#traffic-sync-chip,#cctv-sync-chip,#safe-frame-overlay";
-  const hideLegacy = () => document.querySelectorAll(legacy).forEach((n) => { n.style.setProperty("display","none","important"); n.style.setProperty("visibility","hidden","important"); n.style.setProperty("pointer-events","none","important"); });
+  const hideLegacy = () => document.querySelectorAll(legacy).forEach((n) => {
+    n.style.setProperty("display","none","important");
+    n.style.setProperty("visibility","hidden","important");
+    n.style.setProperty("pointer-events","none","important");
+  });
   hideLegacy();
+
+  const layer = (iconCode, title, sub) => `
+    <div class="gcf-layer"><span class="gcf-layer-icon">${iconCode}</span><div><b>${title}</b><small>${sub}</small></div><button type="button" class="gcf-check" aria-pressed="true">✓</button><span class="gcf-chevron">›</span></div>`;
 
   const shell = document.createElement("div");
   shell.className = "gem-command-center-force";
   shell.innerHTML = `
     <header class="gcf-header">
-      <div class="gcf-brand"><span class="gcf-mark">◈</span><div><strong>TERRAQUEEN</strong><b>GEM <small>MINERAL INTELLIGENCE CENTER</small></b><em>GEOSPATIAL EXPLORATION · AI TARGETING · SATELLITE FUSION · MINING INTELLIGENCE</em></div></div>
-      <nav><button class="active">◉<span>EXPLORE</span></button><button>⌁<span>ANALYZE</span></button><button>◎<span>TARGETS</span></button><button>▱<span>LAYERS</span></button><button>◈<span>AI</span></button><button>▣<span>REPORTS</span></button></nav>
+      <div class="gcf-brand">
+        <img class="gcf-logo" src="/logo.svg" alt="" aria-hidden="true" />
+        <div class="gcf-brand-copy">
+          <strong>TERRAQUEEN</strong>
+          <b>GEM <small>MINERAL INTELLIGENCE CENTER</small></b>
+          <em>GEOSPATIAL EXPLORATION · AI TARGETING · SATELLITE FUSION · MINING INTELLIGENCE</em>
+        </div>
+      </div>
+      <nav aria-label="GEM navigation">
+        <button class="active" type="button"><span class="gcf-nav-icon">◉</span><span>EXPLORE</span></button>
+        <button type="button"><span class="gcf-nav-icon">⌁</span><span>ANALYZE</span></button>
+        <button type="button"><span class="gcf-nav-icon">◎</span><span>TARGETS</span></button>
+        <button type="button"><span class="gcf-nav-icon">▱</span><span>LAYERS</span></button>
+        <button type="button"><span class="gcf-nav-icon">◈</span><span>AI</span></button>
+        <button type="button"><span class="gcf-nav-icon">▣</span><span>REPORTS</span></button>
+      </nav>
       <div class="gcf-status"><i></i><strong>GEM CORE ONLINE</strong><small>MINING ANALYTICS WORKSPACE</small></div>
-      <time>LIVE · MULTI-SENSOR<br>2026-10-07 04:07Z</time>
+      <time>LIVE · MULTI-SENSOR<br><b>2026-10-07 04:07:28Z</b><br><small>ORB: 4769 · PASS: DESC-117</small></time>
     </header>
-    <aside class="gcf-left"><h3>DATA LAYERS</h3><div class="gcf-tabs"><b>MINERAL</b><span>GEOSCIENCE</span><span>ENVIRONMENT</span><span>INFRASTRUCTURE</span></div>
-      <div class="gcf-layer"><i>◉</i><b>Satellite Imagery</b><small>Sentinel-2 · Landsat · Planet</small><em>✓</em></div>
-      <div class="gcf-layer"><i>◈</i><b>Spectral Analysis</b><small>EMIT · EnMAP · ASTER</small><em>✓</em></div>
-      <div class="gcf-layer"><i>◇</i><b>Geological Mapping</b><small>Lithology · Structures · Alteration</small><em>✓</em></div>
-      <div class="gcf-layer"><i>◌</i><b>Geochemistry</b><small>Anomalies · Pathfinder elements</small><em>✓</em></div>
-      <div class="gcf-layer"><i>✦</i><b>Mineral Prospectivity (AI)</b><small>GEM Target Engine</small><em>✓</em></div>
-      <div class="gcf-layer"><i>▱</i><b>Mining Concessions</b><small>Titles · Claim Boundaries</small><em>✓</em></div>
-      <div class="gcf-layer"><i>△</i><b>Infrastructure</b><small>Roads · Power · Ports</small><em>✓</em></div>
-      <div class="gcf-layer"><i>♢</i><b>Hydrology</b><small>Rivers · Drainage · Water Index</small><em>✓</em></div>
+
+    <aside class="gcf-left">
+      <div class="gcf-panel-head"><h3>DATA LAYERS</h3><button type="button" aria-label="Collapse data layers">⌃</button></div>
+      <div class="gcf-tabs"><b>MINERAL</b><span>GEOSCIENCE</span><span>ENVIRONMENT</span><span>INFRASTRUCTURE</span></div>
+      <div class="gcf-layer-list">
+        ${layer("◌","Satellite Imagery","Sentinel-2 · Landsat · Planet")}
+        ${layer("◈","Spectral Analysis","EMIT · EnMAP · ASTER")}
+        ${layer("◇","Geological Mapping","Lithology · Structures · Alteration")}
+        ${layer("◌","Geochemistry","Anomalies · Pathfinder elements")}
+        ${layer("✦","Mineral Prospectivity (AI)","GEM Target Engine")}
+        ${layer("▱","Mining Concessions","Titles · Claim Boundaries")}
+        ${layer("△","Infrastructure","Roads · Power · Ports")}
+        ${layer("♢","Hydrology","Rivers · Drainage · Water Index")}
+        ${layer("⌁","Topography","DEM · Slope · Hillshade")}
+        ${layer("✺","Environment","Protected Areas · Forest · Land Use")}
+      </div>
+      <button class="gcf-add-layer" type="button">＋ ADD CUSTOM LAYER</button>
     </aside>
-    <aside class="gcf-right"><h3>VIEW CONTROLS</h3><div class="gcf-views"><button>2D MAP</button><button class="active">3D GLOBE</button><button>SPLIT VIEW</button></div><h3>ANALYTICS TOOLS</h3><button>⌘ Spectral Analysis <b>›</b></button><button>◉ Target Detection (AI) <b>›</b></button><button>⌁ Geological Interpretation <b>›</b></button><button>◌ Change Detection <b>›</b></button><button>⇩ Export & Reports <b>›</b></button><h3>CONTEXT</h3><button>▣ CCTV / Live Feeds <b>3</b></button><button>◇ External Maps <b>4</b></button><button>□ Project Area <b>›</b></button></aside>
-    <section class="gcf-center">
-      <div class="gcf-kicker">TERRAQUEEN · GEM CORE · MINERAL INTELLIGENCE</div>
-      <h1>TERRAQUEEN <strong>GEM</strong><b>MINERAL INTELLIGENCE CENTER</b></h1>
-      <p>Satellite intelligence · hyperspectral analysis · geological interpretation · AI mineral targeting</p>
-      <div class="gcf-satellites"><span>◈<b>Sentinel-2</b></span><span>◈<b>EMIT</b></span><span>◈<b>EnMAP</b></span><span>◈<b>Landsat</b></span></div>
-      <div class="gcf-metrics"><div><b>SATELLITE FUSION</b><small>Sentinel-2 · EMIT · EnMAP · Landsat</small></div><div><b>GEOLOGY</b><small>Lithology · Structures · Alteration</small></div><div><b>AI TARGETING</b><small>Mineral Prospectivity · GEM Engine</small></div><div><b>ENVIRONMENT</b><small>Hydrology · Land Use</small></div><div><b>INFRASTRUCTURE</b><small>Access · Energy · Logistics</small></div></div>
-      <button class="gcf-init" type="button">INITIALIZE GEM <small>MINERAL INTELLIGENCE CENTER</small><b>›</b></button>
-    </section>
-    <footer class="gcf-bottom"><span>⌖ LOCATION<br><b>30°16'01.92&quot;N · 097°44'35.16&quot;W</b></span><nav><button>BASEMAP</button><button>🎙 VOICE</button><button>◷ TIME</button><button>∕ MEASURE</button><button>▣ SCREENSHOT</button></nav><span>COORDINATES (CURSOR)<br><b>30°16'02.10&quot;N · 097°44'28.73&quot;W</b></span></footer>
+
+    <aside class="gcf-right">
+      <div class="gcf-panel-head"><h3>VIEW CONTROLS</h3><button type="button" aria-label="Collapse view controls">⌃</button></div>
+      <div class="gcf-views"><button type="button">2D MAP</button><button type="button" class="active">3D GLOBE</button><button type="button">SPLIT VIEW</button></div>
+      <h3>ANALYTICS TOOLS</h3>
+      <button type="button">◫ <span>Spectral Analysis</span><b>›</b></button>
+      <button type="button">◌ <span>Target Detection (AI)</span><b>›</b></button>
+      <button type="button">⌁ <span>Geological Interpretation</span><b>›</b></button>
+      <button type="button">◍ <span>Change Detection</span><b>›</b></button>
+      <button type="button">⇩ <span>Export & Reports</span><b>›</b></button>
+      <h3>CONTEXT</h3>
+      <button type="button">▣ <span>CCTV / Live Feeds</span><b class="count">3</b></button>
+      <button type="button">◇ <span>External Maps</span><b class="count">4</b></button>
+      <button type="button">□ <span>Project Area</span><b>›</b></button>
+    </aside>
+
+    <main class="gcf-center">
+      <div class="gcf-hero-card">
+        <div class="gcf-kicker">TERRAQUEEN · GEM CORE · MINERAL INTELLIGENCE</div>
+        <div class="gcf-hero-title"><span>TERRAQUEEN</span><strong>GEM</strong><b>MINERAL INTELLIGENCE CENTER</b></div>
+        <p>Satellite intelligence · hyperspectral analysis · geological interpretation · AI mineral targeting</p>
+
+        <div class="gcf-hero-orbit" aria-hidden="true">
+          <svg viewBox="0 0 860 330" role="presentation">
+            <defs>
+              <radialGradient id="gcf-earth" cx="50%" cy="35%">
+                <stop offset="0%" stop-color="#59dcff" stop-opacity=".95"/>
+                <stop offset="44%" stop-color="#158ab8"/>
+                <stop offset="73%" stop-color="#073c59"/>
+                <stop offset="100%" stop-color="#020b12"/>
+              </radialGradient>
+              <filter id="gcf-glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <linearGradient id="gcf-track" x1="0" x2="1"><stop stop-color="#2de5ff" stop-opacity="0"/><stop offset=".5" stop-color="#2de5ff" stop-opacity=".9"/><stop offset="1" stop-color="#2de5ff" stop-opacity="0"/></linearGradient>
+            </defs>
+            <ellipse cx="430" cy="265" rx="300" ry="46" fill="none" stroke="#23d9ff" stroke-opacity=".22"/>
+            <ellipse cx="430" cy="246" rx="265" ry="36" fill="none" stroke="url(#gcf-track)" stroke-width="3" filter="url(#gcf-glow)"/>
+            <circle cx="430" cy="252" r="128" fill="url(#gcf-earth)" stroke="#70ecff" stroke-opacity=".65" stroke-width="2" filter="url(#gcf-glow)"/>
+            <path d="M332 244c40-42 58-51 87-44 20 5 29 23 51 16 25-8 34 4 58 22 13 10 28 12 42 25" fill="none" stroke="#44e3ff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+            <path d="M347 275c34-10 52-4 76 14 22 17 55 11 85 0 22-8 51-7 71 4" fill="none" stroke="#f1b848" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+            <g class="gcf-sat gcf-sat-1" transform="translate(88 58)">
+              <rect x="38" y="18" width="54" height="24" rx="4" fill="#dcecf2"/><rect x="-2" y="18" width="34" height="24" fill="#2d75a9"/><rect x="94" y="18" width="34" height="24" fill="#2d75a9"/>
+              <path d="M92 18l-5-28 11 5 6 23M38 18l5-28-11 5-6 23" fill="none" stroke="#a9c6d0" stroke-width="4"/>
+              <circle cx="65" cy="30" r="6" fill="#173746" stroke="#69ddff"/>
+              <text x="1" y="65" fill="#cdebf0" font-size="15" font-family="JetBrains Mono">Sentinel-2</text>
+            </g>
+            <g class="gcf-sat gcf-sat-2" transform="translate(620 54) rotate(-18)">
+              <rect x="38" y="18" width="54" height="24" rx="4" fill="#d9e8ed"/><rect x="-2" y="18" width="34" height="24" fill="#315b88"/><rect x="94" y="18" width="34" height="24" fill="#315b88"/>
+              <circle cx="65" cy="30" r="6" fill="#183746" stroke="#69ddff"/>
+              <text x="24" y="65" fill="#cdebf0" font-size="15" font-family="JetBrains Mono">EnMAP</text>
+            </g>
+            <g class="gcf-sat gcf-sat-3" transform="translate(96 168) rotate(12)">
+              <rect x="38" y="15" width="48" height="22" rx="4" fill="#cbd8df"/><rect x="1" y="16" width="29" height="20" fill="#215d95"/><rect x="91" y="16" width="29" height="20" fill="#215d95"/>
+              <circle cx="62" cy="26" r="5" fill="#183746" stroke="#69ddff"/>
+              <text x="48" y="61" fill="#cdebf0" font-size="15" font-family="JetBrains Mono">EMIT</text>
+            </g>
+            <g class="gcf-sat gcf-sat-4" transform="translate(622 172) rotate(-8)">
+              <rect x="38" y="15" width="48" height="22" rx="4" fill="#cbd8df"/><rect x="1" y="16" width="29" height="20" fill="#2c659d"/><rect x="91" y="16" width="29" height="20" fill="#2c659d"/>
+              <circle cx="62" cy="26" r="5" fill="#183746" stroke="#69ddff"/>
+              <text x="40" y="61" fill="#cdebf0" font-size="15" font-family="JetBrains Mono">Landsat</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="gcf-hero-tags"><span>SATELLITE INTELLIGENCE</span><i>•</i><span>GEOLOGICAL ANALYSIS</span><i>•</i><span>AI TARGETING</span><i>•</i><span>SUSTAINABLE MINING</span></div>
+        <div class="gcf-metrics">
+          <div><b>◎</b><strong>SATELLITE FUSION</strong><small>Sentinel-2<br>EMIT<br>EnMAP<br>Landsat</small></div>
+          <div><b>◈</b><strong>GEOLOGY</strong><small>Lithology<br>Structures<br>Alteration</small></div>
+          <div><b>✦</b><strong>AI TARGETING</strong><small>Mineral<br>Prospectivity<br>GEM Engine</small></div>
+          <div><b>♢</b><strong>ENVIRONMENT</strong><small>Land Use<br>Biodiversity<br>Water Resources</small></div>
+          <div><b>△</b><strong>INFRASTRUCTURE</strong><small>Access<br>Energy<br>Logistics</small></div>
+        </div>
+        <button class="gcf-init" type="button"><span>INITIALIZE GEM</span><small>MINERAL INTELLIGENCE CENTER</small><b>›</b></button>
+        <label class="gcf-suppress"><input type="checkbox" /><span>Don't show this again</span></label>
+        <span class="gcf-esc">ESC TO DISMISS</span>
+      </div>
+    </main>
+
+    <footer class="gcf-bottom">
+      <div class="gcf-location"><span>⌖ LOCATION</span><b>30°16'01.92"N · 097°44'35.16"W</b><small>Elev: 142 m</small></div>
+      <nav>
+        <button type="button">⌂<span>BASEMAP</span></button>
+        <button type="button" class="active">♩<span>VOICE</span></button>
+        <button type="button">◷<span>TIME</span></button>
+        <button type="button">∕<span>MEASURE</span></button>
+        <button type="button">▣<span>SCREENSHOT</span></button>
+      </nav>
+      <div class="gcf-location cursor"><span>COORDINATES (CURSOR)</span><b>30°16'02.10"N · 097°44'28.73"W</b><small>Elev: 138 m</small></div>
+    </footer>
   `;
   document.body.append(shell);
-  const init = shell.querySelector(".gcf-init");
-  init.addEventListener("click", () => {
+
+  shell.querySelectorAll(".gcf-layer .gcf-check").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const active = btn.getAttribute("aria-pressed") === "true";
+      btn.setAttribute("aria-pressed", String(!active));
+      btn.textContent = active ? "○" : "✓";
+      btn.closest(".gcf-layer")?.classList.toggle("is-off", active);
+      document.dispatchEvent(new CustomEvent("gem:layer-toggle", {
+        detail: { label: btn.closest(".gcf-layer")?.querySelector("b")?.textContent || "", active: !active },
+      }));
+    });
+  });
+
+  shell.querySelectorAll(".gcf-header nav button").forEach((btn) => btn.addEventListener("click", () => {
+    shell.querySelectorAll(".gcf-header nav button").forEach((x) => x.classList.remove("active"));
+    btn.classList.add("active");
+    showToast(btn.textContent.trim());
+  }));
+  shell.querySelectorAll(".gcf-right > button,.gcf-views button,.gcf-bottom nav button").forEach((btn) => btn.addEventListener("click", () => showToast(btn.textContent.replace(/\s+/g," ").trim())));
+
+  shell.querySelector(".gcf-init")?.addEventListener("click", () => {
     shell.classList.add("gcf-launching");
     setTimeout(() => {
       shell.remove();
       document.documentElement.dataset.gemExperience = "center";
       hideLegacy();
-      document.querySelector(".gem-command-header")?.scrollIntoView?.({block:"nearest"});
       if (typeof window.startGemBoot === "function") window.startGemBoot();
     }, 520);
   });
 }
-
 export function installMineralIntelligenceCenter(){
   const install=()=>{
     forceGemCommandCenter();
