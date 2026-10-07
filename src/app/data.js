@@ -2,7 +2,7 @@ import { LayerLifecycle } from '../data/lifecycle.js';
 import { LayerPresentation } from './layerPresentation.js';
 import { createCyberSonarScene } from '../cyberSonarScene.js';
 
-const AUTO_ENABLE_ALL_LAYERS = true;
+const AUTO_ENABLE_ALL_LAYERS = false;
 
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
