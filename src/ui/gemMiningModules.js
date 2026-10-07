@@ -17,10 +17,13 @@ function ensureStyles() {
   style.id = "gem-main-mining-styles";
   style.textContent = `
     .gem-main-mining-modules{
-      position:relative;z-index:30;width:100%;margin:10px 0 10px;padding:9px 9px 10px;box-sizing:border-box;
-      border:1px solid rgba(34,219,241,.28);border-radius:8px;
-      background:linear-gradient(180deg,rgba(3,18,27,.92),rgba(3,12,19,.96));
-      box-shadow:inset 0 0 24px rgba(29,209,234,.035);
+      position:fixed;right:12px;bottom:92px;z-index:2147482000;
+      width:330px;max-height:calc(100vh - 230px);overflow:auto;
+      margin:0;padding:10px 10px 11px;box-sizing:border-box;
+      border:1px solid rgba(34,219,241,.34);border-radius:9px;
+      background:linear-gradient(180deg,rgba(3,18,27,.97),rgba(3,12,19,.96));
+      box-shadow:0 16px 42px rgba(0,0,0,.58),inset 0 0 24px rgba(29,209,234,.045);
+      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
       font-family:Inter,system-ui,sans-serif;
     }
     .gem-main-mining-modules-head{
@@ -62,17 +65,11 @@ function ensureStyles() {
       margin-top:7px;padding:5px 8px;border:1px solid rgba(47,224,179,.16);border-radius:5px;
       color:#8fe7d2;font:700 6px JetBrains Mono,monospace;letter-spacing:.05em;background:rgba(10,78,66,.10);
     }
-    .gcf-right .gem-main-mining-modules,
-    .gem-target-panel .gem-main-mining-modules{overflow:visible;display:block}
-    .gcf-right .gem-main-mining-modules .gem-main-mining-modules-head,
-    .gem-target-panel .gem-main-mining-modules .gem-main-mining-modules-head{
-      position:relative;background:linear-gradient(180deg,rgba(3,18,27,.98),rgba(3,18,27,.82));padding-bottom:6px;z-index:2
+    .gem-main-mining-modules .gem-main-mining-modules-head{
+      position:sticky;top:0;background:linear-gradient(180deg,rgba(3,18,27,.98),rgba(3,18,27,.88));padding-bottom:6px;z-index:2
     }
-    .gem-target-panel .gem-main-mining-modules{margin-top:12px;padding-top:10px;border-color:rgba(242,196,90,.28)}
-    .gem-target-panel .gem-main-mining-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .gem-target-panel .gem-main-mining-grid button{height:48px;min-height:48px}
-    .gem-target-panel .gem-module-live{font-size:5.5px}
     @media(max-width:900px){
+      .gem-main-mining-modules{right:8px;left:8px;bottom:84px;width:auto}
       .gem-main-mining-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   `;
@@ -111,12 +108,10 @@ export function installGemMiningModules(dataManager){
 
   const render=()=>{
     if(disposed||document.getElementById("gem-main-mining-modules"))return true;
-    const header=document.querySelector(".gem-command-header");
+    const shell=document.querySelector(".gem-command-center-force");
+    const header=document.querySelector(".gcf-header") || document.querySelector(".gem-command-header");
     const mapHud=document.querySelector(".gem-map-hud");
-    const right=document.querySelector(".gcf-right");
-    const targetPanel=document.querySelector(".gem-target-panel");
-    const rail=right||targetPanel;
-    if(!header||!mapHud||!rail)return false;
+    if(!shell || !header || !mapHud)return false;
 
     ensureStyles();
     const section=document.createElement("section");
@@ -139,17 +134,7 @@ export function installGemMiningModules(dataManager){
       </div>
       <div class="gem-module-live">SELECT MODULE · ACTIVATE REAL LAYERS</div>
     `;
-    if (right) {
-      const controls = right.querySelector(".gcf-views");
-      if (controls) right.insertBefore(section, controls);
-      else right.prepend(section);
-    } else {
-      const targetHead = targetPanel.querySelector(".gem-target-head");
-      const targetActions = targetPanel.querySelector(".gem-target-actions");
-      if (targetHead) targetHead.after(section);
-      else if (targetActions) targetPanel.insertBefore(section, targetActions);
-      else targetPanel.appendChild(section);
-    }
+    document.body.appendChild(section);
     const status=section.querySelector(".gem-module-live");
     section.querySelectorAll("[data-gem-mining-module]").forEach((button)=>{
       button.addEventListener("click",()=>{
