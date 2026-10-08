@@ -26,6 +26,7 @@ function clamp(value, min = 0, max = 100) {
 }
 
 function numericScore(value) {
+  if (value == null || value === '') return null;
   const number = Number(value);
   if (!Number.isFinite(number)) return null;
   return clamp(number <= 1 ? number * 100 : number);
