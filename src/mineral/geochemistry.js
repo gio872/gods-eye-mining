@@ -14,12 +14,12 @@ export const GEOCHEMISTRY_SOURCES = Object.freeze({
 
 const PATHFINDERS = Object.freeze({
   silver: {
-    ag: 0.40,
+    ag: 0.4,
     au: 0.18,
     pb: 0.12,
-    zn: 0.10,
-    as: 0.10,
-    sb: 0.10,
+    zn: 0.1,
+    as: 0.1,
+    sb: 0.1,
   },
   gold: {
     au: 0.35,
