@@ -613,6 +613,8 @@ export function createGlobalMineralIntelligence({
 
     scanPromise = (async () => {
       const runId = 'gem-' + Date.now().toString(36);
+      const telemetry = createScanTelemetry({ runId, reason: reason || 'manual', bbox: queryBox, modelVersion: TRUE_PROSPECTIVITY_MODEL_ID, featureVersion: 'GEM-EVIDENCE-FABRIC-1.0.0' });
+      telemetry.stage('reference-acquisition');
       panel.classList.add('is-busy');
 
       const scanningState = {
@@ -649,6 +651,7 @@ export function createGlobalMineralIntelligence({
         ok: false,
         error,
       }));
+      telemetry.stage('candidate-generation', { sourceResults: results.length });
       const rawFeatures = results.flatMap((result) => result.features);
       const countryFeatures = search.area
         ? rawFeatures.filter((feature) =>
@@ -678,6 +681,7 @@ export function createGlobalMineralIntelligence({
       candidateTargets = candidateTargets.map((target) =>
         attachRequestedCommodity(target, search.mineralKey),
       );
+      telemetry.stage('context-enrichment', { referenceFeatures: features.length, candidateCount: candidateTargets.length });
       const earthrise = await miningPromise;
       // FAST-FIRST: publish lightweight candidates before deep evidence finishes.
       const fastTargets = candidateTargets
@@ -721,6 +725,7 @@ export function createGlobalMineralIntelligence({
         .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
         .slice(0, enrichmentLimit);
 
+      telemetry.stage('deep-evidence-enrichment', { enrichmentLimit });
       const enrichment = await enrichTargetsWithTrueProspectivity(
         enrichmentCandidates,
         {
