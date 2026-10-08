@@ -15,6 +15,7 @@ export function createDefaultMapSources({
   googleTileset = null,
   cesiumToken = '',
   googleApiKey = '',
+  geeAvailable = false,
 } = {}) {
   const ionToken = String(cesiumToken || '').trim();
   const hasIon = Boolean(ionToken);
@@ -33,7 +34,10 @@ export function createDefaultMapSources({
     sources: MAP_STACKS.map((descriptor) => {
       const common = {
         descriptor,
-        available: !descriptor.requiresIon || hasIon,
+        available:
+          descriptor.id === 'gee-global-eo'
+            ? Boolean(geeAvailable)
+            : !descriptor.requiresIon || hasIon,
         unavailableReason: descriptor.requiresIon
           ? keySetupRequirement('cesium-ion')
           : null,
@@ -65,11 +69,9 @@ export function createDefaultMapSources({
         ...(descriptor.id === 'gee-global-eo'
           ? {
               credit: GEE_CONFIG.attribution,
-              constructionFallback: {
-                id: 'esri-imagery',
-                message:
-                  'Google Earth Engine is unavailable; using Esri Satellite',
-              },
+              unavailableReason: geeAvailable
+                ? null
+                : 'GEE AUTH REQUIRED — configure Earth Engine project and authenticate locally',
             }
           : {}),
         ...(descriptor.id === 'esri-imagery'
