@@ -43,7 +43,7 @@ GEM's **Global Mineral Intelligence / Target Generation** layer uses public geos
 | **World Mining Data** ([official portal](https://www.bmf.gv.at/en/topics/mining/mineral-resources-policy/wmd.html)) | Production-statistics context for commodity intelligence | Production statistics are market context; they are not geologic evidence for a target. |
 | **USGS Mineral Commodity Summaries** ([official portal](https://www.usgs.gov/centers/national-minerals-information-center/mineral-commodity-summaries)) | Commodity production/resource context | Commodity statistics must not be interpreted as spatial prospectivity. |
 
-The GEM ranker currently produces a **reference-data prospectivity score** from documented mineral evidence. It must not be presented as a probability of discovery. Future geology, geophysics, geochemistry, spectral, structural, terrain and environmental evidence channels will enter the same auditable target model as separate evidence components.
+GEM now produces a **multisource prospectivity/discovery ranking** from reference, geology, geophysics, geochemistry and spectral evidence. It must not be presented as a calibrated probability of discovery. The remaining roadmap is hierarchical multiresolution refinement, authenticated EMIT pixel ingestion, broader regional geochemical baselines, additional structural/remote-sensing channels, and statistical calibration against labeled deposits and blind test areas.
 
 The software records source IDs, source names, acquisition status, target model ID and evidence components so a target can be traced back to the reference inputs used to rank it.
 
