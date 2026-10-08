@@ -36,7 +36,7 @@ export function createBrowserViteConfig({
           ? true
           : ['localhost', '127.0.0.1', '.local'],
       fs: {
-        deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/ENVIRONMENT'],
+        deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/ENVIRONMENT', '.gem-data/**', '**/.gem-data/**', '**/private-documents/**'],
       },
       // These headers protect the document containing Provider Settings.
       headers: {
