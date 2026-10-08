@@ -271,6 +271,7 @@ export async function queryMineralSources(
       GLOBAL_MINERAL_SOURCES.mrds,
       GLOBAL_MINERAL_SOURCES.criticalMinerals,
     ],
+    maxPages = 1,
   } = {},
 ) {
   const jobs = sources
