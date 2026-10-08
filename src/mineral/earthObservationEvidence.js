@@ -181,9 +181,20 @@ async function readCogSamples(item, asset, target, { radiusMeters = DEFAULT_RADI
     samples,
     interleave: false,
   });
+  const nodata = image.getGDALNoData ? image.getGDALNoData() : null;
+  const rasterBands = Array.isArray(asset['raster:bands']) ? asset['raster:bands'] : [];
   return {
-    arrays: Array.from(raster).map((array) => Array.from(array)),
-    nodata: image.getGDALNoData ? image.getGDALNoData() : null,
+    arrays: Array.from(raster).map((array, index) => {
+      const metadata = rasterBands[index] || rasterBands[0] || {};
+      const scale = finite(metadata.scale) ?? 1;
+      const offset = finite(metadata.offset) ?? 0;
+      return Array.from(array).map((value) => {
+        if (!Number.isFinite(value) || (nodata != null && Number(value) === Number(nodata)))
+          return null;
+        return Number(value) * scale + offset;
+      });
+    }),
+    nodata,
   };
 }
 
