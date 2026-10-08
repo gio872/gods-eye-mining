@@ -35,12 +35,7 @@ File: src/mineral/globalTargetEngine.js
 
 The first model is intentionally named GEM-GLOBAL-REFERENCE-01.
 
-The deterministic components are:
-- occurrence density
-- commodity diversity
-- critical-mineral evidence
-- development evidence
-- multi-source convergence
+The deterministic components are the reference-evidence layer described below; the production discovery pipeline is then enriched by independent geoscience channels.
 
 Every target retains:
 - model ID
@@ -129,18 +124,18 @@ Global scan:
 
 A future ingestion service can move long-running world acquisition into a server-side job and persist normalized snapshots in object storage/PostGIS without changing the client target API.
 
-## Next evidence expansion
+## Remaining discovery-engine expansion
 
-1. Geological compatibility surfaces.
-2. Structural/fault and lineament evidence.
-3. Magnetics, gravity, radiometrics and EM.
-4. Hyperspectral alteration/mineral indices.
-5. Geochemistry and pathfinder-element anomalies.
-6. DEM-derived terrain variables.
-7. Hydrology and environmental exclusions.
-8. Drill-hole collars, assays and interpreted wireframes.
-9. Commodity/model-specific priors.
-10. Resource/reserve and economic-context layers.
+1. Hierarchical multiresolution global-to-regional candidate refinement.
+2. Authenticated EMIT L2BMIN pixel sampler and mineral-ID / band-depth ingestion.
+3. Broader regional geochemical baselines and stream/sediment/soil geochemistry adapters.
+4. Structural mapping beyond the magnetic-contrast proxy.
+5. Gravity, radiometrics, EM and other independent geophysical channels.
+6. Drill-hole collars, assays, alteration logs and interpreted wireframes.
+7. Commodity-specific model profiles with deposit-style priors.
+8. Statistical calibration against labeled deposits and blind test regions.
+9. Persisted dated source snapshots and reproducible model runs.
+10. Resource/reserve and economic-context layers kept separate from discovery ranking.
 
 When these channels become available, evidenceResolver can provide target-local normalized scores to the fusion engine; the same target IDs, tiering and provenance contract remain intact.
 
