@@ -765,6 +765,7 @@ export async function enrichTargetsWithTrueProspectivity(
         trueProspectivity: {
           ...evidence,
           hardExcluded: Boolean(hardExcluded),
+          detailResolved: detailedIndexes.includes(index),
           providerStatuses,
         },
       };
