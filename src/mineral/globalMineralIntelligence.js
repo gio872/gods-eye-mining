@@ -15,6 +15,10 @@ import {
   fetchEarthriseDetections,
 } from './earthriseMiningDetector.js';
 import {
+  summarizeTriage,
+  triageTargets,
+} from './miningOpportunity.js';
+import {
   GLOBAL_MINERAL_SOURCES,
   queryMineralSources,
 } from './globalMineralSources.js';
@@ -223,6 +227,14 @@ function renderSourceStatus(panel, statuses) {
   }
 }
 
+function renderOperationalTriage(panel, targets) {
+  const summary = summarizeTriage(targets);
+  for (const [key, value] of Object.entries(summary)) {
+    const node = panel.querySelector('[data-ops="' + key + '"]');
+    if (node) node.textContent = Number(value || 0).toLocaleString();
+  }
+}
+
 function renderTargets(panel, targets) {
   const host = panel.querySelector('[data-role="targets"]');
   host.replaceChildren();
@@ -252,6 +264,7 @@ function renderTargets(panel, targets) {
     score.textContent = Number(target.score || 0).toFixed(1);
 
     const detail = document.createElement('small');
+    const triage = target.operationalTriage || {};
     const geochemCommodity =
       target.trueProspectivity &&
       target.trueProspectivity.diagnostics &&
@@ -276,9 +289,12 @@ function renderTargets(panel, targets) {
         : geochemCommodity
           ? [geochemCommodity]
           : emitMinerals;
-    detail.textContent = labels.length
-      ? labels.join(' · ')
-      : 'Multisource prospectivity target';
+    const activityLabel =
+      triage.classification ||
+      'MULTISOURCE PROSPECTIVITY';
+    detail.textContent =
+      activityLabel +
+      (labels.length ? ' · ' + labels.join(' · ') : '');
 
     button.append(dot, id, score, detail);
     host.append(button);
@@ -361,6 +377,7 @@ function updatePanel(
     Number(summary.evidenceCoverage || 0).toFixed(1) + '%',
   );
 
+  renderOperationalTriage(panel, targets);
   renderTargets(panel, targets);
 
   const note = panel.querySelector('[data-role="note"]');
@@ -464,6 +481,20 @@ function addTarget(dataSource, target) {
           ? target.trueProspectivity.interpretation
           : target.interpretation || '',
       commodities: (target.commodities || []).join(', '),
+      operationalClass:
+        target.operationalTriage && target.operationalTriage.classification
+          ? target.operationalTriage.classification
+          : '',
+      discoveryOpportunityScore:
+        target.operationalTriage &&
+        target.operationalTriage.discoveryOpportunityScore != null
+          ? target.operationalTriage.discoveryOpportunityScore
+          : null,
+      miningActivityScore:
+        target.operationalTriage &&
+        target.operationalTriage.miningActivityScore != null
+          ? target.operationalTriage.miningActivityScore
+          : null,
     },
   });
 }
@@ -662,11 +693,12 @@ export function createGlobalMineralIntelligence({
       if (search.area) addCountryBoundary(dataSource, search.area);
       for (const target of targets) addTarget(dataSource, target);
 
+      const triagedTargets = triageTargets(targets);
       const nextState = {
         phase: 'ready',
         bbox: queryBox,
         features,
-        targets,
+        targets: triagedTargets,
         summary,
         statuses,
         providerStatuses: enrichment.providerStatuses,
