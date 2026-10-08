@@ -567,6 +567,8 @@ export function createGlobalMineralIntelligence({
           miningState: state.miningState,
           targets: state.targets,
           search: state.search,
+          capabilities: CAPABILITY_SUMMARY,
+          runId: state.runId || null,
         }),
       }),
     );
