@@ -5,7 +5,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { applyPinokioEnvironment } from './pinokio-environment.mjs';
 import { formatSetupReport, inspectSetup, npmProcessSpec } from './setup-doctor.mjs';
-import { prepareEarthEngineRuntime } from './pinokio-earthengine.mjs';
 
 const MODULE_PATH = fileURLToPath(import.meta.url);
 const ROOT = realpathSync(path.resolve(path.dirname(MODULE_PATH), '..'));
@@ -27,7 +26,9 @@ export function installPinokioDependencies() {
   rmSync(READY_FILE, { force: true });
   const npm = npmProcessSpec();
   runChecked(npm.command, ['ci'], { shell: npm.shell });
-  prepareEarthEngineRuntime();
+  // Earth Engine is installed through the dedicated Pinokio GEE action.
+  // Do not invoke pip during the base install: Pinokio/Bluefairy requires
+  // Python packages to run inside an activated virtual environment.
 
   // Pinokio starts Vite directly and loads only its ENVIRONMENT file plus the
   // normal dotenv ladder. Unlike dev-fresh.sh, it does not import macOS
@@ -45,7 +46,7 @@ export function installPinokioDependencies() {
   if (!report.ready) process.exit(1);
 
   writeFileSync(READY_FILE, `${new Date().toISOString()}\n`, { mode: 0o600 });
-  console.log('[Pinokio] Installation ready.');
+  console.log('[Pinokio] GEM base installation ready. Earth Engine can be enabled separately.');
 }
 
 export function isDirectInvocation(
