@@ -299,7 +299,8 @@
     "./mineral/asset-passport": "./src/mineral/assetPassport.js",
     "./mineral/asset-digital-twin": "./src/mineral/assetDigitalTwin.js",
     "./mineral/global-asset-registry": "./src/mineral/globalAssetRegistry.js",
-    "./mineral/asset-exchange": "./src/mineral/assetExchange.js"
+    "./mineral/asset-exchange": "./src/mineral/assetExchange.js",
+    "./mineral/public-markets": "./src/mineral/publicMarkets.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
