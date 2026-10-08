@@ -247,8 +247,56 @@ function runAnalysis(button) {
   document.dispatchEvent(new CustomEvent('gem:run-global-analysis'));
 }
 
+
+function installModuleDock() {
+  if (document.querySelector('.gem-module-dock')) return;
+  const dock = el('aside', 'gem-module-dock');
+  dock.innerHTML = '<div class="gem-module-title">GEM MODULES</div>' +
+    [
+      ['map','MAP','Always on'],
+      ['sources','EVIDENCE','Sources'],
+      ['targets','TARGETS','Targets'],
+      ['analysis','AI ANALYSIS','On demand'],
+      ['assets','ASSETS','Digital assets'],
+      ['market','MARKET','Exchange'],
+      ['reports','REPORTS','On demand']
+    ].map(([id,label,sub]) => '<button type="button" data-module="'+id+'" aria-pressed="'+(id==='map'?'true':'false')+'"><b>'+label+'</b><small>'+sub+'</small></button>').join('');
+  document.body.append(dock);
+  const setVisible=(selector,on)=>{
+    document.querySelectorAll(selector).forEach(n=>n.classList.toggle('gem-module-visible',on));
+  };
+  const activate=(id)=>{
+    document.querySelectorAll('.gem-module-dock button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.module===id)));
+    setVisible('.gem-sources-panel',id==='sources');
+    setVisible('.gem-target-panel',id==='targets');
+    setVisible('.gem-bottom-intelligence',id==='analysis');
+    if(id==='assets') document.dispatchEvent(new CustomEvent('gem:open-asset-registry'));
+    if(id==='market') document.dispatchEvent(new CustomEvent('gem:open-asset-exchange'));
+    if(id==='reports') document.dispatchEvent(new CustomEvent('gem:open-reports'));
+    if(id==='analysis') document.dispatchEvent(new CustomEvent('gem:run-global-analysis'));
+  };
+  dock.addEventListener('click',e=>{
+    const b=e.target.closest('[data-module]'); if(!b)return;
+    activate(b.dataset.module);
+  });
+  activate('map');
+}
+
 function forceGemCommandCenter() {
   if (!document.body) return;
+  const style = document.createElement('style');
+  style.id = 'gem-progressive-module-style';
+  style.textContent = [
+    '.gem-module-dock{position:fixed;left:18px;top:96px;z-index:13000;width:132px;padding:8px;border:1px solid rgba(88,213,232,.28);background:rgba(5,10,15,.88);backdrop-filter:blur(12px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28)}',
+    '.gem-module-title{padding:5px 8px 8px;color:#58d5e8;font:700 9px/1 ui-monospace,monospace;letter-spacing:.16em}',
+    '.gem-module-dock button{display:block;width:100%;margin:3px 0;padding:8px;border:1px solid transparent;border-radius:7px;background:transparent;color:#b8cdd2;text-align:left;cursor:pointer}',
+    '.gem-module-dock button:hover,.gem-module-dock button[aria-pressed="true"]{border-color:rgba(88,213,232,.35);background:rgba(88,213,232,.08);color:#effcff}',
+    '.gem-module-dock b,.gem-module-dock small{display:block}.gem-module-dock b{font:700 9px/1.2 ui-monospace,monospace}.gem-module-dock small{margin-top:2px;font-size:8px;color:#718990}',
+    '.gem-sources-panel,.gem-target-panel,.gem-bottom-intelligence{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .16s ease}.gem-sources-panel.gem-module-visible,.gem-target-panel.gem-module-visible,.gem-bottom-intelligence.gem-module-visible{opacity:1;visibility:visible;pointer-events:auto}',
+    '.gem-module-visible{z-index:12500!important}',
+    '@media(max-width:900px){.gem-module-dock{left:8px;top:78px;width:112px}.gem-module-dock small{display:none}}'
+  ].join('');
+  document.head.append(style);
 
   document.documentElement.dataset.product = 'GEM Mineral Intelligence Center';
   document.documentElement.dataset.gemExperience = 'center';
@@ -271,6 +319,7 @@ function forceGemCommandCenter() {
 export function installMineralIntelligenceCenter() {
   const install = () => {
     forceGemCommandCenter();
+    installModuleDock();
     document.body.classList.add('gem-mineral-center');
     document.documentElement.dataset.gemCenterInstalled = 'true';
     // Static scene chrome owns the GEM shell. Runtime mounting remains as a
