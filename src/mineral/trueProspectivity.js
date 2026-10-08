@@ -2,6 +2,7 @@ import { fuseEvidence } from './evidenceFusion.js';
 import { runMineralDiscoveryEngine } from './mineralDiscoveryEngine.js';
 import { buildExplorationPlan } from './explorationOptimizer.js';
 import { buildMineralSystemGraph, graphSupportSummary } from './mineralSystemKnowledgeGraph.js';
+import { selectDrillDecision } from './drillIntelligence.js';
 import {
   EARTH_OBSERVATION_SOURCES,
   enrichSpectralEvidence,
@@ -983,6 +984,19 @@ export async function enrichTargetsWithTrueProspectivity(
       });
       const targetMineralSystem = graphSupportSummary(targetMineralSystemGraph);
 
+      const drillDecision = selectDrillDecision(
+        { ...target, score: hardExcluded ? 0 : evidence.score, confidence: evidence.confidence },
+        {
+          geology: evidence.channels.geology,
+          geophysics: evidence.channels.geophysics,
+          geochemistry: evidence.channels.geochemistry,
+          spectral: evidence.channels.spectral,
+          structure: {
+            score: evidence.channels.structure,
+          },
+        },
+      );
+
       return {
         ...target,
         modelId: TRUE_PROSPECTIVITY_MODEL_ID,
@@ -1022,6 +1036,7 @@ export async function enrichTargetsWithTrueProspectivity(
           providerStatuses,
           mineralSystem: targetMineralSystem,
           mineralSystemGraph: targetMineralSystemGraph,
+          drillDecision,
           explorationPlan: buildExplorationPlan({
             channels: evidence.channels,
             targetScore: hardExcluded ? 0 : evidence.score,
