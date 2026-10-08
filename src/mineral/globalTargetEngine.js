@@ -138,9 +138,12 @@ function targetTier(score) {
 function scoreCell(bucket, neighborCount, sourceCount, weights) {
   const count = bucket.features.length;
   const density = clamp(count / 6);
-  const commodityCount = new Set(
-    bucket.features.flatMap(uniqueCommodityTokens),
-  ).size;
+  const commodityTokens = new Set();
+  for (const feature of bucket.features) {
+    for (const token of uniqueCommodityTokens(feature))
+      commodityTokens.add(token);
+  }
+  const commodityCount = commodityTokens.size;
   const diversity = clamp(commodityCount / 4);
   const critical = clamp(bucket.critical / Math.max(1, count));
   const development = bucket.producers / Math.max(1, count);
@@ -257,9 +260,12 @@ export function generateGlobalTargets(
         nearest = { distanceKm: distance, feature };
     }
 
-    const commodities = Array.from(
-      new Set(bucket.features.flatMap(uniqueCommodityTokens)),
-    ).slice(0, 6);
+    const commoditySet = new Set();
+    for (const feature of bucket.features) {
+      for (const token of uniqueCommodityTokens(feature))
+        commoditySet.add(token);
+    }
+    const commodities = Array.from(commoditySet).slice(0, 6);
 
     targets.push({
       id: 'GEM-TGT-' + String(targets.length + 1).padStart(5, '0'),
