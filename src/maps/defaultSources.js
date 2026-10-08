@@ -7,6 +7,7 @@ import {
   createIonImagery,
   ESRI_ATTRIBUTION_HTML,
 } from './imagery.js';
+import { createGeeImagery, GEE_CONFIG } from './geeImagery.js';
 import { createWorldTerrain, createKeylessTerrain } from './terrain.js';
 
 /** Select sources and setup guidance without putting provider branches in the controller. */
@@ -25,7 +26,7 @@ export function createDefaultMapSources({
       : createKeylessTerrain,
   };
   return {
-    defaultId: googleTileset ? 'photoreal' : 'esri-imagery',
+    defaultId: googleTileset ? 'photoreal' : 'gee-global-eo',
     unknownId: 'photoreal',
     recoveryId: googleTileset ? 'photoreal' : null,
     state: { hasCesiumIonToken: hasIon },
@@ -45,15 +46,31 @@ export function createDefaultMapSources({
           tileset: googleTileset,
         };
       const imagery =
-        descriptor.kind === 'ion'
-          ? () => createIonImagery(descriptor.style, ionToken)
-          : descriptor.id === 'osm'
-            ? createOsmImagery
-            : createEsriImagery;
+        descriptor.kind === 'gee-imagery'
+          ? (request = {}) =>
+              createGeeImagery({
+                fetchImpl: request.fetchImpl || globalThis.fetch,
+                signal: request.signal,
+              })
+          : descriptor.kind === 'ion'
+            ? () => createIonImagery(descriptor.style, ionToken)
+            : descriptor.id === 'osm'
+              ? createOsmImagery
+              : createEsriImagery;
       return {
         ...common,
         imagery,
         terrain,
+        ...(descriptor.id === 'gee-global-eo'
+          ? {
+              credit: GEE_CONFIG.attribution,
+              constructionFallback: {
+                id: 'esri-imagery',
+                message:
+                  'Google Earth Engine is unavailable; using Esri Satellite',
+              },
+            }
+          : {}),
         ...(descriptor.id === 'esri-imagery'
           ? {
               credit: ESRI_ATTRIBUTION_HTML,
