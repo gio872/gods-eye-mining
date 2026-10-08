@@ -291,7 +291,8 @@
     "./mineral/global-exchange": "./src/mineral/globalCommodityExchange.js",
     "./mineral/trade-operating-system": "./src/mineral/tradeOperatingSystem.js",
     "./mineral/payment-orchestration": "./src/mineral/paymentOrchestration.js",
-    "./mineral/financial-hub": "./src/mineral/financialHub.js"
+    "./mineral/financial-hub": "./src/mineral/financialHub.js",
+    "./mineral/financial-provider-adapters": "./src/mineral/financialProviderAdapters.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
