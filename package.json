@@ -300,7 +300,8 @@
     "./mineral/asset-digital-twin": "./src/mineral/assetDigitalTwin.js",
     "./mineral/global-asset-registry": "./src/mineral/globalAssetRegistry.js",
     "./mineral/asset-exchange": "./src/mineral/assetExchange.js",
-    "./mineral/public-markets": "./src/mineral/publicMarkets.js"
+    "./mineral/public-markets": "./src/mineral/publicMarkets.js",
+    "./mineral/investor-room": "./src/mineral/investorRoom.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
