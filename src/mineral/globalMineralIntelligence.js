@@ -648,12 +648,21 @@ export function createGlobalMineralIntelligence({
         if (!entry.evidence) continue;
         entry.target.miningActivityEvidence = entry.evidence;
       }
+      // Keep the planetary candidate field broad, but only enrich the
+      // strongest candidates. Expensive raster/spectral/geochemical calls
+      // must never scale with the full candidate grid.
+      const enrichmentLimit = isGlobal ? 48 : 24;
+      const enrichmentCandidates = candidateTargets
+        .slice()
+        .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+        .slice(0, enrichmentLimit);
+
       const enrichment = await enrichTargetsWithTrueProspectivity(
-        candidateTargets,
+        enrichmentCandidates,
         {
           fetchImpl,
           signal: scanController.signal,
-          maxGeologyTargets: isGlobal ? 96 : 64,
+          maxGeologyTargets: isGlobal ? 32 : 16,
           emitSampler,
         },
       );
