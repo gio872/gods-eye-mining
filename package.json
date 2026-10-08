@@ -269,7 +269,8 @@
     "./mineral/exploration-optimizer": "./src/mineral/explorationOptimizer.js",
     "./mineral/mineral-system-kg": "./src/mineral/mineralSystemKnowledgeGraph.js",
     "./mineral/hierarchical-target-engine": "./src/mineral/hierarchicalTargetEngine.js",
-    "./mineral/drill-intelligence": "./src/mineral/drillIntelligence.js"
+    "./mineral/drill-intelligence": "./src/mineral/drillIntelligence.js",
+    "./mineral/investment-intelligence": "./src/mineral/investmentIntelligence.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
