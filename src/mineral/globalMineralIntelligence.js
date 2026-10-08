@@ -102,6 +102,7 @@ function createPanel() {
     '<div data-role="evidence-status" class="gem-global-evidence-status"></div>',
     '<div data-role="metrics" class="gem-global-metrics">',
     '  <div><b data-metric="features">0</b><span>reference records</span></div>',
+    '  <div><b data-metric="candidates">0</b><span>candidate cells evaluated</span></div>',
     '  <div><b data-metric="targets">0</b><span>targets generated</span></div>',
     '  <div><b data-metric="tier1">0</b><span>tier 1 targets</span></div>',
     '  <div><b data-metric="top">0.0</b><span>top score / 100</span></div>',
@@ -235,6 +236,10 @@ function updatePanel(
   appendText(
     panel.querySelector('[data-metric="features"]'),
     Number(summary.referenceFeatures || 0).toLocaleString(),
+  );
+  appendText(
+    panel.querySelector('[data-metric="candidates"]'),
+    Number(summary.candidateCount || 0).toLocaleString(),
   );
   appendText(
     panel.querySelector('[data-metric="targets"]'),
@@ -478,6 +483,7 @@ export function createGlobalMineralIntelligence({
             }));
       const summary = {
         ...buildEvidenceSummary(features, targets),
+        candidateCount: candidateTargets.length,
         modelId: TRUE_PROSPECTIVITY_MODEL_ID,
       };
       const statuses = results.map((result) => ({
