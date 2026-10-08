@@ -691,9 +691,8 @@ export function createGlobalMineralIntelligence({
       for (const feature of features.slice(0, 3000))
         addReferencePoint(dataSource, feature);
       if (search.area) addCountryBoundary(dataSource, search.area);
-      for (const target of targets) addTarget(dataSource, target);
-
       const triagedTargets = triageTargets(targets);
+      for (const target of triagedTargets) addTarget(dataSource, target);
       const nextState = {
         phase: 'ready',
         bbox: queryBox,
@@ -719,7 +718,7 @@ export function createGlobalMineralIntelligence({
         panel,
         summary,
         statuses,
-        targets,
+        triagedTargets,
         'ready',
         enrichment.providerStatuses,
         nextState.miningState,
