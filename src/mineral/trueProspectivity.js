@@ -1,4 +1,5 @@
 import { fuseEvidence } from './evidenceFusion.js';
+import { runMineralDiscoveryEngine } from './mineralDiscoveryEngine.js';
 import {
   EARTH_OBSERVATION_SOURCES,
   enrichSpectralEvidence,
@@ -606,17 +607,41 @@ export function computeTrueEvidence(
     weights: TRUE_PROSPECTIVITY_WEIGHTS,
   });
 
+  const miningEngine = runMineralDiscoveryEngine({
+    channels,
+    system: {
+      source: target.score,
+      metalSource: target.score,
+      pathway: channels.structure,
+      hostRock: channels.geology,
+      geochemistry: channels.geochemistry,
+      spectral: channels.spectral,
+      geophysics: channels.geophysics,
+    },
+    uncertainty: Math.max(0, 100 - Number(fusion.coverage || 0)),
+  });
+
+  const score =
+    miningEngine.score == null
+      ? fusion.score
+      : Math.round(
+          (fusion.score * 0.45 + miningEngine.score * 0.55) * 10,
+        ) / 10;
+
   return {
     modelId: TRUE_PROSPECTIVITY_MODEL_ID,
     version: TRUE_PROSPECTIVITY_VERSION,
-    score: fusion.score,
-    confidence: fusion.confidence,
+    score,
+    confidence: miningEngine.confidence,
     coverage: fusion.coverage,
     mode: fusion.mode,
     channels,
-    diagnostics,
+    diagnostics: {
+      ...diagnostics,
+      miningEngine,
+    },
     interpretation:
-      'Mineral Discovery Engine ranking from reference, geology, geophysics, geochemistry and surface-spectral evidence. The score is a deterministic model inference, not a calibrated probability of discovery, resource, reserve or grade estimate.',
+      'GEM multimodal mineral-discovery ranking combining evidence fusion with mineral-system coherence. This is deterministic model inference, not a calibrated probability of discovery, resource, reserve or grade estimate.',
   };
 }
 
