@@ -1,4 +1,14 @@
 import * as Cesium from 'cesium';
+import { polygonsContain } from '../data/adminBoundaries.js';
+import {
+  MINERAL_SEARCH_CATALOG,
+  attachRequestedCommodity,
+  filterMineralFeatures,
+  filterTargetsToCountry,
+  listMineralSearchCountries,
+  mineralLabel,
+  resolveMineralSearch,
+} from './globalMineralSearch.js';
 import {
   GLOBAL_MINERAL_SOURCES,
   queryMineralSources,
@@ -21,6 +31,11 @@ const WORLD_BBOX = Object.freeze({
   east: 180,
   north: 85,
 });
+
+function mineralSelectLabel(key) {
+  const entry = MINERAL_SEARCH_CATALOG.find((candidate) => candidate.key === key);
+  return entry ? entry.label : mineralLabel('');
+}
 
 function radiansToDegrees(value) {
   return (value * 180) / Math.PI;
@@ -122,6 +137,27 @@ function createPanel() {
     panel.querySelector('[data-role="model"]'),
     TRUE_PROSPECTIVITY_MODEL_ID,
   );
+
+  const search = document.createElement('section');
+  search.className = 'gem-global-search';
+  search.innerHTML = [
+    '<div class="gem-global-section-title">GLOBAL MINERAL SEARCH</div>',
+    '<label><span>COUNTRY</span><select data-search-country><option value="">GLOBAL · ALL COUNTRIES</option></select></label>',
+    '<label><span>MINERAL / METAL</span><select data-search-mineral></select></label>',
+    '<div class="gem-global-search-actions">',
+    '  <button type="button" data-action="search">RUN SEARCH</button>',
+    '  <button type="button" data-action="clear">CLEAR</button>',
+    '</div>',
+    '<div class="gem-global-search-status" data-role="search-status">GLOBAL · ALL MINERALS / METALS</div>',
+  ].join('');
+  const mineralSelect = search.querySelector('[data-search-mineral]');
+  for (const entry of MINERAL_SEARCH_CATALOG) {
+    const option = document.createElement('option');
+    option.value = entry.key;
+    option.textContent = entry.label;
+    mineralSelect.append(option);
+  }
+  panel.insertBefore(search, panel.querySelector('[data-role="source-status"]'));
   return panel;
 }
 
@@ -422,6 +458,14 @@ export function createGlobalMineralIntelligence({
     providerStatuses: {},
     reason: 'initial',
     updatedAt: null,
+    search: {
+      country: '',
+      countryName: 'GLOBAL',
+      mineralKey: '',
+      mineralLabel: mineralLabel(''),
+      active: false,
+      area: null,
+    },
   };
 
   function publish(nextState) {
@@ -435,16 +479,18 @@ export function createGlobalMineralIntelligence({
           statuses: state.statuses,
           providerStatuses: state.providerStatuses,
           targets: state.targets,
+          search: state.search,
         }),
       }),
     );
   }
 
-  async function scan(bbox, reason) {
+  async function scan(bbox, reason, searchContext = state.search) {
     if (destroyed) return state;
     if (scanPromise) return scanPromise;
 
     const queryBox = bbox || WORLD_BBOX;
+    const search = searchContext || state.search;
     const isGlobal = reason === 'global';
     const cameraKey = bboxKey(queryBox);
 
@@ -480,13 +526,27 @@ export function createGlobalMineralIntelligence({
         maxPages: isGlobal ? globalPages : viewportPages,
       });
 
-      const features = results.flatMap((result) => result.features);
-      const candidateTargets = generateProspectivityCandidates(
+      const rawFeatures = results.flatMap((result) => result.features);
+      const countryFeatures = search.area
+        ? rawFeatures.filter((feature) =>
+            polygonsContain(
+              search.area.polygons,
+              Number(feature.geometry.coordinates[1]),
+              Number(feature.geometry.coordinates[0]),
+            ),
+          )
+        : rawFeatures;
+      const features = filterMineralFeatures(countryFeatures, search.mineralKey);
+      let candidateTargets = generateProspectivityCandidates(
         features,
         queryBox,
         {
           maxCells: isGlobal ? 2048 : 512,
         },
+      );
+      if (search.area) candidateTargets = filterTargetsToCountry(candidateTargets, search.area);
+      candidateTargets = candidateTargets.map((target) =>
+        attachRequestedCommodity(target, search.mineralKey),
       );
       const enrichment = await enrichTargetsWithTrueProspectivity(
         candidateTargets,
@@ -501,15 +561,19 @@ export function createGlobalMineralIntelligence({
       const referenceTargets = generateGlobalTargets(features, queryBox, {
         topN: isGlobal ? 64 : 32,
       });
+      const enrichedTargets = search.area
+        ? filterTargetsToCountry(enrichment.targets, search.area)
+        : enrichment.targets;
       const targets =
-        enrichment.targets.length > 0
-          ? enrichment.targets
+        enrichedTargets.length > 0
+          ? enrichedTargets
               .filter((target) => target.tier !== 'EXCLUDED')
               .slice(0, isGlobal ? 64 : 32)
-          : referenceTargets.map((target) => ({
-              ...target,
-              modelId: TARGET_MODEL_ID,
-            }));
+          : referenceTargets
+              .map((target) => attachRequestedCommodity({
+                ...target,
+                modelId: TARGET_MODEL_ID,
+              }, search.mineralKey));
       const summary = {
         ...buildEvidenceSummary(features, targets),
         candidateCount: candidateTargets.length,
@@ -525,8 +589,8 @@ export function createGlobalMineralIntelligence({
 
       dataSource.entities.removeAll();
 
-      for (const feature of features.slice(0, 3000))
-        addReferencePoint(dataSource, feature);
+      for (const feature of features.slice(0, 3000)) addReferencePoint(dataSource, feature);
+      if (search.area) addCountryBoundary(dataSource, search.area);
       for (const target of targets) addTarget(dataSource, target);
 
       const nextState = {
@@ -539,6 +603,7 @@ export function createGlobalMineralIntelligence({
         providerStatuses: enrichment.providerStatuses,
         reason: reason || 'manual',
         updatedAt: new Date().toISOString(),
+        search,
       };
 
       updatePanel(
@@ -583,6 +648,7 @@ export function createGlobalMineralIntelligence({
   }
 
   function scheduleCameraScan() {
+    if (state.search && state.search.active) return;
     if (scanTimer) clearTimeout(scanTimer);
     scanTimer = setTimeout(() => {
       scanTimer = null;
@@ -603,13 +669,132 @@ export function createGlobalMineralIntelligence({
     document.body.append(panel);
     viewer.dataSources.add(dataSource);
 
+    const searchCountry = panel.querySelector('[data-search-country]');
+    const searchMineral = panel.querySelector('[data-search-mineral]');
+    const searchStatus = panel.querySelector('[data-role="search-status"]');
+
+    const populateCountries = async () => {
+      try {
+        const countries = await listMineralSearchCountries();
+        for (const country of countries) {
+          if (!country.name || !country.iso2) continue;
+          const option = document.createElement('option');
+          option.value = country.name;
+          option.textContent = country.name;
+          searchCountry.append(option);
+        }
+      } catch (error) {
+        console.warn('[GEM] Country selector failed:', error);
+      }
+    };
+
+    const updateSearchStatus = (search) => {
+      if (!searchStatus) return;
+      searchStatus.textContent =
+        String(search.countryName || 'GLOBAL').toUpperCase() +
+        ' · ' +
+        String(search.mineralLabel || mineralLabel('')).toUpperCase();
+    };
+
+    const runSearch = async () => {
+      const countryName = searchCountry?.value || '';
+      const mineralKey = searchMineral?.value || '';
+      try {
+        const resolved = await resolveMineralSearch({
+          country: countryName,
+          mineral: mineralKey,
+          near: (() => {
+            const carto = viewer.camera.positionCartographic;
+            return {
+              lat: radiansToDegrees(carto.latitude),
+              lon: radiansToDegrees(carto.longitude),
+            };
+          })(),
+        });
+        const nextSearch = {
+          country: countryName,
+          countryName: resolved.countryName,
+          mineralKey: resolved.mineralKey,
+          mineralLabel: resolved.mineralLabel,
+          active: Boolean(countryName || mineralKey),
+          area: resolved.country,
+          bbox: resolved.bbox,
+        };
+        state = { ...state, search: nextSearch };
+        updateSearchStatus(nextSearch);
+        if (resolved.country) {
+          const [west, south, east, north] = resolved.country.bbox;
+          viewer.camera.flyTo({
+            destination: Cesium.Rectangle.fromDegrees(
+              Math.max(-180, west),
+              Math.max(-85, south),
+              Math.min(180, east),
+              Math.min(85, north),
+            ),
+            duration: 1.8,
+          });
+        }
+        await scan(resolved.bbox, 'search', nextSearch);
+      } catch (error) {
+        console.error('[GEM] Mineral search failed:', error);
+        if (searchStatus)
+          searchStatus.textContent = 'SEARCH ERROR · ' + error.message;
+      }
+    };
+
+    const clearSearch = async () => {
+      searchCountry.value = '';
+      searchMineral.value = '';
+      const cleared = {
+        country: '',
+        countryName: 'GLOBAL',
+        mineralKey: '',
+        mineralLabel: mineralLabel(''),
+        active: false,
+        area: null,
+      };
+      state = { ...state, search: cleared };
+      updateSearchStatus(cleared);
+      await scan(WORLD_BBOX, 'global', cleared);
+    };
+
+    panel
+      .querySelector('[data-action="search"]')
+      .addEventListener('click', runSearch);
+    panel
+      .querySelector('[data-action="clear"]')
+      .addEventListener('click', clearSearch);
+    searchCountry?.addEventListener('change', () => {
+      if (searchStatus) searchStatus.textContent = 'READY · ' + searchCountry.value.toUpperCase();
+    });
+    searchMineral?.addEventListener('change', () => {
+      if (searchStatus)
+        searchStatus.textContent =
+          (searchCountry.value || 'GLOBAL').toUpperCase() +
+          ' · ' +
+          (mineralSelectLabel(searchMineral.value) || mineralLabel('')).toUpperCase();
+    });
+    populateCountries();
     panel
       .querySelector('[data-action="scan"]')
       .addEventListener('click', () => scan(currentBBox(viewer), 'manual'));
 
     panel
       .querySelector('[data-action="world"]')
-      .addEventListener('click', () => scan(WORLD_BBOX, 'global'));
+      .addEventListener('click', async () => {
+        const globalSearch = {
+          ...state.search,
+          country: '',
+          countryName: 'GLOBAL',
+          area: null,
+          bbox: WORLD_BBOX,
+          active: Boolean(state.search?.mineralKey),
+        };
+        searchCountry.value = '';
+        updateSearchStatus(globalSearch);
+        state = { ...state, search: globalSearch };
+        await scan(WORLD_BBOX, 'global', globalSearch);
+      });
 
     panel
       .querySelector('[data-role="targets"]')
@@ -653,6 +838,26 @@ export function createGlobalMineralIntelligence({
     if (autoScan) scan(currentBBox(viewer), 'startup');
 
     return api;
+  }
+
+  function addCountryBoundary(dataSource, area) {
+    if (!area || !Array.isArray(area.polygons)) return;
+    const rings = area.polygons
+      .map((polygon) => polygon && polygon[0])
+      .filter((ring) => Array.isArray(ring) && ring.length >= 2);
+    rings.forEach((ring, index) => {
+      const values = [];
+      for (const pair of ring) values.push(Number(pair[0]), Number(pair[1]));
+      dataSource.entities.add({
+        id: 'gem-country-boundary-' + String(index) + '-' + String(area.id || area.name || 'country'),
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray(values),
+          width: 2,
+          material: Cesium.Color.fromCssColorString('#f2bd55').withAlpha(0.92),
+          clampToGround: true,
+        },
+      });
+    });
   }
 
   function destroy() {
