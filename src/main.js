@@ -22,6 +22,10 @@ application.start().then(() => {
       autoScan: true,
       viewportPages: 1,
       globalPages: 6,
+      emitSampler:
+        typeof globalThis.GEM_EMIT_L2BMIN_SAMPLER === 'function'
+          ? globalThis.GEM_EMIT_L2BMIN_SAMPLER
+          : undefined,
     });
     globalMineralIntelligence.mount();
   }
