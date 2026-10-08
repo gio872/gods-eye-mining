@@ -136,6 +136,11 @@ export function openGemAccountDatabase(path = DB_PATH) {
       processed_at TEXT NOT NULL, payload_sha256 TEXT NOT NULL,
       PRIMARY KEY(provider,event_id)
     );
+    CREATE TABLE IF NOT EXISTS gem_email_tokens (
+      token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES gem_users(id) ON DELETE CASCADE,
+      token_type TEXT NOT NULL, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS gem_email_tokens_user_idx ON gem_email_tokens(user_id,token_type,expires_at);
   `);
   return db;
 }
@@ -259,6 +264,30 @@ function getMembershipEntitlements(db,user) {
   };
   return {plan,capabilities:caps,subscriptionStatus:plan==='INTELLIGENCE'?'FREE': 'ACTIVE'};
 }
+
+function requireVerifiedUser(user) {
+  if (!user?.email_verified) throw Object.assign(new Error('Verify your email before using this feature'), { statusCode: 403, code: 'EMAIL_VERIFICATION_REQUIRED' });
+}
+function createEmailToken(db,userId,type) {
+  const token=randomBytes(32).toString('base64url'),now=new Date(),expires=new Date(now.getTime()+30*60*1000);
+  db.prepare('INSERT INTO gem_email_tokens(token_hash,user_id,token_type,expires_at,created_at) VALUES(?,?,?,?,?)')
+    .run(hashToken(token),userId,type,expires.toISOString(),now.toISOString());
+  return {token,expires};
+}
+async function deliverAccountEmail(to,type,token) {
+  const endpoint=process.env.GEM_EMAIL_DELIVERY_URL||'',apiKey=process.env.GEM_EMAIL_DELIVERY_TOKEN||'';
+  const publicBase=String(process.env.GEM_PUBLIC_BASE_URL||'').replace(/\/$/,'');
+  if(!endpoint||!apiKey||!publicBase)return false;
+  const verifyUrl=publicBase+'/api/gem/account/verify-email?token='+encodeURIComponent(token);
+  const response=await fetch(endpoint,{
+    method:'POST',headers:{authorization:'Bearer '+apiKey,'content-type':'application/json'},
+    body:JSON.stringify({
+      to,template:type==='EMAIL_VERIFY'?'gem-account-verification':'gem-password-reset',
+      token,verificationUrl:type==='EMAIL_VERIFY'?verifyUrl:null,expiresMinutes:30
+    })
+  });
+  return response.ok;
+}
 function safePaymentEvent(event) {
   if(!event||typeof event!=='object'||typeof event.id!=='string'||typeof event.type!=='string') throw Object.assign(new Error('Webhook event must include id and type'),{statusCode:400});
   const object=event.data?.object||event.data||{};
@@ -277,7 +306,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
     const key = route + ':' + ip;
     const prior = attempts.get(key) || [];
     const fresh = prior.filter(timestamp => now - timestamp < 15 * 60 * 1000);
-    const limit = route === 'login' ? 8 : 12;
+    const limit = route === 'login' ? 8 : route === 'reset' ? 5 : 12;
     if (fresh.length >= limit) {
       attempts.set(key, fresh);
       throw Object.assign(new Error('Too many attempts. Wait 15 minutes and try again.'), { statusCode: 429 });
@@ -295,6 +324,61 @@ export function createGemAccountApiHandler({ db = null } = {}) {
     if (!url.pathname.startsWith('/api/gem/account')) return false;
     const secure = Boolean(req.socket?.encrypted) || String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https';
     try {
+
+      if(req.method==='GET'&&url.pathname==='/api/gem/account/verify-email'){
+        const token=String(url.searchParams.get('token')||'');
+        if(!/^[A-Za-z0-9_-]{32,100}$/.test(token))return send(res,400,{error:'Email verification token is invalid'});
+        const tokenRow=database.prepare("SELECT * FROM gem_email_tokens WHERE token_hash=? AND token_type='EMAIL_VERIFY' AND used_at IS NULL AND expires_at>?").get(hashToken(token),new Date().toISOString());
+        if(!tokenRow)return send(res,400,{error:'Verification token is invalid or expired. Request a new verification email.'});
+        const now=new Date().toISOString();
+        database.exec('BEGIN IMMEDIATE');
+        try{
+          database.prepare('UPDATE gem_email_tokens SET used_at=? WHERE token_hash=? AND used_at IS NULL').run(now,hashToken(token));
+          database.prepare('UPDATE gem_users SET email_verified=1,updated_at=? WHERE id=?').run(now,tokenRow.user_id);
+          database.prepare("INSERT INTO gem_membership_events(id,user_id,event_type,plan,status,created_at) VALUES(?,?,?,?,?,?)")
+            .run(randomId('evt_'),tokenRow.user_id,'EMAIL_VERIFIED','INTELLIGENCE','ACTIVE',now);
+          database.exec('COMMIT');
+        }catch(error){database.exec('ROLLBACK');throw error;}
+        return send(res,200,{verified:true,message:'Email verified. You can now create a Mining Participants profile and request membership upgrades.'});
+      }
+      if(req.method==='POST'&&url.pathname==='/api/gem/account/password-reset/request'){
+        rateLimit(req,'reset');
+        const body=await readJson(req);
+        let email;
+        try{email=normalizeEmail(body.email);}catch{return send(res,200,{message:'If an account exists, password reset instructions will be sent.'});}
+        const row=database.prepare('SELECT id,email FROM gem_users WHERE email=?').get(email);
+        let developmentResetToken=null;
+        if(row){
+          const now=new Date().toISOString();
+          database.prepare("UPDATE gem_email_tokens SET used_at=? WHERE user_id=? AND token_type='PASSWORD_RESET' AND used_at IS NULL").run(now,row.id);
+          const created=createEmailToken(database,row.id,'PASSWORD_RESET');
+          try{await deliverAccountEmail(email,'PASSWORD_RESET',created.token);}catch{}
+          if(process.env.NODE_ENV!=='production')developmentResetToken=created.token;
+        }
+        const payload={message:'If an account exists, password reset instructions will be sent.'};
+        if(developmentResetToken)payload.developmentResetToken=developmentResetToken;
+        return send(res,200,payload);
+      }
+      if(req.method==='POST'&&url.pathname==='/api/gem/account/password-reset/confirm'){
+        const body=await readJson(req),token=String(body.token||''),password=String(body.password||'');
+        if(!/^[A-Za-z0-9_-]{32,100}$/.test(token))throw Object.assign(new Error('Reset token is invalid'),{statusCode:400});
+        if(password.length<12||password.length>256)throw Object.assign(new Error('Use a password of at least 12 characters'),{statusCode:400});
+        const row=database.prepare("SELECT * FROM gem_email_tokens WHERE token_hash=? AND token_type='PASSWORD_RESET' AND used_at IS NULL AND expires_at>?").get(hashToken(token),new Date().toISOString());
+        if(!row)throw Object.assign(new Error('Reset token is invalid or expired'),{statusCode:400});
+        const salt=randomBytes(16),derived=Buffer.from(await scrypt(password,salt,64));
+        const passwordHash='scrypt:'+salt.toString('hex')+':'+derived.toString('hex'),now=new Date().toISOString();
+        database.exec('BEGIN IMMEDIATE');
+        try{
+          database.prepare('UPDATE gem_users SET password_hash=?,updated_at=? WHERE id=?').run(passwordHash,now,row.user_id);
+          database.prepare('UPDATE gem_email_tokens SET used_at=? WHERE token_hash=?').run(now,hashToken(token));
+          database.prepare('DELETE FROM gem_sessions WHERE user_id=?').run(row.user_id);
+          database.prepare("INSERT INTO gem_membership_events(id,user_id,event_type,status,created_at) VALUES(?,?,?,?,?)")
+            .run(randomId('evt_'),row.user_id,'PASSWORD_RESET','COMPLETED',now);
+          database.exec('COMMIT');
+        }catch(error){database.exec('ROLLBACK');throw error;}
+        return send(res,200,{ok:true,message:'Password reset completed. Sign in with your new password.'});
+      }
+
       if (req.method === 'GET' && url.pathname === '/api/gem/account/plans') {
         return send(res, 200, { plans: Object.entries(PLANS).map(([id, value]) => ({ id, ...value })) });
       }
@@ -311,6 +395,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
       if (req.method === 'POST' && url.pathname === '/api/gem/account/organizations') {
         const user = sessionUser(database, req);
         if (!user) return send(res, 401, { error: 'Sign in to create a participant profile' });
+        requireVerifiedUser(user);
         const body = await readJson(req);
         const legalName = normalizeText(body.legalName, 180, 'Legal company name', true);
         const displayName = normalizeText(body.displayName || legalName, 180, 'Display name', true);
@@ -380,10 +465,12 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         }
         if(subresource==='members' && req.method==='POST'){
           requireOrgRole(database,user,organizationId,['OWNER','ADMIN']);
+          requireVerifiedUser(user);
           const body=await readJson(req),email=normalizeEmail(body.email),role=String(body.role||'VIEWER').toUpperCase();
           if(!ORG_ROLES.filter(r=>r!=='OWNER').includes(role)) throw Object.assign(new Error('Invalid organization role'),{statusCode:400});
           const target=database.prepare('SELECT id,email_verified FROM gem_users WHERE email=?').get(email);
           if(!target) throw Object.assign(new Error('The invited user must create a GEM account first'),{statusCode:404});
+          if(!target.email_verified) throw Object.assign(new Error('The invited user must verify their email before joining an organization'),{statusCode:409});
           const existing=organizationRole(database,target.id,organizationId);
           if(existing?.role==='OWNER') throw Object.assign(new Error('The organization owner role cannot be reassigned'),{statusCode:409});
           const now=new Date().toISOString();
@@ -398,6 +485,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         }
         if(subresource==='evidence' && req.method==='POST'){
           requireOrgRole(database,user,organizationId,['OWNER','ADMIN','ANALYST']);
+          requireVerifiedUser(user);
           const body=await readJsonMax(req,Math.ceil(MAX_EVIDENCE_BYTES*1.42)+20000);
           const evidenceType=String(body.evidenceType||'').toUpperCase();
           if(!EVIDENCE_TYPES.includes(evidenceType)) throw Object.assign(new Error('Invalid evidence type'),{statusCode:400});
@@ -545,9 +633,14 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         }
         database.prepare(`INSERT INTO gem_membership_events(id,user_id,event_type,plan,status,created_at)
           VALUES(?,?,?,?,?,?)`).run(`evt_${randomBytes(10).toString('hex')}`, id, 'ACCOUNT_CREATED', 'INTELLIGENCE', 'ACTIVE', now);
+        const verification=createEmailToken(database,id,'EMAIL_VERIFY');
+        let emailDelivered=false;
+        try{emailDelivered=await deliverAccountEmail(email,'EMAIL_VERIFY',verification.token);}catch{}
         const session = createSession(database, id);
         const user = database.prepare('SELECT * FROM gem_users WHERE id=?').get(id);
-        return send(res, 201, { user: safeUser(user) }, { 'set-cookie': cookie(session.token, session.expires, secure) });
+        const payload={user:safeUser(user),verificationRequired:true,emailDeliveryConfigured:emailDelivered};
+        if(process.env.NODE_ENV!=='production'&&!emailDelivered)payload.developmentVerificationToken=verification.token;
+        return send(res, 201, payload, { 'set-cookie': cookie(session.token, session.expires, secure) });
       }
       if (req.method === 'POST' && url.pathname === '/api/gem/account/login') {
         rateLimit(req, 'login');
@@ -576,6 +669,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
       if (req.method === 'POST' && url.pathname === '/api/gem/account/membership-request') {
         const user = sessionUser(database, req);
         if (!user) return send(res, 401, { error: 'Sign in to request a membership upgrade' });
+        requireVerifiedUser(user);
         const body = await readJson(req);
         const plan = String(body.plan || '').toUpperCase();
         if (!['TRADING', 'ENTERPRISE'].includes(plan)) throw Object.assign(new Error('Unsupported membership plan'), { statusCode: 400 });
