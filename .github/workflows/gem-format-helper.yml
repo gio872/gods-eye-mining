@@ -18,7 +18,7 @@ jobs:
       - name: Check out PR head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: \${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: Use Node.js
@@ -53,4 +53,4 @@ jobs:
             exit 0
           fi
           git commit -m "Format GEM mineral intelligence modules"
-          git push origin "HEAD:\${{ github.event.pull_request.head.ref }}"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
