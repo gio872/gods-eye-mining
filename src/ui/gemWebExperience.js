@@ -41,6 +41,26 @@ const SEARCH_INDEX = [
   ['MINERAL SECURITY', 'Strategy', 'Country-level supply and strategic dependency'],
 ];
 
+
+const MODULE_ICONS = {
+  map: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="18"/><path d="M15 17l9-4 9 4 0 14-9 4-9-4z"/><path d="M24 13v18M15 17l9 4 9-4"/></svg>',
+  resources: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 31l10-17 9 4 13-8"/><path d="M8 31l9 7 10-13 13 4"/><path d="M18 14l9 4 13-8"/></svg>',
+  targets: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="6"/><path d="M24 3v8M24 37v8M3 24h8M37 24h8"/></svg>',
+  assets: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l15 9v20l-15 9-15-9V14z"/><path d="M9 14l15 9 15-9M24 23v20"/></svg>',
+  companies: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 42V18h13v24M27 42V8h13v34M5 42h38"/><path d="M13 23h3M13 29h3M32 14h3M32 20h3M32 26h3"/></svg>',
+  markets: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 39V25M20 39V16M32 39V9M44 39H4"/><path d="M7 17l10-7 10 5 14-10"/></svg>',
+  intelligence: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 33c-7 0-11-4-11-10s4-10 10-10c2-6 12-7 15-1 7-2 13 3 13 10 0 7-5 11-12 11H17z"/><path d="M17 24c4-5 8-5 13 0M21 29c3-3 6-3 9 0"/></svg>',
+  security: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l16 6v11c0 10-6 17-16 21C14 39 8 32 8 22V11z"/><path d="M17 24l5 5 10-12"/></svg>',
+  investor: '<svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="16" cy="15" rx="8" ry="4"/><path d="M8 15v7c0 2 4 4 8 4s8-2 8-4v-7"/><path d="M24 15c0-2 4-4 8-4s8 2 8 4v7c0 2-4 4-8 4-2 0-4-.4-5.5-1.2"/><path d="M8 22v7c0 2 4 4 8 4s8-2 8-4v-7"/></svg>',
+  reports: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 5h19l7 7v31H12z"/><path d="M31 5v8h7M18 21h14M18 27h14M18 33h9"/></svg>',
+  supply: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="10" cy="24" r="4"/><circle cx="38" cy="10" r="4"/><circle cx="38" cy="38" r="4"/><path d="M14 22l20-10M14 26l20 10"/></svg>',
+  operations: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M19 8l3 5-5 5-5-3 4-7zM29 40l-3-5 5-5 5 3-4 7z"/><path d="M20 18l10 12M30 18l-10 12"/><circle cx="24" cy="24" r="7"/></svg>'
+};
+
+function moduleIcon(id) {
+  return MODULE_ICONS[id] || MODULE_ICONS.intelligence;
+}
+
 function emit(name, detail = {}) {
   document.dispatchEvent(new CustomEvent(name, { detail }));
 }
@@ -407,6 +427,30 @@ function injectStyles() {
     .gem-status-item{display:flex;align-items:center;justify-content:space-between;font-size:9px}
     .gem-status-item span{color:#718993}.gem-status-item b{color:var(--gem-green);font-size:8px}
 
+
+    .gem-header-tagline{position:absolute;left:22px;top:68px;color:#75a8b7;font:700 6px ui-monospace,monospace;letter-spacing:.12em;pointer-events:none}
+    .gem-top-nav{position:absolute;left:50%;top:10px;transform:translateX(-50%);height:64px;display:flex;border:1px solid rgba(57,208,255,.42);border-radius:13px;background:rgba(2,13,23,.72);backdrop-filter:blur(18px);overflow:hidden}
+    .gem-top-nav button{width:100px;border:0;border-right:1px solid rgba(66,194,235,.14);background:transparent;color:#9bb8c2;font-size:8px;font-weight:800;letter-spacing:.05em;cursor:pointer}
+    .gem-top-nav button:last-child{border-right:0}
+    .gem-top-nav button span{display:block;font-size:23px;line-height:22px;color:#b9d8e2;margin-bottom:4px}
+    .gem-top-nav button.is-active,.gem-top-nav button:hover{color:#dffcff;background:linear-gradient(180deg,rgba(19,173,233,.24),rgba(9,79,108,.08));box-shadow:inset 0 0 22px rgba(24,211,255,.08)}
+    .gem-top-nav button.is-active span,.gem-top-nav button:hover span{color:#58e9ff;text-shadow:0 0 12px rgba(50,224,255,.7)}
+    .gem-core-status{position:absolute;right:194px;top:19px;height:56px;min-width:220px;padding:0 15px;border:1px solid rgba(45,210,255,.4);border-radius:12px;background:rgba(2,15,24,.7);display:flex;align-items:center;gap:10px}
+    .gem-core-status i{width:11px;height:11px;border-radius:50%;background:#13e89a;box-shadow:0 0 13px #13e89a}
+    .gem-core-status b{display:block;color:#4fe8ff;font-size:10px;letter-spacing:.05em}.gem-core-status small{display:block;color:#7b969f;font-size:6px;letter-spacing:.1em;margin-top:4px}
+    .gem-user-profile{position:absolute;right:18px;top:19px;height:56px;min-width:166px;border:1px solid rgba(74,180,214,.3);border-radius:11px;background:rgba(2,12,20,.7);display:flex;align-items:center;gap:8px;color:#dffcff;cursor:pointer;padding:0 10px}
+    .gem-user-profile span:nth-child(2){display:flex;flex-direction:column;text-align:left}.gem-user-profile b{font-size:9px}.gem-user-profile small{font-size:6px;color:#7f9ca5;margin-top:3px}.gem-user-profile em{margin-left:auto;font-style:normal;color:#9cb6bf}
+    .gem-cinematic-tools{position:fixed;z-index:3;left:50%;bottom:20px;transform:translateX(-50%);display:flex;padding:5px;border:1px solid rgba(53,198,245,.25);border-radius:13px;background:rgba(2,13,21,.82);backdrop-filter:blur(18px);box-shadow:0 15px 45px rgba(0,0,0,.35)}
+    .gem-cinematic-tools button{width:92px;height:58px;border:1px solid transparent;background:rgba(255,255,255,.018);border-radius:9px;color:#a8bec6;cursor:pointer}
+    .gem-cinematic-tools button:hover,.gem-cinematic-tools button.is-active{border-color:rgba(69,222,255,.45);background:rgba(33,177,221,.09);color:#62e9ff}
+    .gem-cinematic-tools span{display:block;font-size:23px;margin-bottom:5px}.gem-cinematic-tools b{font-size:6px;letter-spacing:.08em}
+    .gem-location-card,.gem-coordinate-card{position:fixed;z-index:3;bottom:20px;border:1px solid rgba(55,201,247,.3);border-radius:12px;background:rgba(2,13,21,.8);backdrop-filter:blur(18px);box-shadow:0 15px 40px rgba(0,0,0,.3)}
+    .gem-location-card{left:18px;width:255px;padding:13px;display:flex;gap:12px;align-items:center}.gem-location-card .loc-icon{font-size:29px;color:#58e8ff}.gem-location-card small,.gem-coordinate-card small{display:block;color:#809aa4;font:700 6px ui-monospace,monospace;letter-spacing:.13em}.gem-location-card b,.gem-coordinate-card b{display:block;color:#56e7ff;font:800 9px ui-monospace,monospace;margin-top:5px}.gem-location-card em,.gem-coordinate-card em{display:block;color:#79939c;font-size:6px;font-style:normal;margin-top:4px}
+    .gem-coordinate-card{right:18px;width:270px;padding:13px;display:flex;align-items:center;justify-content:space-between}.gem-coordinate-card button{width:38px;height:38px;border:1px solid rgba(71,218,255,.25);border-radius:8px;background:rgba(255,255,255,.025);color:#65e8ff;cursor:pointer}
+    .gem-product-header .gem-product-mark{border-radius:50%;width:40px;height:40px;font-size:15px}.gem-product-brand strong{font-size:19px}.gem-product-brand small{font-size:6px}
+    .gem-product-brand{min-width:300px}
+    .gem-product-header{padding-top:0}
+
     .gem-search-popover{
       position:fixed;z-index:18000;top:73px;left:50%;
       transform:translateX(-50%);
@@ -428,6 +472,17 @@ function injectStyles() {
     .gem-search-result strong{font-size:11px}.gem-search-result span{display:block;color:#687f88;font-size:8px;margin-top:3px}
     .gem-search-result i{color:var(--gem-cyan);font-style:normal;font-size:18px}
     .gem-search-empty{padding:18px;color:#617780;font-size:9px}
+
+
+    @media (max-width:1200px){
+      .gem-top-nav button{width:78px}.gem-core-status{right:178px;min-width:190px}.gem-user-profile{right:10px;min-width:150px}
+      .gem-module-grid{grid-template-columns:repeat(3,1fr)}
+    }
+    @media (max-width:850px){
+      .gem-header-tagline,.gem-core-status{display:none}.gem-product-header{grid-template-columns:1fr;height:70px}.gem-top-nav{display:none}
+      .gem-product-content{width:calc(100% - 24px)}.gem-module-grid{grid-template-columns:repeat(2,1fr)}
+      .gem-cinematic-tools{bottom:10px}.gem-location-card,.gem-coordinate-card{display:none}
+    }
 
     .gem-workspace{
       position:fixed;inset:0;z-index:17500;
@@ -699,85 +754,65 @@ function buildShell() {
     <header class="gem-product-header">
       <div class="gem-product-brand" data-home>
         <span class="gem-product-mark">G</span>
-        <div><strong>TERRAQUEEN <b>GEM</b></strong><small>GLOBAL EXPLORATION · AI TARGETING · MINERAL INTELLIGENCE</small></div>
+        <div><strong>TERRAQUEEN <b>GEM</b></strong><small>MINERAL INTELLIGENCE CENTER</small></div>
       </div>
-
-      <label class="gem-universal-search">
-        <span class="search-icon">⌕</span>
-        <input data-search-input placeholder="Search minerals, targets, companies, projects, countries..." autocomplete="off">
-        <kbd class="gem-search-key">⌘ K</kbd>
-      </label>
-
-      <div class="gem-product-header-actions">
-        <button data-nav="explore">EXPLORE</button>
-        <button data-nav="analyze">ANALYZE</button>
-        <button data-nav="targets">TARGETS</button>
-        <button data-nav="layers">LAYERS</button>
-        <button data-nav="ai">AI</button>
-        <button data-nav="reports">REPORTS</button>
-        <button class="gem-language" data-language>GLOBAL</button>
-        <button class="gem-product-profile" data-profile><span class="gem-avatar">G</span><span>Gio</span></button>
-      </div>
+      <div class="gem-header-tagline">GLOBAL EXPLORATION · AI TARGETING · SATELLITE FUSION · MINING INTELLIGENCE</div>
+      <nav class="gem-top-nav">
+        <button class="is-active" data-nav="explore"><span>◎</span>EXPLORE</button>
+        <button data-nav="analyze"><span>⌁</span>ANALYZE</button>
+        <button data-nav="targets"><span>◎</span>TARGETS</button>
+        <button data-nav="layers"><span>▱</span>LAYERS</button>
+        <button data-nav="ai"><span>◉</span>AI</button>
+        <button data-nav="reports"><span>▤</span>REPORTS</button>
+      </nav>
+      <div class="gem-core-status"><i></i><div><b>GEM CORE ONLINE</b><small>MINING ANALYTICS WORKSPACE</small></div></div>
+      <button class="gem-user-profile" data-profile><span class="gem-avatar">G</span><span><b>Gio</b><small>TerraQueen</small></span><em>⌄</em></button>
     </header>
 
     <main class="gem-product-content">
       <section class="gem-product-hero">
         <div class="gem-product-eyebrow">GLOBAL EXPLORATION & MINERAL INTELLIGENCE</div>
         <h1>Understand the planet.<br><em>Find what matters.</em></h1>
-        <p>Search the mineral world, discover opportunities, understand assets and move from evidence to action.</p>
-
+        <p>Search the mineral world, discover opportunities, understand assets<br>and move from evidence to action.</p>
         <label class="gem-hero-search">
           <span>⌕</span>
-          <input data-hero-search placeholder="What are you looking for?" autocomplete="off">
-          <button data-explore>EXPLORE</button>
+          <input data-hero-search placeholder="Search minerals, targets, companies, projects, countries..." autocomplete="off">
+          <button data-explore>EXPLORE →</button>
         </label>
-
         <div class="gem-quick-links">
-          <button data-query="Gold">Gold</button>
-          <button data-query="Copper">Copper</button>
-          <button data-query="Lithium">Lithium</button>
-          <button data-query="Colombia">Colombia</button>
-          <button data-query="GEM Targets">GEM Targets</button>
-          <button data-query="Resource Atlas">Resource Atlas</button>
+          <button data-query="Gold">Gold</button><button data-query="Copper">Copper</button><button data-query="Lithium">Lithium</button>
+          <button data-query="Colombia">Colombia</button><button data-query="GEM Targets">GEM Targets</button><button data-query="Resource Atlas">Resource Atlas</button><button data-query="Rare Earths">Rare Earths</button>
         </div>
       </section>
 
-      <section class="gem-section-heading">
-        <div><span>DISCOVER GEM</span><h2>Explore the intelligence universe</h2></div>
-        <button data-all-modules>VIEW ALL MODULES →</button>
-      </section>
       <section class="gem-module-grid">
         ${MODULES.map((module) => `
           <article class="gem-module-card" data-module="${module.id}">
-            <span class="module-eyebrow">${esc(module.eyebrow)}</span>
-            <span class="module-arrow">↗</span>
-            <div><strong>${esc(module.label)}</strong><p>${esc(module.text)}</p></div>
+            <span class="gem-module-icon">${moduleIcon(module.id)}</span>
+            <div>
+              <span class="module-eyebrow">${esc(module.eyebrow)}</span>
+              <strong>${esc(module.label)}</strong>
+              <p>${esc(module.text)}</p>
+            </div>
+            <span class="module-arrow">›</span>
             <footer><span>${esc(module.meta)}</span><b>OPEN →</b></footer>
           </article>`).join('')}
       </section>
 
-      <section class="gem-lower-grid">
-        <article class="gem-feature-panel">
-          <div class="gem-panel-label">THE GEM LOOP</div>
-          <h3>From planetary evidence to real-world decisions.</h3>
-          <p>Discover → Target → Decide → Invest → Drill → Learn. Every layer is connected, but nothing is presented until the user needs it.</p>
-          <div class="gem-feature-actions">
-            <button class="primary" data-open-module="targets">DISCOVER TARGETS</button>
-            <button data-open-module="resources">EXPLORE RESOURCES</button>
-            <button data-open-module="assets">VIEW ASSETS</button>
-          </div>
-        </article>
-        <article class="gem-status-panel">
-          <div class="gem-panel-label">GEM PLATFORM</div>
-          <div class="gem-status-list">
-            <div class="gem-status-item"><span>Planetary data fabric</span><b>READY</b></div>
-            <div class="gem-status-item"><span>Mineral intelligence</span><b>READY</b></div>
-            <div class="gem-status-item"><span>Target engine</span><b>READY</b></div>
-            <div class="gem-status-item"><span>Asset intelligence</span><b>READY</b></div>
-            <div class="gem-status-item"><span>Markets & capital</span><b>READY</b></div>
-          </div>
-        </article>
-      </section>
+      <div class="gem-cinematic-tools">
+        <button data-tool="basemap"><span>◇</span><b>BASEMAP</b></button>
+        <button data-tool="voice"><span>♬</span><b>VOICE</b></button>
+        <button data-tool="time"><span>◷</span><b>TIME</b></button>
+        <button data-tool="measure"><span>╱</span><b>MEASURE</b></button>
+        <button data-tool="screenshot"><span>▣</span><b>SCREENSHOT</b></button>
+      </div>
+
+      <div class="gem-location-card">
+        <span class="loc-icon">⌖</span><div><small>LOCATION</small><b>GLOBAL PLANETARY VIEW</b><em>LIVE INTELLIGENCE SURFACE</em></div>
+      </div>
+      <div class="gem-coordinate-card">
+        <div><small>COORDINATES (CURSOR)</small><b>GLOBAL SEARCH / MAP READY</b><em>OPEN PLANET MAP TO INSPECT</em></div><button data-open-map>⧉</button>
+      </div>
     </main>
   `;
   document.body.append(shell);
@@ -804,6 +839,19 @@ function wireShell(shell) {
   });
 
   document.addEventListener('gem:open-map', () => openMapView(shell));
+
+  shell.querySelectorAll('.gem-cinematic-tools button').forEach((button) => {
+    button.addEventListener('click', () => {
+      shell.querySelectorAll('.gem-cinematic-tools button').forEach((b) => b.classList.remove('is-active'));
+      button.classList.add('is-active');
+      const tool = button.dataset.tool;
+      if (tool === 'basemap' || tool === 'measure') emit('gem:open-map');
+      else if (tool === 'voice') emit('gem:voice-open');
+      else if (tool === 'time') emit('gem:time-open');
+      else if (tool === 'screenshot') emit('gem:screenshot');
+    });
+  });
+  shell.querySelector('[data-open-map]').addEventListener('click', () => emit('gem:open-map'));
 
   shell.querySelector('[data-explore]').addEventListener('click', () => {
     const query = shell.querySelector('[data-hero-search]').value.trim();
@@ -847,12 +895,7 @@ function wireShell(shell) {
     shell.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  shell.querySelector('[data-language]').addEventListener('click', () =>
-    emit('gem:open-language-settings'),
-  );
-  shell.querySelector('[data-profile]').addEventListener('click', () =>
-    openWorkspace('investor'),
-  );
+  shell.querySelector('[data-profile]').addEventListener('click', () => openWorkspace('investor'));
 
   document.addEventListener('click', (event) => {
     if (!event.target.closest('.gem-universal-search') && !event.target.closest('.gem-hero-search') && !event.target.closest('.gem-search-popover')) {
