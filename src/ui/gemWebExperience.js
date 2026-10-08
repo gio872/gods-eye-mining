@@ -632,7 +632,7 @@ function openGemAccountModal() {
     body.querySelector('[data-org-create]').addEventListener('submit', async event => {
       event.preventDefault();
       const form=event.currentTarget, data=Object.fromEntries(new FormData(form).entries());
-      data.commodities=String(data.commodities||'').split(/[,;\\n]/).map(x=>x.trim()).filter(Boolean);
+      data.commodities=String(data.commodities||'').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean);
       if(!data.displayName) data.displayName=data.legalName;
       const submit=form.querySelector('button[type="submit"]');
       submit.disabled=true;submit.textContent='CREATING PROFILE…';
@@ -801,7 +801,7 @@ function workspaceContent(module) {
       ['CUSTODY', 'Passport & Custody', 'Trace origin, assay, ownership and custody evidence.', 'OPEN CUSTODY', 'gem:open-asset-registry', {}],
     ],
     companies: [
-      ['NETWORK', 'Mining Participants', 'Miners, operators, producers, traders and off-takers.', 'OPEN NETWORK', 'gem:web-section', { section: 'companies' }],
+      ['NETWORK', 'Mining Participants', 'Create your organization profile, invite colleagues and submit company verification documents.', 'OPEN PARTICIPANT REGISTRY', 'gem:open-participants', {}],
       ['REFINING', 'Refinery Network', 'Smelters, refineries and processing relationships.', 'OPEN REFINERIES', 'gem:web-section', { section: 'companies' }],
       ['CAPITAL', 'Capital Network', 'Banks, funds, lenders and project-finance providers.', 'OPEN CAPITAL', 'gem:web-section', { section: 'capital' }],
     ],
@@ -896,6 +896,7 @@ function openWorkspace(module) {
       : module === 'markets' ? 'gem:open-asset-exchange'
       : module === 'investor' ? 'gem:open-investor'
       : module === 'intelligence' ? 'gem:open-intelligence'
+      : module === 'companies' ? 'gem:open-participants'
       : 'gem:web-section';
     emit(live, live === 'gem:web-section' ? { section: module } : {});
     if (module !== 'resources' && module !== 'companies' && module !== 'security') {
@@ -1020,6 +1021,7 @@ function wireShell(shell) {
   });
 
   document.addEventListener('gem:open-map', () => openMapView(shell));
+  document.addEventListener('gem:open-participants', () => openGemAccountModal());
 
   shell.querySelectorAll('.gem-cinematic-tools button').forEach((button) => {
     button.addEventListener('click', () => {
