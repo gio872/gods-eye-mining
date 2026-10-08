@@ -132,4 +132,7 @@ const target = {
     'structure',
   ]);
   assert.ok(result.score > 75);
+  assert.equal(result.drillDecision.engine.id, 'GEM-DRILL-INTELLIGENCE');
+  assert.ok(Array.isArray(result.drillDecision.hypotheses));
+  assert.equal(result.drillDecision.hypotheses[0].azimuth, null);
 }
