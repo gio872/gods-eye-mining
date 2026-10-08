@@ -1,6 +1,7 @@
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter.js';
+import { createGlobalMineralIntelligence } from './mineral/globalMineralIntelligence.js';
 
 installMineralIntelligenceCenter();
 
@@ -10,8 +11,20 @@ const application = createStandaloneApplication({
   allowQaRegistration: import.meta.env.DEV,
 });
 
+let globalMineralIntelligence = null;
+
 application.start().then(() => {
   installMineralIntelligenceCenter();
+  const { viewer } = application.getComponents().scene || {};
+  if (viewer) {
+    globalMineralIntelligence = createGlobalMineralIntelligence({
+      viewer,
+      autoScan: true,
+      viewportPages: 1,
+      globalPages: 6,
+    });
+    globalMineralIntelligence.mount();
+  }
 }).catch((error) => {
   console.error("God's Eye View initialization failed:", error);
   const loaderStatus = document.querySelector('#loading-screen .loader-status');
@@ -19,4 +32,11 @@ application.start().then(() => {
   loaderStatus.style.color = '#ff4444';
 });
 
-export { application };
+application.subscribe((state) => {
+  if (state.status === 'destroyed') {
+    globalMineralIntelligence?.destroy();
+    globalMineralIntelligence = null;
+  }
+});
+
+export { application, globalMineralIntelligence };
