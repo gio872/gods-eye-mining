@@ -6,6 +6,7 @@ import {
 import {
   buildEvidenceSummary,
   generateGlobalTargets,
+  generateProspectivityCandidates,
   TARGET_MODEL_ID,
 } from './globalTargetEngine.js';
 import {
@@ -445,19 +446,33 @@ export function createGlobalMineralIntelligence({
       });
 
       const features = results.flatMap((result) => result.features);
+      const candidateTargets = generateProspectivityCandidates(
+        features,
+        queryBox,
+        {
+          maxCells: isGlobal ? 2048 : 512,
+        },
+      );
+      const enrichment = await enrichTargetsWithTrueProspectivity(
+        candidateTargets,
+        {
+          fetchImpl,
+          signal: scanController.signal,
+          maxGeologyTargets: isGlobal ? 384 : 256,
+        },
+      );
       const referenceTargets = generateGlobalTargets(features, queryBox, {
         topN: isGlobal ? 64 : 32,
       });
-      const enrichment = await enrichTargetsWithTrueProspectivity(
-        referenceTargets,
-        { fetchImpl, signal: scanController.signal },
-      );
-      const targets = enrichment.targets.length
-        ? enrichment.targets
-        : referenceTargets.map((target) => ({
-            ...target,
-            modelId: TARGET_MODEL_ID,
-          }));
+      const targets =
+        enrichment.targets.length > 0
+          ? enrichment.targets
+              .filter((target) => target.tier !== 'EXCLUDED')
+              .slice(0, isGlobal ? 64 : 32)
+          : referenceTargets.map((target) => ({
+              ...target,
+              modelId: TARGET_MODEL_ID,
+            }));
       const summary = {
         ...buildEvidenceSummary(features, targets),
         modelId: TRUE_PROSPECTIVITY_MODEL_ID,
