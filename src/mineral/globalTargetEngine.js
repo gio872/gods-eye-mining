@@ -178,6 +178,30 @@ function iterateGrid(bbox, cellSize) {
   return cells;
 }
 
+function buildReferenceSpatialIndex(features, cellSize) {
+  const buckets = new Map();
+
+  for (const feature of features) {
+    const coordinates =
+      feature && feature.geometry && feature.geometry.coordinates;
+    if (!Array.isArray(coordinates)) continue;
+
+    const longitude = Number(coordinates[0]);
+    const latitude = Number(coordinates[1]);
+    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) continue;
+
+    const key = cellKey(longitude, latitude, cellSize);
+    let bucket = buckets.get(key);
+    if (!bucket) {
+      bucket = [];
+      buckets.set(key, bucket);
+    }
+    bucket.push(feature);
+  }
+
+  return buckets;
+}
+
 function referenceCellEvidence(features, center, cellSize) {
   const radiusKm = Math.max(10, cellSize * 111.32 * 1.8);
   const sigmaKm = Math.max(8, radiusKm * 0.55);
@@ -185,7 +209,25 @@ function referenceCellEvidence(features, center, cellSize) {
   const sources = new Set();
   const nearby = [];
 
-  for (const feature of features) {
+  // Candidates are evaluated against a spatial hash rather than every
+  // reference feature. This changes the hot path from O(cells × features)
+  // toward O(cells × local_features), which is critical for global scans.
+  const buckets = features instanceof Map
+    ? features
+    : buildReferenceSpatialIndex(features, cellSize);
+  const centerCell = cellKey(center.longitude, center.latitude, cellSize);
+  const parts = centerCell.split(':').map(Number);
+  const radiusCells = Math.max(2, Math.ceil(radiusKm / (cellSize * 111.32)));
+  const candidates = [];
+
+  for (let dx = -radiusCells; dx <= radiusCells; dx += 1) {
+    for (let dy = -radiusCells; dy <= radiusCells; dy += 1) {
+      const bucket = buckets.get(String(parts[0] + dx) + ':' + String(parts[1] + dy));
+      if (bucket) candidates.push(...bucket);
+    }
+  }
+
+  for (const feature of candidates) {
     const coordinates =
       feature && feature.geometry && feature.geometry.coordinates;
     if (!Array.isArray(coordinates)) continue;
@@ -251,10 +293,11 @@ export function generateProspectivityCandidates(
     resolvedCellSize = adaptiveGridCellSize(bbox, maxCells);
 
   const grid = iterateGrid(bbox, resolvedCellSize);
+  const referenceIndex = buildReferenceSpatialIndex(features, resolvedCellSize);
 
   return grid.map((cell) => {
     const reference = referenceCellEvidence(
-      features,
+      referenceIndex,
       { latitude: cell.latitude, longitude: cell.longitude },
       resolvedCellSize,
     );
