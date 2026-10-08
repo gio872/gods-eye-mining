@@ -411,7 +411,7 @@ export function summarizeSubsurfaceResources(records = []) {
 
 export function buildResourceEvidence(target, records = [], radiusKm = 10) {
   if (!target) return null;
-  const index = buildSubsurfaceResourceIndex(records);
+  const index = Array.isArray(records) ? buildSubsurfaceResourceIndex(records) : records;
   const matches = querySubsurfaceResources(index, {
     latitude: target.latitude,
     longitude: target.longitude,
