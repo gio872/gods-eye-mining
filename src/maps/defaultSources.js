@@ -51,6 +51,7 @@ export function createDefaultMapSources({
               createGeeImagery({
                 fetchImpl: request.fetchImpl || globalThis.fetch,
                 signal: request.signal,
+                dataset: request.dataset || 'sentinel2',
               })
           : descriptor.kind === 'ion'
             ? () => createIonImagery(descriptor.style, ionToken)
