@@ -49,3 +49,43 @@ export function earthEngineVisualization(dataset, options = {}) {
     ...options,
   };
 }
+
+
+/**
+ * Attach a local proxy placeholder. The Python gateway owns Earth Engine
+ * credentials and computation; Vite exposes a same-origin route when the
+ * gateway is configured.
+ */
+export function earthEngineProxy() {
+  return {
+    name: 'earthengine-proxy',
+    configureServer(server) {
+      server.middlewares.use('/api/gee/health', async (_req, res) => {
+        const enabled = Boolean(process.env.GEM_EARTHENGINE_PROJECT);
+        res.statusCode = enabled ? 200 : 503;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(
+          JSON.stringify({
+            ok: enabled,
+            provider: 'earth-engine',
+            configured: enabled,
+          }),
+        );
+      });
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use('/api/gee/health', async (_req, res) => {
+        const enabled = Boolean(process.env.GEM_EARTHENGINE_PROJECT);
+        res.statusCode = enabled ? 200 : 503;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(
+          JSON.stringify({
+            ok: enabled,
+            provider: 'earth-engine',
+            configured: enabled,
+          }),
+        );
+      });
+    },
+  };
+}
