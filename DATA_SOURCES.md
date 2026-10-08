@@ -371,3 +371,16 @@ NOAA density imagery with the raw GLM product.
 ## In-app attribution
 
 The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, adsbdb, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, Fintraffic, GBFS, Radio Browser, OpenSky, AISStream) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.
+
+
+## Earthrise / Earth Genome — Amazon Mining Watch
+
+- **Provider:** Earthrise Media / Earth Genome.
+- **Use in GEM:** external **Mining Activity Evidence** layer, independent from the geological prospectivity score.
+- **Current product:** Amazon Mining Watch production detector, model `48px_v4.10b-18d-20g-21a-22bc-ensemble`.
+- **Evidence:** Sentinel-2 mine detection, temporal persistence/corroboration, and published SAM2 scar masks.
+- **Public product:** https://source.coop/earthgenome/amazon-mining-watch
+- **Repository:** https://github.com/earthrise-media/mining-detector
+- **Code license:** MIT. **Published data:** CC BY 4.0.
+- **Important limitation:** current public detections are Amazon-basin focused. GEM must report `NOT COVERED` outside the published footprint rather than treating absence of detections as evidence of absence of mining.
+- **Architecture:** GEM consumes public detections in the browser; heavyweight TensorFlow/PyTorch/SAM2 inference belongs in an optional worker/service and is not bundled into the Cesium frontend.
