@@ -46,3 +46,21 @@ export function installGemInvestorIntelligence(){
  };
  if(document.body)install();else document.addEventListener('DOMContentLoaded',install,{once:true});
 }
+
+
+export function buildInvestorRoomPanelMarkup(snapshot) {
+  const base=snapshot?.scenarios?.BASE;
+  const last=base?.years?.at(-1);
+  const fmt=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(v||0));
+  const pct=v=>((Number(v||0))*100).toFixed(1)+'%';
+  const scenarios=['CONSERVATIVE','BASE','UPSIDE'];
+  return '<section class="gem-investor-room" data-gem-investor-room>'+
+    '<div class="gem-investor-room__hero"><span class="gem-investor-room__eyebrow">PUBLIC MARKETS • INVESTOR ROOM</span><h2>Build the operating system for global minerals.</h2><p>From planetary intelligence to assets, capital, trade and settlement — one scalable operating layer.</p></div>'+
+    '<div class="gem-investor-room__metrics"><article><small>BASE • YEAR 5 REVENUE</small><strong>'+fmt(last?.revenue)+'</strong></article><article><small>YEAR 5 EBITDA MODEL</small><strong>'+fmt(last?.ebitda)+'</strong></article><article><small>5-YEAR MODEL</small><strong>3 SCENARIOS</strong></article><article><small>IPO PATH</small><strong>6 STAGES</strong></article></div>'+
+    '<div class="gem-investor-room__section"><h3>Revenue scenarios</h3><div class="gem-investor-room__cards">'+scenarios.map(s=>{const x=snapshot.scenarios[s], y=x.years.at(-1);return '<article><span>'+s+'</span><strong>'+fmt(y.revenue)+'</strong><small>YEAR 5 • '+fmt(y.ebitda)+' EBITDA</small></article>';}).join('')+'</div></div>'+
+    '<div class="gem-investor-room__section"><h3>Illustrative investor economics</h3><div class="gem-investor-room__split"><div><small>RAISE</small><strong>'+fmt(snapshot.dilution?.raiseAmount)+'</strong></div><div><small>POST-MONEY</small><strong>'+fmt(snapshot.dilution?.postMoneyValuation)+'</strong></div><div><small>NEW INVESTOR OWNERSHIP</small><strong>'+pct(snapshot.dilution?.newInvestorOwnership)+'</strong></div></div></div>'+
+    '<div class="gem-investor-room__section"><h3>Use of funds</h3><div class="gem-investor-room__funds">'+Object.entries(snapshot.useOfFunds?.allocation||{}).map(([k,v])=>'<div><span>'+k.replaceAll('_',' ').toUpperCase()+'</span><b>'+Math.round(v.percent*100)+'%</b><small>'+fmt(v.amount)+'</small></div>').join('')+'</div></div>'+
+    '<div class="gem-investor-room__section"><h3>Path to public markets</h3><div class="gem-investor-room__path">'+(snapshot.ipoPath||[]).map(x=>'<div class="gem-investor-room__stage '+x.status.toLowerCase()+'"><b>'+x.order+'</b><span>'+x.stage+'</span><small>'+x.description+'</small></div>').join('')+'</div></div>'+
+    '<div class="gem-investor-room__disclaimer">'+snapshot.disclaimer+'</div>'+
+    '</section>';
+}
