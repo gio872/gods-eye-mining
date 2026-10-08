@@ -612,6 +612,7 @@ export function createGlobalMineralIntelligence({
     }
 
     scanPromise = (async () => {
+      const runId = 'gem-' + Date.now().toString(36);
       panel.classList.add('is-busy');
 
       const scanningState = {
@@ -794,6 +795,7 @@ export function createGlobalMineralIntelligence({
           ).length,
         },
         reason: reason || 'manual',
+        runId,
         updatedAt: new Date().toISOString(),
         search,
       };
