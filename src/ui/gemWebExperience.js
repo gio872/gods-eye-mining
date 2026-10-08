@@ -98,11 +98,22 @@ function injectStyles() {
       z-index:14500;
       color:var(--gem-text);
       font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 50% 24%,rgba(43,126,145,.12),transparent 31%),
-        radial-gradient(circle at 76% 70%,rgba(116,78,181,.08),transparent 26%),
-        linear-gradient(180deg,#03080d 0%,#02060a 100%);
+      background:rgba(1,5,8,.18);
       overflow:auto;
+    }
+
+    .gem-product-shell:after{
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background:
+        linear-gradient(180deg,rgba(1,5,8,.18) 0%,rgba(1,5,8,.02) 35%,rgba(1,5,8,.42) 100%),
+        url("/gem-planet-hero.svg") center center / cover no-repeat;
+      transform:scale(1.015);
+      transform-origin:center;
+      filter:saturate(1.12) contrast(1.04);
     }
 
     .gem-product-shell:before{
@@ -110,7 +121,8 @@ function injectStyles() {
       position:fixed;
       inset:0;
       pointer-events:none;
-      opacity:.32;
+      opacity:.18;
+      z-index:1;
       background-image:
         linear-gradient(rgba(104,232,244,.026) 1px,transparent 1px),
         linear-gradient(90deg,rgba(104,232,244,.026) 1px,transparent 1px);
@@ -217,6 +229,7 @@ function injectStyles() {
       width:min(1180px,calc(100% - 48px));
       margin:0 auto;
       padding:54px 0 70px;
+      text-shadow:0 1px 12px rgba(0,0,0,.18);
     }
 
     .gem-product-hero{
