@@ -22,14 +22,8 @@ const target = {
 };
 
 {
-  assert.equal(
-    geologyScore('Metamorphic rocks', target),
-    95,
-  );
-  assert.equal(
-    geologyScore('Water Bodies', target),
-    null,
-  );
+  assert.equal(geologyScore('Metamorphic rocks', target), 95);
+  assert.equal(geologyScore('Water Bodies', target), null);
 }
 
 {
@@ -49,13 +43,13 @@ const target = {
   assert.ok(result.score > 70);
   assert.equal(result.coverage, 55);
   assert.ok(result.confidence > 45);
-  assert.deepEqual(
-    Object.keys(result.channels).sort(),
-    ['geology', 'geophysics', 'structure'],
-  );
+  assert.deepEqual(Object.keys(result.channels).sort(), [
+    'geology',
+    'geophysics',
+    'structure',
+  ]);
   assert.equal(result.diagnostics.terrain.localReliefM, 220);
 }
-
 
 {
   const spectral = spectralAlterationScore({
@@ -115,16 +109,27 @@ const target = {
 {
   const result = computeTrueEvidence(target, {
     geology: { score: 95, lithology: 'Metamorphic rocks' },
-    magnetics: { geophysics: 88, structure: 70, anomalyNt: 420, localRangeNt: 300 },
+    magnetics: {
+      geophysics: 88,
+      structure: 70,
+      anomalyNt: 420,
+      localRangeNt: 300,
+    },
     geochemistry: { score: 82, commodity: 'gold', sampleCount: 18 },
-    spectral: { spectral: 79, activeProviders: ['Sentinel-2 L2A', 'EnMAP L2A'] },
+    spectral: {
+      spectral: 79,
+      activeProviders: ['Sentinel-2 L2A', 'EnMAP L2A'],
+    },
   });
 
   assert.equal(result.modelId, TRUE_PROSPECTIVITY_MODEL_ID);
   assert.equal(result.coverage, 100);
-  assert.equal(
-    Object.keys(result.channels).sort(),
-    ['geochemistry', 'geology', 'geophysics', 'spectral', 'structure'],
-  );
+  assert.equal(Object.keys(result.channels).sort(), [
+    'geochemistry',
+    'geology',
+    'geophysics',
+    'spectral',
+    'structure',
+  ]);
   assert.ok(result.score > 75);
 }

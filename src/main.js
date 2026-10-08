@@ -13,28 +13,33 @@ const application = createStandaloneApplication({
 
 let globalMineralIntelligence = null;
 
-application.start().then(() => {
-  installMineralIntelligenceCenter();
-  const { viewer } = application.getComponents().scene || {};
-  if (viewer) {
-    globalMineralIntelligence = createGlobalMineralIntelligence({
-      viewer,
-      autoScan: true,
-      viewportPages: 1,
-      globalPages: 6,
-      emitSampler:
-        typeof globalThis.GEM_EMIT_L2BMIN_SAMPLER === 'function'
-          ? globalThis.GEM_EMIT_L2BMIN_SAMPLER
-          : undefined,
-    });
-    globalMineralIntelligence.mount();
-  }
-}).catch((error) => {
-  console.error("God's Eye View initialization failed:", error);
-  const loaderStatus = document.querySelector('#loading-screen .loader-status');
-  loaderStatus.textContent = `Error: ${describeError(error)}`;
-  loaderStatus.style.color = '#ff4444';
-});
+application
+  .start()
+  .then(() => {
+    installMineralIntelligenceCenter();
+    const { viewer } = application.getComponents().scene || {};
+    if (viewer) {
+      globalMineralIntelligence = createGlobalMineralIntelligence({
+        viewer,
+        autoScan: true,
+        viewportPages: 1,
+        globalPages: 6,
+        emitSampler:
+          typeof globalThis.GEM_EMIT_L2BMIN_SAMPLER === 'function'
+            ? globalThis.GEM_EMIT_L2BMIN_SAMPLER
+            : undefined,
+      });
+      globalMineralIntelligence.mount();
+    }
+  })
+  .catch((error) => {
+    console.error("God's Eye View initialization failed:", error);
+    const loaderStatus = document.querySelector(
+      '#loading-screen .loader-status',
+    );
+    loaderStatus.textContent = `Error: ${describeError(error)}`;
+    loaderStatus.style.color = '#ff4444';
+  });
 
 application.subscribe((state) => {
   if (state.status === 'destroyed') {

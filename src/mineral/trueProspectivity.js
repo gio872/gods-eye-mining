@@ -809,28 +809,43 @@ export async function enrichTargetsWithTrueProspectivity(
     },
     spectral: {
       ok: multisourceResults.some(
-        (result) => result && result.spectralResult && result.spectralResult.spectral != null,
+        (result) =>
+          result &&
+          result.spectralResult &&
+          result.spectralResult.spectral != null,
       ),
       sourceId: 'gem-spectral-composite',
       sourceName: 'EMIT + Sentinel-2 + EnMAP spectral composite',
     },
     sentinel2: {
       ok: multisourceResults.some(
-        (result) => result && result.spectralResult && result.spectralResult.sentinel2 && result.spectralResult.sentinel2.ok,
+        (result) =>
+          result &&
+          result.spectralResult &&
+          result.spectralResult.sentinel2 &&
+          result.spectralResult.sentinel2.ok,
       ),
       sourceId: EARTH_OBSERVATION_SOURCES.sentinel2.id,
       sourceName: EARTH_OBSERVATION_SOURCES.sentinel2.name,
     },
     enmap: {
       ok: multisourceResults.some(
-        (result) => result && result.spectralResult && result.spectralResult.enmap && result.spectralResult.enmap.ok,
+        (result) =>
+          result &&
+          result.spectralResult &&
+          result.spectralResult.enmap &&
+          result.spectralResult.enmap.ok,
       ),
       sourceId: EARTH_OBSERVATION_SOURCES.enmap.id,
       sourceName: EARTH_OBSERVATION_SOURCES.enmap.name,
     },
     emit: {
       ok: multisourceResults.some(
-        (result) => result && result.spectralResult && result.spectralResult.emit && result.spectralResult.emit.ok,
+        (result) =>
+          result &&
+          result.spectralResult &&
+          result.spectralResult.emit &&
+          result.spectralResult.emit.ok,
       ),
       discovered: multisourceResults.filter(
         (result) =>
@@ -854,7 +869,9 @@ export async function enrichTargetsWithTrueProspectivity(
       const geology = geologyByIndex.get(index) || null;
       const multisource = multisourceByIndex.get(index) || null;
       const geochemistry =
-        multisource && multisource.geochemistryResult && multisource.geochemistryResult.ok
+        multisource &&
+        multisource.geochemistryResult &&
+        multisource.geochemistryResult.ok
           ? geochemistryScore(target, multisource.geochemistryResult.samples)
           : null;
       const spectral =

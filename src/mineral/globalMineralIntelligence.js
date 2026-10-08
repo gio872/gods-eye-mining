@@ -135,7 +135,8 @@ function renderEvidenceStatus(panel, providerStatuses) {
     const available = Boolean(status.ok);
     const discovered = Number(status.discovered || 0) > 0;
     row.className =
-      'gem-global-source-row ' + (available ? 'is-ok' : discovered ? 'is-warning' : 'is-error');
+      'gem-global-source-row ' +
+      (available ? 'is-ok' : discovered ? 'is-warning' : 'is-error');
 
     const dot = document.createElement('i');
     const name = document.createElement('span');
@@ -143,11 +144,7 @@ function renderEvidenceStatus(panel, providerStatuses) {
 
     name.textContent =
       status.sourceName || status.sourceId || 'Evidence source';
-    state.textContent = available
-      ? 'READY'
-      : discovered
-        ? 'FOUND'
-        : 'OFF';
+    state.textContent = available ? 'READY' : discovered ? 'FOUND' : 'OFF';
 
     row.append(dot, name, state);
     host.append(row);
@@ -219,8 +216,13 @@ function renderTargets(panel, targets) {
       target.trueProspectivity.diagnostics &&
       target.trueProspectivity.diagnostics.spectral &&
       target.trueProspectivity.diagnostics.spectral.emit &&
-      Array.isArray(target.trueProspectivity.diagnostics.spectral.emit.mineralNames)
-        ? target.trueProspectivity.diagnostics.spectral.emit.mineralNames.slice(0, 2)
+      Array.isArray(
+        target.trueProspectivity.diagnostics.spectral.emit.mineralNames,
+      )
+        ? target.trueProspectivity.diagnostics.spectral.emit.mineralNames.slice(
+            0,
+            2,
+          )
         : [];
     const labels =
       target.commodities && target.commodities.length

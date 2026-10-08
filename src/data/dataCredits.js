@@ -113,23 +113,19 @@ export const GEM_MINERAL_INTELLIGENCE_CREDITS = [
 
   {
     key: 'sentinel-2-l2a-earth-search',
-    html:
-      'Spectral alteration evidence: <a href="https://earth-search.aws.element84.com/v1/" target="_blank" rel="noopener">Element84 Earth Search Sentinel-2 L2A</a> COG assets',
+    html: 'Spectral alteration evidence: <a href="https://earth-search.aws.element84.com/v1/" target="_blank" rel="noopener">Element84 Earth Search Sentinel-2 L2A</a> COG assets',
   },
   {
     key: 'enmap-l2a-dlr',
-    html:
-      'Hyperspectral alteration evidence: <a href="https://geoservice.dlr.de/web/datasets/enmap" target="_blank" rel="noopener">DLR EOC Geoservice EnMAP HSI L2A</a>',
+    html: 'Hyperspectral alteration evidence: <a href="https://geoservice.dlr.de/web/datasets/enmap" target="_blank" rel="noopener">DLR EOC Geoservice EnMAP HSI L2A</a>',
   },
   {
     key: 'emit-l2bmin-earthdata',
-    html:
-      'Mineral identification evidence: <a href="https://lpdaac.usgs.gov/products/emitl2bminv001/" target="_blank" rel="noopener">NASA EMIT L2BMIN</a> · Earthdata Login is required for protected pixel granules',
+    html: 'Mineral identification evidence: <a href="https://lpdaac.usgs.gov/products/emitl2bminv001/" target="_blank" rel="noopener">NASA EMIT L2BMIN</a> · Earthdata Login is required for protected pixel granules',
   },
   {
     key: 'cmio-geochemistry-global',
-    html:
-      'Real geochemistry: <a href="https://services.ga.gov.au/gis/critical-minerals/gwc/demo" target="_blank" rel="noopener">Critical Minerals in Ores (CMMI / Geoscience Australia)</a>',
+    html: 'Real geochemistry: <a href="https://services.ga.gov.au/gis/critical-minerals/gwc/demo" target="_blank" rel="noopener">Critical Minerals in Ores (CMMI / Geoscience Australia)</a>',
   },
   {
     key: 'usgs-mrds-mineral-intelligence',

@@ -11,6 +11,7 @@ Build a reproducible mineral-intelligence layer above the existing Cesium/GIS ap
 File: src/mineral/globalMineralSources.js
 
 Responsibilities:
+
 - Register canonical public mineral datasets.
 - Keep source identity, endpoint, format, attribution and limitations together.
 - Query ArcGIS FeatureServer sources by viewport.
@@ -19,10 +20,12 @@ Responsibilities:
 - Normalize source records into a common point-feature contract.
 
 Live public connectors currently include:
+
 - USGS MRDS (mrdata.mrds.mrdsv)
 - USGS Global Distribution of Selected Critical Minerals
 
 Discovery-only sources currently registered:
+
 - OneGeology
 - World Mining Data
 - USGS Mineral Commodity Summaries
@@ -38,6 +41,7 @@ The first model is intentionally named GEM-GLOBAL-REFERENCE-01.
 The deterministic components are the reference-evidence layer described below; the production discovery pipeline is then enriched by independent geoscience channels.
 
 Every target retains:
+
 - model ID
 - rank
 - score
@@ -56,6 +60,7 @@ The score is not a discovery probability. It is a reference-data prospectivity r
 File: src/mineral/evidenceFusion.js
 
 Evidence channels are defined independently so GEM can progressively add:
+
 - reference evidence
 - geology
 - geophysics
@@ -74,6 +79,7 @@ Missing data is not converted into zero. Missing channel weights are removed fro
 File: src/mineral/globalMineralIntelligence.js
 
 Responsibilities:
+
 - Determine the current camera bounding box.
 - Run current-view or global scans.
 - Render documented mineral references on the globe.
@@ -93,6 +99,7 @@ A target record carries the source IDs used to build it. This allows a future re
 ## Targeting data contract
 
 The canonical internal feature shape is a GeoJSON Feature<Point> with normalized properties:
+
 - sourceId
 - sourceName
 - recordId
@@ -112,11 +119,13 @@ This contract is source-neutral. A national geological survey, spectral service,
 ## Global scan strategy
 
 Viewport scan:
+
 - Uses the current Cesium camera rectangle.
 - One bounded page per public ArcGIS source.
 - Designed for interactive response.
 
 Global scan:
+
 - Uses the world envelope.
 - Requests multiple bounded pages per source.
 - Orders by gid ASC so page boundaries are deterministic for a stable snapshot.
@@ -139,12 +148,12 @@ A future ingestion service can move long-running world acquisition into a server
 
 When these channels become available, evidenceResolver can provide target-local normalized scores to the fusion engine; the same target IDs, tiering and provenance contract remain intact.
 
-
 ## True Multisource Mineral Prospectivity / Mineral Discovery Engine
 
 `src/mineral/trueProspectivity.js` remains the single model contract: `GEM-TRUE-MULTISOURCE-01`, now versioned as 2.0.0.
 
 The active evidence channels are:
+
 - **Reference (10%)** — documented mineral occurrences and critical-mineral reference records.
 - **Geology (20%)** — GLiM v1.1 lithology compatibility and commodity-specific lithology priors.
 - **Geophysics (20%)** — EMAG2v3 anomaly magnitude plus local contrast.
@@ -169,11 +178,13 @@ A global scan is bounded intentionally. It is an interactive reference acquisiti
 ## Engineering principle
 
 GEM should distinguish three states:
+
 - Observed/reference evidence: directly sourced records or measurements.
 - Derived evidence: deterministic transformations of sourced data.
 - Model inference: scores or interpretations produced by GEM.
 
 The user interface must show which state a value belongs to. GEM must never represent a derived/model value as if it were a measured mineral occurrence or a confirmed deposit.
+
 ## Engineering status
 
 The True Multisource layer is implemented as a separable evidence pipeline so model calibration can evolve without changing the GIS presentation contract.

@@ -6,59 +6,59 @@
  */
 const SOURCE_GROUPS = [
   {
-    title: "SATELLITE & SPECTRAL",
+    title: 'SATELLITE & SPECTRAL',
     items: [
-      ["Sentinel-2 (MSI)", "S2", true],
-      ["EMIT L2BMIN", "EM", true],
-      ["EnMAP", "EN", true],
-      ["Landsat 8/9", "LS", false],
-      ["ASTER", "AS", false],
+      ['Sentinel-2 (MSI)', 'S2', true],
+      ['EMIT L2BMIN', 'EM', true],
+      ['EnMAP', 'EN', true],
+      ['Landsat 8/9', 'LS', false],
+      ['ASTER', 'AS', false],
     ],
   },
   {
-    title: "GEOLOGY & STRUCTURE",
+    title: 'GEOLOGY & STRUCTURE',
     items: [
-      ["Geological Maps", "GE", true],
-      ["Structures / Faults", "ST", true],
-      ["Lineaments (AI)", "LI", true],
-      ["Tectonic Setting", "TE", false],
+      ['Geological Maps', 'GE', true],
+      ['Structures / Faults', 'ST', true],
+      ['Lineaments (AI)', 'LI', true],
+      ['Tectonic Setting', 'TE', false],
     ],
   },
   {
-    title: "TERRAIN & ENVIRONMENT",
+    title: 'TERRAIN & ENVIRONMENT',
     items: [
-      ["DEM / Topography", "DM", true],
-      ["Slope & Aspect", "SA", false],
-      ["Hydrology", "HY", true],
-      ["Land Cover", "LC", true],
+      ['DEM / Topography', 'DM', true],
+      ['Slope & Aspect', 'SA', false],
+      ['Hydrology', 'HY', true],
+      ['Land Cover', 'LC', true],
     ],
   },
   {
-    title: "GEOCHEMISTRY",
+    title: 'GEOCHEMISTRY',
     items: [
-      ["Soil Geochem", "SG", true],
-      ["Stream Sediments", "SS", false],
-      ["Geochemical Anomalies", "GA", true],
+      ['Soil Geochem', 'SG', true],
+      ['Stream Sediments', 'SS', false],
+      ['Geochemical Anomalies', 'GA', true],
     ],
   },
   {
-    title: "INFRASTRUCTURE & ACCESS",
+    title: 'INFRASTRUCTURE & ACCESS',
     items: [
-      ["Towns & Cities", "TC", true],
-      ["Roads & Logistics", "RL", true],
-      ["Power & Energy", "PE", true],
-      ["Protected Areas", "PA", true],
+      ['Towns & Cities', 'TC', true],
+      ['Roads & Logistics', 'RL', true],
+      ['Power & Energy', 'PE', true],
+      ['Protected Areas', 'PA', true],
     ],
   },
 ];
 
 const TARGETS = [
-  ["GEM-004281", "94.7", "TIER 1", "4.6231° S · 72.1885° W"],
-  ["GEM-004117", "88.2", "TIER 2", "4.6510° S · 72.2410° W"],
-  ["GEM-003982", "81.6", "TIER 2", "4.7014° S · 72.1052° W"],
+  ['GEM-004281', '94.7', 'TIER 1', '4.6231° S · 72.1885° W'],
+  ['GEM-004117', '88.2', 'TIER 2', '4.6510° S · 72.2410° W'],
+  ['GEM-003982', '81.6', 'TIER 2', '4.7014° S · 72.1052° W'],
 ];
 
-function el(tag, className, textContent = "") {
+function el(tag, className, textContent = '') {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (textContent) node.textContent = textContent;
@@ -66,36 +66,43 @@ function el(tag, className, textContent = "") {
 }
 
 function icon(name) {
-  const s = el("span", "material-symbols-outlined", name);
-  s.setAttribute("aria-hidden", "true");
+  const s = el('span', 'material-symbols-outlined', name);
+  s.setAttribute('aria-hidden', 'true');
   return s;
 }
 
 function sourcePanel() {
-  const panel = el("aside", "gem-sources-panel");
+  const panel = el('aside', 'gem-sources-panel');
   panel.innerHTML = '<div class="gem-panel-kicker">INTELLIGENCE SOURCES</div>';
   SOURCE_GROUPS.forEach(({ title: groupTitle, items }) => {
-    const section = el("section", "gem-source-group");
-    const head = el("button", "gem-source-heading", groupTitle);
-    head.type = "button";
-    head.append(icon("expand_more"));
-    head.addEventListener("click", () => section.classList.toggle("is-collapsed"));
+    const section = el('section', 'gem-source-group');
+    const head = el('button', 'gem-source-heading', groupTitle);
+    head.type = 'button';
+    head.append(icon('expand_more'));
+    head.addEventListener('click', () =>
+      section.classList.toggle('is-collapsed'),
+    );
     section.append(head);
-    const list = el("div", "gem-source-list");
+    const list = el('div', 'gem-source-list');
     items.forEach(([label, code, active]) => {
-      const row = el("div", "gem-source-row");
-      row.innerHTML = '<span class="gem-source-code"></span><span class="gem-source-name"></span>';
-      row.querySelector(".gem-source-code").textContent = code;
-      row.querySelector(".gem-source-name").textContent = label;
-      const toggle = el("button", "gem-toggle" + (active ? " is-on" : ""));
-      toggle.type = "button";
-      toggle.setAttribute("aria-pressed", String(active));
-      toggle.title = active ? "Disable source" : "Enable source";
-      toggle.addEventListener("click", () => {
-        const on = toggle.classList.toggle("is-on");
-        toggle.setAttribute("aria-pressed", String(on));
-        toggle.title = on ? "Disable source" : "Enable source";
-        document.dispatchEvent(new CustomEvent("gem:source-toggle", { detail: { label, active: on } }));
+      const row = el('div', 'gem-source-row');
+      row.innerHTML =
+        '<span class="gem-source-code"></span><span class="gem-source-name"></span>';
+      row.querySelector('.gem-source-code').textContent = code;
+      row.querySelector('.gem-source-name').textContent = label;
+      const toggle = el('button', 'gem-toggle' + (active ? ' is-on' : ''));
+      toggle.type = 'button';
+      toggle.setAttribute('aria-pressed', String(active));
+      toggle.title = active ? 'Disable source' : 'Enable source';
+      toggle.addEventListener('click', () => {
+        const on = toggle.classList.toggle('is-on');
+        toggle.setAttribute('aria-pressed', String(on));
+        toggle.title = on ? 'Disable source' : 'Enable source';
+        document.dispatchEvent(
+          new CustomEvent('gem:source-toggle', {
+            detail: { label, active: on },
+          }),
+        );
       });
       row.append(toggle);
       list.append(row);
@@ -103,18 +110,19 @@ function sourcePanel() {
     section.append(list);
     panel.append(section);
   });
-  const engine = el("div", "gem-engine-card");
-  engine.innerHTML = '<div class="gem-engine-title">GEM AI ENGINE</div><div class="gem-engine-sub">SCANNING TERRITORY</div><div class="gem-progress"><i></i></div><div class="gem-engine-stats"><b>12,482</b><span>km² analyzed</span><b>8,421</b><span>spectral anomalies</span><b>384</b><span>structural intersections</span><b>67</b><span>high-priority targets</span></div>';
-  const run = el("button", "gem-primary-button", "RUN INTELLIGENCE ANALYSIS");
-  run.type = "button";
-  run.addEventListener("click", () => runAnalysis(run));
+  const engine = el('div', 'gem-engine-card');
+  engine.innerHTML =
+    '<div class="gem-engine-title">GEM AI ENGINE</div><div class="gem-engine-sub">SCANNING TERRITORY</div><div class="gem-progress"><i></i></div><div class="gem-engine-stats"><b>12,482</b><span>km² analyzed</span><b>8,421</b><span>spectral anomalies</span><b>384</b><span>structural intersections</span><b>67</b><span>high-priority targets</span></div>';
+  const run = el('button', 'gem-primary-button', 'RUN INTELLIGENCE ANALYSIS');
+  run.type = 'button';
+  run.addEventListener('click', () => runAnalysis(run));
   engine.append(run);
   panel.append(engine);
   return panel;
 }
 
 function targetPanel() {
-  const panel = el("aside", "gem-target-panel");
+  const panel = el('aside', 'gem-target-panel');
   panel.innerHTML = `
     <div class="gem-target-head"><div><span class="gem-panel-kicker">TARGET INTELLIGENCE</span><strong>GEM-004281</strong></div><span class="gem-tier tier-1">TIER 1</span></div>
     <div class="gem-target-location">4.6231° S · 72.1885° W <span>•</span> Elevation 1,245 m</div>
@@ -129,28 +137,42 @@ function targetPanel() {
     <div class="gem-target-actions"><button data-action="open">OPEN TARGET</button><button data-action="3d">3D ANALYSIS</button><button data-action="report">GENERATE REPORT</button></div>
   `;
   const evidence = [
-    ["Spectral signature (EMIT / EnMAP)",96],["Hydrothermal alteration",93],["Structural setting",91],["Geological compatibility",95],["Sentinel-2 agreement",97],["Geochemical support",82],["AI model confidence",94]
+    ['Spectral signature (EMIT / EnMAP)', 96],
+    ['Hydrothermal alteration', 93],
+    ['Structural setting', 91],
+    ['Geological compatibility', 95],
+    ['Sentinel-2 agreement', 97],
+    ['Geochemical support', 82],
+    ['AI model confidence', 94],
   ];
-  const list = panel.querySelector(".gem-evidence");
-  evidence.forEach(([label,value]) => {
-    const row=el("div","gem-evidence-row");
-    row.innerHTML=`<span>${label}</span><i><b style="width:${value}%"></b></i><em>${value}%</em>`;
+  const list = panel.querySelector('.gem-evidence');
+  evidence.forEach(([label, value]) => {
+    const row = el('div', 'gem-evidence-row');
+    row.innerHTML = `<span>${label}</span><i><b style="width:${value}%"></b></i><em>${value}%</em>`;
     list.append(row);
   });
-  panel.querySelectorAll(".gem-target-tabs button").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      panel.querySelectorAll(".gem-target-tabs button").forEach(x=>x.classList.remove("is-active"));
-      btn.classList.add("is-active");
-      document.dispatchEvent(new CustomEvent("gem:target-tab",{detail:{tab:btn.dataset.tab}}));
+  panel.querySelectorAll('.gem-target-tabs button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      panel
+        .querySelectorAll('.gem-target-tabs button')
+        .forEach((x) => x.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      document.dispatchEvent(
+        new CustomEvent('gem:target-tab', { detail: { tab: btn.dataset.tab } }),
+      );
     });
   });
-  panel.querySelectorAll(".gem-target-actions button").forEach(btn=>btn.addEventListener("click",()=>showToast(btn.textContent)));
+  panel
+    .querySelectorAll('.gem-target-actions button')
+    .forEach((btn) =>
+      btn.addEventListener('click', () => showToast(btn.textContent)),
+    );
   return panel;
 }
 
 function bottomIntelligence() {
-  const wrap=el("section","gem-bottom-intelligence");
-  wrap.innerHTML=`
+  const wrap = el('section', 'gem-bottom-intelligence');
+  wrap.innerHTML = `
     <div class="gem-bottom-card fusion"><div class="gem-section-title">MULTI-SENSOR FUSION</div><div class="gem-fusion-stack"><span>S2</span><span>EMIT</span><span>EnMAP</span><span>GEO</span><span>DEM</span><span>GEO-CHEM</span><b>→</b><strong>GEM AI FUSION ENGINE</strong></div></div>
     <div class="gem-bottom-card spectral"><div class="gem-section-title">SPECTRAL ANALYSIS</div><div class="gem-chart"><i></i><i></i><i></i><i></i><i></i></div><div class="gem-chart-labels"><span>400</span><span>800</span><span>1200</span><span>1600</span><span>2400 nm</span></div><div class="gem-mineral-tags"><span>Kaolinite</span><span>Alunite</span><span>Illite</span><span>Chlorite</span><span>Hematite</span></div></div>
     <div class="gem-bottom-card terrain"><div class="gem-section-title">3D TERRAIN & GEOLOGY</div><div class="gem-terrain-art"><b>GEM-004281</b><span>ALTERATION ZONE</span><i>STRUCTURAL CONTROL</i></div></div>
@@ -160,25 +182,29 @@ function bottomIntelligence() {
 }
 
 function topHeader() {
-  const header=el("header","gem-command-header");
-  header.innerHTML=`
+  const header = el('header', 'gem-command-header');
+  header.innerHTML = `
     <div class="gem-brand"><span class="gem-brand-mark">G</span><div><strong>GEM <small>MINERAL INTELLIGENCE CENTER</small></strong><em>GLOBAL EXPLORATION & MINERAL INTELLIGENCE ENGINE</em></div></div>
     <nav class="gem-main-nav">
       <button class="is-active">◉ <span>GOD'S EYE VIEW</span></button><button>◇ <span>GLOBAL</span></button><button>□ <span>COUNTRY</span></button><button>⌂ <span>REGION</span></button><button>◎ <span>PROSPECT</span></button><button>⊙ <span>TARGET</span></button><button>◇ <span>3D</span></button><button>⌁ <span>AI ANALYSIS</span></button><button>▣ <span>REPORTS</span></button>
     </nav>
     <div class="gem-user"><span class="gem-online"></span><strong>Gio</strong><small>TerraQueen</small><span>⌄</span></div>
   `;
-  header.querySelectorAll(".gem-main-nav button").forEach(btn=>btn.addEventListener("click",()=>{
-    header.querySelectorAll(".gem-main-nav button").forEach(x=>x.classList.remove("is-active"));
-    btn.classList.add("is-active");
-    showToast(btn.textContent.trim());
-  }));
+  header.querySelectorAll('.gem-main-nav button').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      header
+        .querySelectorAll('.gem-main-nav button')
+        .forEach((x) => x.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      showToast(btn.textContent.trim());
+    }),
+  );
   return header;
 }
 
 function mapHud() {
-  const hud=el("div","gem-map-hud");
-  hud.innerHTML=`
+  const hud = el('div', 'gem-map-hud');
+  hud.innerHTML = `
     <div class="gem-map-search">⌕ <span>Search location, project or coordinates...</span></div>
     <div class="gem-map-modes"><button class="is-active">Satellite</button><button>Topography</button><button>Geology</button><button>Alteration</button><button>Structures</button><button>Mineral Potential</button><button>Infrastructure</button></div>
     <div class="gem-map-meta">ZOOM 10.5 · SCALE 1:250,000 · EPSG:4326 · SENSOR: EMIT L2BMIN · RESOLUTION: 60 m</div>
@@ -186,48 +212,58 @@ function mapHud() {
   return hud;
 }
 
-function showToast(message){
-  let t=document.querySelector(".gem-toast");
-  if(!t){t=el("div","gem-toast");document.body.append(t);}
-  t.textContent=message;
-  t.classList.add("is-visible");
-  clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove("is-visible"),1800);
+function showToast(message) {
+  let t = document.querySelector('.gem-toast');
+  if (!t) {
+    t = el('div', 'gem-toast');
+    document.body.append(t);
+  }
+  t.textContent = message;
+  t.classList.add('is-visible');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('is-visible'), 1800);
 }
 
-function runAnalysis(button){
-  button.disabled=true;
-  button.textContent="STARTING GEM ANALYSIS…";
+function runAnalysis(button) {
+  button.disabled = true;
+  button.textContent = 'STARTING GEM ANALYSIS…';
 
   const onState = (event) => {
     const phase = event.detail && event.detail.phase;
-    if (phase !== "ready" && phase !== "error") return;
-    document.removeEventListener("gem:global-intelligence-state", onState);
-    button.disabled=false;
-    button.textContent=phase === "ready"
-      ? "ANALYSIS COMPLETE"
-      : "ANALYSIS FAILED";
-    setTimeout(()=>button.textContent="RUN INTELLIGENCE ANALYSIS",1800);
+    if (phase !== 'ready' && phase !== 'error') return;
+    document.removeEventListener('gem:global-intelligence-state', onState);
+    button.disabled = false;
+    button.textContent =
+      phase === 'ready' ? 'ANALYSIS COMPLETE' : 'ANALYSIS FAILED';
+    setTimeout(() => (button.textContent = 'RUN INTELLIGENCE ANALYSIS'), 1800);
     showToast(
-      phase === "ready"
-        ? "GEM global mineral intelligence analysis complete"
-        : "GEM global mineral intelligence analysis failed",
+      phase === 'ready'
+        ? 'GEM global mineral intelligence analysis complete'
+        : 'GEM global mineral intelligence analysis failed',
     );
   };
 
-  document.addEventListener("gem:global-intelligence-state", onState);
-  document.dispatchEvent(new CustomEvent("gem:run-global-analysis"));
+  document.addEventListener('gem:global-intelligence-state', onState);
+  document.dispatchEvent(new CustomEvent('gem:run-global-analysis'));
 }
 
 function forceGemCommandCenter() {
-  if (!document.body || document.querySelector(".gem-command-center-force")) return;
-  document.documentElement.dataset.product = "GEM Mineral Intelligence Center";
-  document.documentElement.dataset.gemExperience = "center";
-  const legacy = "#first-run-launcher,#loading-screen,#intel-hud,#title-bar,#style-indicator,#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#location-bar,#voice-bar,#top-center-actions,#traffic-sync-chip,#cctv-sync-chip,#safe-frame-overlay";
-  const hideLegacy = () => document.querySelectorAll(legacy).forEach((n) => { n.style.setProperty("display","none","important"); n.style.setProperty("visibility","hidden","important"); n.style.setProperty("pointer-events","none","important"); });
+  if (!document.body || document.querySelector('.gem-command-center-force'))
+    return;
+  document.documentElement.dataset.product = 'GEM Mineral Intelligence Center';
+  document.documentElement.dataset.gemExperience = 'center';
+  const legacy =
+    '#first-run-launcher,#loading-screen,#intel-hud,#title-bar,#style-indicator,#left-panel-stack,#right-panel-stack,#right-context-rail,#command-dock,#location-bar,#voice-bar,#top-center-actions,#traffic-sync-chip,#cctv-sync-chip,#safe-frame-overlay';
+  const hideLegacy = () =>
+    document.querySelectorAll(legacy).forEach((n) => {
+      n.style.setProperty('display', 'none', 'important');
+      n.style.setProperty('visibility', 'hidden', 'important');
+      n.style.setProperty('pointer-events', 'none', 'important');
+    });
   hideLegacy();
 
-  const shell = document.createElement("div");
-  shell.className = "gem-command-center-force";
+  const shell = document.createElement('div');
+  shell.className = 'gem-command-center-force';
   shell.innerHTML = `
     <header class="gcf-header">
       <div class="gcf-brand"><span class="gcf-mark">◈</span><div><strong>TERRAQUEEN</strong><b>GEM <small>MINERAL INTELLIGENCE CENTER</small></b><em>GEOSPATIAL EXPLORATION · AI TARGETING · SATELLITE FUSION · MINING INTELLIGENCE</em></div></div>
@@ -257,27 +293,29 @@ function forceGemCommandCenter() {
     <footer class="gcf-bottom"><span>⌖ LOCATION<br><b>30°16'01.92&quot;N · 097°44'35.16&quot;W</b></span><nav><button>BASEMAP</button><button>🎙 VOICE</button><button>◷ TIME</button><button>∕ MEASURE</button><button>▣ SCREENSHOT</button></nav><span>COORDINATES (CURSOR)<br><b>30°16'02.10&quot;N · 097°44'28.73&quot;W</b></span></footer>
   `;
   document.body.append(shell);
-  const init = shell.querySelector(".gcf-init");
-  init.addEventListener("click", () => {
-    shell.classList.add("gcf-launching");
+  const init = shell.querySelector('.gcf-init');
+  init.addEventListener('click', () => {
+    shell.classList.add('gcf-launching');
     setTimeout(() => {
       shell.remove();
-      document.documentElement.dataset.gemExperience = "center";
+      document.documentElement.dataset.gemExperience = 'center';
       hideLegacy();
-      document.querySelector(".gem-command-header")?.scrollIntoView?.({block:"nearest"});
-      if (typeof window.startGemBoot === "function") window.startGemBoot();
+      document
+        .querySelector('.gem-command-header')
+        ?.scrollIntoView?.({ block: 'nearest' });
+      if (typeof window.startGemBoot === 'function') window.startGemBoot();
     }, 520);
   });
 }
 
-export function installMineralIntelligenceCenter(){
-  const install=()=>{
+export function installMineralIntelligenceCenter() {
+  const install = () => {
     forceGemCommandCenter();
-    document.body.classList.add("gem-mineral-center");
-    document.documentElement.dataset.gemCenterInstalled="true";
+    document.body.classList.add('gem-mineral-center');
+    document.documentElement.dataset.gemCenterInstalled = 'true';
     // Static scene chrome owns the GEM shell. Runtime mounting remains as a
     // fallback for alternate hosts, but never duplicates the static shell.
-    if(!document.querySelector(".gem-command-header")){
+    if (!document.querySelector('.gem-command-header')) {
       document.body.append(topHeader());
       document.body.append(mapHud());
       document.body.append(sourcePanel());
@@ -285,19 +323,24 @@ export function installMineralIntelligenceCenter(){
       document.body.append(bottomIntelligence());
     }
     // Future cockpit mode retains the original functional controls.
-    document.documentElement.dataset.gemExperience = "center";
-    const launch = document.querySelector("[data-gem-initialize]");
-    launch?.addEventListener("click", () => {
-      document.querySelector(".gem-launch-panel")?.classList.add("is-launching");
-      const existingGemEntry = document.querySelector("[data-first-run-gem]");
-      if (existingGemEntry) existingGemEntry.click();
-      else {
-        document.documentElement.dataset.gemExperience = "center";
-        document.body.classList.add("gem-center-active");
-      }
-    }, { once: true });
-
+    document.documentElement.dataset.gemExperience = 'center';
+    const launch = document.querySelector('[data-gem-initialize]');
+    launch?.addEventListener(
+      'click',
+      () => {
+        document
+          .querySelector('.gem-launch-panel')
+          ?.classList.add('is-launching');
+        const existingGemEntry = document.querySelector('[data-first-run-gem]');
+        if (existingGemEntry) existingGemEntry.click();
+        else {
+          document.documentElement.dataset.gemExperience = 'center';
+          document.body.classList.add('gem-center-active');
+        }
+      },
+      { once: true },
+    );
   };
-  if(document.body) install();
-  else document.addEventListener("DOMContentLoaded",install,{once:true});
+  if (document.body) install();
+  else document.addEventListener('DOMContentLoaded', install, { once: true });
 }
