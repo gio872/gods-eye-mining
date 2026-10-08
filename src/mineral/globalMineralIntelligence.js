@@ -33,6 +33,8 @@ import {
   buildInvestmentProfile,
   buildPortfolioSnapshot,
 } from './investmentIntelligence.js';
+import { summarizeGemCapabilities } from './gemCapabilityMatrix.js';
+import { createScanTelemetry } from './gemScanTelemetry.js';
 
 const DATA_SOURCE_NAME = 'GEM Global Mineral Intelligence';
 const WORLD_BBOX = Object.freeze({
