@@ -132,7 +132,7 @@ function injectStyles() {
         radial-gradient(ellipse at 17% 52%,rgba(0,217,255,.13),transparent 24%),
         radial-gradient(ellipse at 84% 53%,rgba(117,76,255,.12),transparent 25%),
         linear-gradient(180deg,rgba(0,5,11,.12) 0%,rgba(0,8,15,.02) 34%,rgba(0,4,9,.56) 100%),
-        url("https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg") center 50% / cover no-repeat;
+        url("/gem-planet-background.jpg") center 50% / cover no-repeat;
       transform:scale(1.035);
       filter:saturate(1.24) contrast(1.12) brightness(.76);
       animation:gemPlanetDrift 40s ease-in-out infinite alternate;
