@@ -302,7 +302,8 @@ export function createGemAccountApiHandler({ db = null } = {}) {
   const attempts = new Map();
   function rateLimit(req, route) {
     const now = Date.now();
-    const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+    const forwarded = process.env.GEM_TRUST_PROXY === 'true' ? req.headers['x-forwarded-for'] : '';
+    const ip = String(forwarded || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
     const key = route + ':' + ip;
     const prior = attempts.get(key) || [];
     const fresh = prior.filter(timestamp => now - timestamp < 15 * 60 * 1000);
