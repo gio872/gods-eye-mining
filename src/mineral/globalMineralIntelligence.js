@@ -527,6 +527,7 @@ export function createGlobalMineralIntelligence({
   let lastCameraKey = null;
   const scanCache = new Map();
   const SCAN_CACHE_TTL_MS = 60_000;
+  const CAPABILITY_SUMMARY = summarizeGemCapabilities();
 
   let state = {
     phase: 'idle',
