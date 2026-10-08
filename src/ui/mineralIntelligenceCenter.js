@@ -230,14 +230,14 @@ function runAnalysis(button) {
 
   const onState = (event) => {
     const phase = event.detail && event.detail.phase;
-    if (phase !== 'ready' && phase !== 'error') return;
+    if (phase !== 'decision-ready' && phase !== 'error') return;
     document.removeEventListener('gem:global-intelligence-state', onState);
     button.disabled = false;
     button.textContent =
-      phase === 'ready' ? 'ANALYSIS COMPLETE' : 'ANALYSIS FAILED';
+      phase === 'decision-ready' ? 'ANALYSIS COMPLETE' : 'ANALYSIS FAILED';
     setTimeout(() => (button.textContent = 'RUN INTELLIGENCE ANALYSIS'), 1800);
     showToast(
-      phase === 'ready'
+      phase === 'decision-ready'
         ? 'GEM global mineral intelligence analysis complete'
         : 'GEM global mineral intelligence analysis failed',
     );
