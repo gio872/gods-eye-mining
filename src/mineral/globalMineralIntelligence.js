@@ -133,7 +133,8 @@ function createPanel() {
     '  <div><b data-metric="targets">0</b><span>targets generated</span></div>',
     '  <div><b data-metric="tier1">0</b><span>tier 1 targets</span></div>',
     '  <div><b data-metric="top">0.0</b><span>top score / 100</span></div>',
-    '  <div><b data-metric="coverage">0.0%</b><span>evidence coverage</span></div>',\n    '  <div><b data-metric="readiness">0.0</b><span>investment readiness</span></div>',
+    '  <div><b data-metric="coverage">0.0%</b><span>evidence coverage</span></div>',
+    '  <div><b data-metric="readiness">0.0</b><span>investment readiness</span></div>',
     '</div>',
     '<div class="gem-global-top-targets">',
     '  <div class="gem-global-section-title">TOP TARGETS</div>',
@@ -375,7 +376,11 @@ function updatePanel(
   appendText(
     panel.querySelector('[data-metric="coverage"]'),
     Number(summary.evidenceCoverage || 0).toFixed(1) + '%',
-  );\n  appendText(\n    panel.querySelector('[data-metric="readiness"]'),\n    Number(summary.investmentReadiness || 0).toFixed(1),\n  );
+  );
+  appendText(
+    panel.querySelector('[data-metric="readiness"]'),
+    Number(summary.investmentReadiness || 0).toFixed(1),
+  );
 
   renderOperationalTriage(panel, targets);
   renderTargets(panel, targets);
