@@ -3,9 +3,11 @@ import { describeError } from './standalone/errors.js';
 import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter.js';
 import { createGlobalMineralIntelligence } from './mineral/globalMineralIntelligence.js';
 import { installGemDecisionCenter } from './ui/gemDecisionCenter.js';
+import { installGemAssetIntelligenceCenter } from './ui/gemAssetIntelligenceCenter.js';
 
 installMineralIntelligenceCenter();
 installGemDecisionCenter();
+installGemAssetIntelligenceCenter();
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
