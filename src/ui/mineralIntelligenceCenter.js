@@ -283,12 +283,26 @@ function installModuleDock() {
   activate('map');
 }
 
+function installLocaleIndicator(){
+  if(document.querySelector('.gem-locale-indicator'))return;
+  const pill=el('button','gem-locale-indicator','AUTO · GLOBAL');
+  pill.type='button'; pill.title='Country and language detected automatically';
+  pill.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('gem:open-language-settings')));
+  document.body.append(pill);
+  document.addEventListener('gem:locale-ready',event=>{
+    const x=event.detail||{};
+    pill.textContent=(x.country||'GLOBAL')+' · '+(x.languageName||x.language||'English');
+    pill.dataset.country=x.country||''; pill.dataset.language=x.language||'';
+    pill.title='Detected automatically from network/region and browser language';
+  });
+}
+
 function forceGemCommandCenter() {
   if (!document.body) return;
   const style = document.createElement('style');
   style.id = 'gem-progressive-module-style';
   style.textContent = [
-    '.gem-module-dock{position:fixed;left:18px;top:96px;z-index:13000;width:132px;padding:8px;border:1px solid rgba(88,213,232,.28);background:rgba(5,10,15,.88);backdrop-filter:blur(12px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28)}',
+    '.gem-locale-indicator{position:fixed;right:18px;top:18px;z-index:14000;padding:8px 11px;border:1px solid rgba(88,213,232,.35);border-radius:999px;background:rgba(5,10,15,.86);backdrop-filter:blur(10px);color:#dffbff;font:700 9px ui-monospace,monospace;letter-spacing:.06em;cursor:pointer}.gem-locale-indicator:hover{border-color:#58d5e8;color:#58d5e8}.gem-module-dock{position:fixed;left:18px;top:96px;z-index:13000;width:132px;padding:8px;border:1px solid rgba(88,213,232,.28);background:rgba(5,10,15,.88);backdrop-filter:blur(12px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28)}',
     '.gem-module-title{padding:5px 8px 8px;color:#58d5e8;font:700 9px/1 ui-monospace,monospace;letter-spacing:.16em}',
     '.gem-module-dock button{display:block;width:100%;margin:3px 0;padding:8px;border:1px solid transparent;border-radius:7px;background:transparent;color:#b8cdd2;text-align:left;cursor:pointer}',
     '.gem-module-dock button:hover,.gem-module-dock button[aria-pressed="true"]{border-color:rgba(88,213,232,.35);background:rgba(88,213,232,.08);color:#effcff}',
@@ -321,6 +335,7 @@ export function installMineralIntelligenceCenter() {
   const install = () => {
     forceGemCommandCenter();
     installModuleDock();
+    installLocaleIndicator();
     document.body.classList.add('gem-mineral-center');
     document.documentElement.dataset.gemCenterInstalled = 'true';
     // Static scene chrome owns the GEM shell. Runtime mounting remains as a
