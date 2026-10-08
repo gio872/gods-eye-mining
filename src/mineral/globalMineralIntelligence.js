@@ -36,6 +36,10 @@ import {
 import { summarizeGemCapabilities } from './gemCapabilityMatrix.js';
 import { createScanTelemetry } from './gemScanTelemetry.js';
 import { GEM_RUNTIME_POLICY } from '../../server/gem/gemRuntimePolicy.js';
+import {
+  buildResourceEvidence,
+  buildSubsurfaceResourceIndex,
+} from './subsurfaceResourceIntelligence.js';
 
 const DATA_SOURCE_NAME = 'GEM Global Mineral Intelligence';
 const WORLD_BBOX = Object.freeze({
@@ -515,6 +519,7 @@ export function createGlobalMineralIntelligence({
   debounceMs = 1800,
   viewportPages = 1,
   globalPages = 6,
+  subsurfaceRecords = [],
 } = {}) {
   if (!viewer) throw new TypeError('A Cesium viewer is required');
 
@@ -529,6 +534,7 @@ export function createGlobalMineralIntelligence({
   const scanCache = new Map();
   const SCAN_CACHE_TTL_MS = 60_000;
   const CAPABILITY_SUMMARY = summarizeGemCapabilities();
+  const SUBSURFACE_INDEX = buildSubsurfaceResourceIndex(subsurfaceRecords);
 
   let state = {
     phase: 'idle',
@@ -759,7 +765,15 @@ export function createGlobalMineralIntelligence({
                 search.mineralKey,
               ),
             );
-      const triagedTargets = triageTargets(targets);
+      const targetsWithSubsurfaceEvidence = targets.map((target) => ({
+        ...target,
+        subsurfaceResourceEvidence: buildResourceEvidence(
+          target,
+          SUBSURFACE_INDEX.records,
+          10,
+        ),
+      }));
+      const triagedTargets = triageTargets(targetsWithSubsurfaceEvidence);
       const triageSummary = summarizeTriage(triagedTargets);
       const portfolioSnapshot = buildPortfolioSnapshot(triagedTargets);
       const scanTelemetry = telemetry.finish({ candidateCount: candidateTargets.length, enrichedTargetCount: enrichment.targets.length, decisionTargetCount: triagedTargets.length, capabilityCount: CAPABILITY_SUMMARY.capabilityCount });
