@@ -3,7 +3,8 @@
  * Server-first: /api/gem/locale may provide country from trusted edge headers.
  * Client fallback uses navigator.language/timeZone without requesting precise location.
  */
-export const GEM_LOCALE_VERSION='1.0.0';
+export const GEM_LOCALE_VERSION='1.1.0';
+const GEM_LANGUAGE_STORAGE_KEY='gem.preferredLanguage';
 
 const COUNTRY_LOCALE=Object.freeze({
  US:'en-US',CA:'en-CA',GB:'en-GB',IE:'en-IE',AU:'en-AU',NZ:'en-NZ',ZA:'en-ZA',
@@ -53,10 +54,23 @@ export function resolveGemLocale({country,language,timezone}={}){
   version:GEM_LOCALE_VERSION,country:c||null,locale,language:lang,
   languageName:LANGUAGE_NAMES[lang]||lang.toUpperCase(),
   timezone:timezone||null,
-  source:mapped?'country':'browser',
+  source:preferred?'user-preference':(mapped?'country':'browser'),
   direction:lang==='ar'||lang==='he'||lang==='fa'||lang==='ur'?'rtl':'ltr'
  });
 }
+
+export function getPreferredGemLanguage(){
+ try{return localStorage.getItem(GEM_LANGUAGE_STORAGE_KEY)||null;}catch{return null;}
+}
+
+export function setPreferredGemLanguage(language){
+ const normalized=normalizeLanguage(language);
+ if(!normalized.language)throw new TypeError('language is required');
+ try{localStorage.setItem(GEM_LANGUAGE_STORAGE_KEY,normalized.locale||normalized.language);}catch{}
+ return normalized;
+}
+
+export function clearPreferredGemLanguage(){try{localStorage.removeItem(GEM_LANGUAGE_STORAGE_KEY);}catch{}}
 
 export async function detectGemLocale(){
  let server=null;
@@ -65,9 +79,10 @@ export async function detectGemLocale(){
   if(response.ok) server=await response.json();
  }catch{}
  const browser=navigator.language||navigator.userLanguage||'en-US';
+ const preferred=getPreferredGemLanguage();
  return resolveGemLocale({
   country:server?.country,
-  language:server?.language||browser,
+  language:preferred||server?.language||browser,
   timezone:Intl.DateTimeFormat().resolvedOptions().timeZone
  });
 }
