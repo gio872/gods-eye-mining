@@ -259,7 +259,7 @@ function installModuleDock() {
       ['analysis','AI ANALYSIS','On demand'],
       ['assets','ASSETS','Digital assets'],
       ['market','MARKET','Exchange'],
-      ['reports','REPORTS','On demand']
+      ['reports','REPORTS','On demand'],['investor','INVESTOR','Business case']
     ].map(([id,label,sub]) => '<button type="button" data-module="'+id+'" aria-pressed="'+(id==='map'?'true':'false')+'"><b>'+label+'</b><small>'+sub+'</small></button>').join('');
   document.body.append(dock);
   const setVisible=(selector,on)=>{
@@ -273,6 +273,7 @@ function installModuleDock() {
     if(id==='assets') document.dispatchEvent(new CustomEvent('gem:open-asset-registry'));
     if(id==='market') document.dispatchEvent(new CustomEvent('gem:open-asset-exchange'));
     if(id==='reports') document.dispatchEvent(new CustomEvent('gem:open-reports'));
+    if(id==='investor') document.dispatchEvent(new CustomEvent('gem:open-investor'));
     if(id==='analysis') document.dispatchEvent(new CustomEvent('gem:run-global-analysis'));
   };
   dock.addEventListener('click',e=>{
