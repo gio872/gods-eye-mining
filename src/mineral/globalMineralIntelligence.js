@@ -209,10 +209,28 @@ function renderTargets(panel, targets) {
     score.textContent = Number(target.score || 0).toFixed(1);
 
     const detail = document.createElement('small');
-    detail.textContent =
+    const geochemCommodity =
+      target.trueProspectivity &&
+      target.trueProspectivity.diagnostics &&
+      target.trueProspectivity.diagnostics.geochemistry &&
+      target.trueProspectivity.diagnostics.geochemistry.commodity;
+    const emitMinerals =
+      target.trueProspectivity &&
+      target.trueProspectivity.diagnostics &&
+      target.trueProspectivity.diagnostics.spectral &&
+      target.trueProspectivity.diagnostics.spectral.emit &&
+      Array.isArray(target.trueProspectivity.diagnostics.spectral.emit.mineralNames)
+        ? target.trueProspectivity.diagnostics.spectral.emit.mineralNames.slice(0, 2)
+        : [];
+    const labels =
       target.commodities && target.commodities.length
-        ? target.commodities.join(' · ')
-        : 'Documented mineral evidence';
+        ? target.commodities
+        : geochemCommodity
+          ? [geochemCommodity]
+          : emitMinerals;
+    detail.textContent = labels.length
+      ? labels.join(' · ')
+      : 'Multisource prospectivity target';
 
     button.append(dot, id, score, detail);
     host.append(button);
