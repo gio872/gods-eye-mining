@@ -107,7 +107,8 @@ export const GEM_MINERAL_INTELLIGENCE_CREDITS = [
   },
 ];
 
-export const DATA_CREDITS = [  ...GEM_MINERAL_INTELLIGENCE_CREDITS,
+export const DATA_CREDITS = [
+  ...GEM_MINERAL_INTELLIGENCE_CREDITS,
 
   // ── Live sources ────────────────────────────────────────────────
   {
