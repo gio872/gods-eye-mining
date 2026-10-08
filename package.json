@@ -301,7 +301,9 @@
     "./mineral/global-asset-registry": "./src/mineral/globalAssetRegistry.js",
     "./mineral/asset-exchange": "./src/mineral/assetExchange.js",
     "./mineral/public-markets": "./src/mineral/publicMarkets.js",
-    "./mineral/investor-room": "./src/mineral/investorRoom.js"
+    "./mineral/investor-room": "./src/mineral/investorRoom.js",
+    "./i18n/gem-locale": "./src/i18n/gemLocale.js",
+    "./server/gem-locale": "./server/gem/gemLocale.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
