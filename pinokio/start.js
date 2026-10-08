@@ -5,9 +5,9 @@ module.exports = {
       method: 'shell.run',
       params: {
         path: '..',
-        // Always launch the exact published main revision. This prevents Pinokio
-        // from silently serving an older local checkout after an update.
-        message: 'git fetch origin main && git reset --hard origin/main && node scripts/pinokio-start.mjs',
+        // Always launch the exact published GEM Mineral Discovery Engine revision.
+        // Pinokio installs this app from feature/global-mineral-intelligence.
+        message: 'git fetch origin feature/global-mineral-intelligence && git checkout feature/global-mineral-intelligence && git reset --hard origin/feature/global-mineral-intelligence && node scripts/pinokio-start.mjs',
         env: {
           HOST: '127.0.0.1',
           PORT: '{{port}}',
