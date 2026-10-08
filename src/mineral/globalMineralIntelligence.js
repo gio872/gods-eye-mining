@@ -284,7 +284,9 @@ function addTarget(dataSource, target) {
       outlineColor: color.withAlpha(0.92),
       outlineWidth: 2,
       height: 0,
+      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
       extrudedHeight: 180,
+      extrudedHeightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
     },
     label: {
       text: target.id + ' · ' + Number(target.score || 0).toFixed(1),
