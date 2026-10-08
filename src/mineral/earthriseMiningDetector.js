@@ -75,6 +75,11 @@ export function parseEarthriseDetections(payload) {
 
 export function earthriseMiningEvidence(target, detections, options = {}) {
   const radiusKm = Math.max(1, Number(options.radiusKm) || 3);
+  const coverageState = earthriseCoverageForPoint(
+    target?.latitude,
+    target?.longitude,
+  );
+  const coverage = coverageState === 'covered' ? 100 : 0;
   const nearby = (Array.isArray(detections) ? detections : [])
     .map((detection) => ({
       ...detection,
@@ -86,8 +91,9 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
   if (!nearby.length) {
     return {
       score: null,
-      coverage: 100,
-      activity: 'none_observed',
+      coverage,
+      activity:
+        coverageState === 'covered' ? 'none_observed' : 'not_covered',
       detectionCount: 0,
       confirmedCount: 0,
       nearestDistanceKm: null,
@@ -115,8 +121,12 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
 
   return {
     score: Math.round(score * 10) / 10,
-    coverage: 100,
-    activity: confirmed > 0 ? 'confirmed' : 'provisional',
+    coverage,
+    activity: coverageState === 'covered'
+      ? confirmed > 0
+        ? 'confirmed'
+        : 'provisional'
+      : 'not_covered',
     detectionCount: nearby.length,
     confirmedCount: confirmed,
     nearestDistanceKm: Math.round(nearby[0].distanceKm * 10) / 10,
