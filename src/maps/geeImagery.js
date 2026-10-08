@@ -9,7 +9,7 @@ export const GEE_CONFIG = Object.freeze({
   label: 'Google Earth Engine',
   shortLabel: 'GEE EO',
   kind: 'gee-imagery',
-  endpoint: 'http://127.0.0.1:8765/api/gee/map',
+  endpoint: '/api/gee/map',
   attribution: 'Google Earth Engine / public Earth observation datasets',
   defaultDataset: 'COPERNICUS/S2_SR_HARMONIZED',
 });
@@ -65,16 +65,8 @@ export async function createGeeImagery({
       'Google Earth Engine gateway returned no imagery URL template',
     );
 
-  return new globalThis.Cesium.WebMapServiceImageryProvider({
+  return new globalThis.Cesium.UrlTemplateImageryProvider({
     url: payload.urlTemplate,
-    layers: payload.layers || '0',
-    parameters: {
-      transparent: true,
-      format: 'image/png',
-      token: payload.token || '',
-    },
-    credit:
-      payload.attribution || GEE_CONFIG.attribution,
-    enablePickFeatures: false,
+    credit: payload.attribution || GEE_CONFIG.attribution,
   });
 }
