@@ -288,7 +288,8 @@
     "./mineral/global-mining-participants": "./src/mineral/globalMiningParticipants.js",
     "./mineral/capital-matching": "./src/mineral/capitalMatchingEngine.js",
     "./mineral/commodity-marketplace": "./src/mineral/commodityTradingMarketplace.js",
-    "./mineral/global-exchange": "./src/mineral/globalCommodityExchange.js"
+    "./mineral/global-exchange": "./src/mineral/globalCommodityExchange.js",
+    "./mineral/trade-operating-system": "./src/mineral/tradeOperatingSystem.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
