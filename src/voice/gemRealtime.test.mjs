@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DataLayerManager } from '../data/manager.js';
-import { controlRadio as runControlRadio, createGevActionRunner as createActionRunner } from './gevActions.js';
+import { controlRadio as runControlRadio, createGemActionRunner as createActionRunner } from './gemActions.js';
 import { createStandalonePlaceSearch } from '../standalone/placeSearch.js';
 import {
   computeDownscale,
@@ -31,7 +31,7 @@ import {
   readStoredVoiceLimits,
   writeStoredVoiceTier,
   writeStoredVoiceLimits,
-} from './gevRealtime.js';
+} from './gemRealtime.js';
 import { createVoiceCostTracker } from './voiceCost.js';
 
 test('push-to-talk recognizes Space by code or key', () => {
@@ -1364,7 +1364,7 @@ test('generic same-response Radio visibility disable supersedes delayed Select',
     scene: { canvas: { addEventListener() {}, removeEventListener() {} } },
     camera: { moveEnd: { addEventListener() {} } },
   };
-  const genericRunner = createGevActionRunner({ viewer, styleManager: {}, dataManager });
+  const genericRunner = createGemActionRunner({ viewer, styleManager: {}, dataManager });
   const ui = {
     root: { dataset: {}, classList: { remove() {} }, querySelectorAll: () => [] },
     status: { textContent: '' },
@@ -1626,7 +1626,7 @@ test('Pause and Stop preserve independent dedicated and generic Radio ON across 
                 scene: { canvas: { addEventListener() {}, removeEventListener() {} } },
                 camera: { moveEnd: { addEventListener() {} } },
               };
-              const genericRunner = createGevActionRunner({
+              const genericRunner = createGemActionRunner({
                 viewer,
                 styleManager: {},
                 dataManager,
@@ -3679,5 +3679,5 @@ test('a genuinely different refused call still gets its own output', async () =>
 });
 
 const testPlaceSearch = () => createStandalonePlaceSearch({ resolveApiKey: () => globalThis.window?.__GOOGLE_MAPS_API_KEY__ });
-function createGevActionRunner(options) { return createActionRunner({ placeSearch: testPlaceSearch(), ...options }); }
+function createGemActionRunner(options) { return createActionRunner({ placeSearch: testPlaceSearch(), ...options }); }
 function controlRadio(viewer, manager, args, options) { return runControlRadio(viewer, manager, args, { placeSearch: testPlaceSearch(), ...options }); }
