@@ -502,6 +502,18 @@ function geologyScoresByCommodity(lithology, requestedCommodities) {
 }
 
 export function geologyScore(lithology, target, options = {}) {
+  const normalized = String(lithology || '')
+    .toLowerCase()
+    .trim();
+
+  if (
+    !normalized ||
+    normalized.includes('no data') ||
+    normalized.includes('water') ||
+    normalized.includes('ice and glaciers')
+  )
+    return null;
+
   const explicit = Array.isArray(options.commodities)
     ? options.commodities
     : null;
@@ -513,7 +525,9 @@ export function geologyScore(lithology, target, options = {}) {
         ? inferred
         : SUPPORTED_COMMODITIES;
 
-  const scores = Object.values(geologyScoresByCommodity(lithology, requested));
+  const scores = Object.values(
+    geologyScoresByCommodity(lithology, requested),
+  );
   if (!scores.length) return 50;
 
   return (
