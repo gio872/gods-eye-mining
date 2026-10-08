@@ -35,7 +35,6 @@ import {
 } from './investmentIntelligence.js';
 import { summarizeGemCapabilities } from './gemCapabilityMatrix.js';
 import { createScanTelemetry } from './gemScanTelemetry.js';
-import { applyLearningSignals } from './explorationLearning.js';
 import { GEM_RUNTIME_POLICY } from '../../server/gem/gemRuntimePolicy.js';
 
 const DATA_SOURCE_NAME = 'GEM Global Mineral Intelligence';
