@@ -3,27 +3,79 @@
  * Resolves country geometry from the bundled Natural Earth admin-0 pack and
  * normalizes commodity/metal names into the prospectivity engine's taxonomy.
  */
-import { findAdminArea, listCountries, polygonsContain } from '../data/adminBoundaries.js';
+import {
+  findAdminArea,
+  listCountries,
+  polygonsContain,
+} from '../data/adminBoundaries.js';
 
 export const MINERAL_SEARCH_CATALOG = Object.freeze([
   { key: '', label: 'ALL MINERALS / METALS', aliases: [] },
   { key: 'gold', label: 'Gold / Au', aliases: ['gold', 'au', 'oro'] },
   { key: 'silver', label: 'Silver / Ag', aliases: ['silver', 'ag', 'plata'] },
   { key: 'copper', label: 'Copper / Cu', aliases: ['copper', 'cu', 'cobre'] },
-  { key: 'molybdenum', label: 'Molybdenum / Mo', aliases: ['molybdenum', 'mo', 'molibdeno'] },
-  { key: 'tungsten', label: 'Tungsten / W / Wolframio', aliases: ['tungsten', 'wolfram', 'wolframium', 'wolframio', 'w'] },
-  { key: 'lithium', label: 'Lithium / Li', aliases: ['lithium', 'li', 'litio'] },
-  { key: 'nickel', label: 'Nickel / Ni', aliases: ['nickel', 'ni', 'niquel', 'níquel'] },
+  {
+    key: 'molybdenum',
+    label: 'Molybdenum / Mo',
+    aliases: ['molybdenum', 'mo', 'molibdeno'],
+  },
+  {
+    key: 'tungsten',
+    label: 'Tungsten / W / Wolframio',
+    aliases: ['tungsten', 'wolfram', 'wolframium', 'wolframio', 'w'],
+  },
+  {
+    key: 'lithium',
+    label: 'Lithium / Li',
+    aliases: ['lithium', 'li', 'litio'],
+  },
+  {
+    key: 'nickel',
+    label: 'Nickel / Ni',
+    aliases: ['nickel', 'ni', 'niquel', 'níquel'],
+  },
   { key: 'cobalt', label: 'Cobalt / Co', aliases: ['cobalt', 'co', 'cobalto'] },
-  { key: 'platinum', label: 'Platinum / Pt', aliases: ['platinum', 'pt', 'platino'] },
-  { key: 'palladium', label: 'Palladium / Pd', aliases: ['palladium', 'pd', 'paladio'] },
-  { key: 'iridium', label: 'Iridium / Ir', aliases: ['iridium', 'ir', 'iridio'] },
-  { key: 'rhodium', label: 'Rhodium / Rh', aliases: ['rhodium', 'rh', 'rodio'] },
-  { key: 'manganese', label: 'Manganese / Mn', aliases: ['manganese', 'mn', 'manganeso'] },
+  {
+    key: 'platinum',
+    label: 'Platinum / Pt',
+    aliases: ['platinum', 'pt', 'platino'],
+  },
+  {
+    key: 'palladium',
+    label: 'Palladium / Pd',
+    aliases: ['palladium', 'pd', 'paladio'],
+  },
+  {
+    key: 'iridium',
+    label: 'Iridium / Ir',
+    aliases: ['iridium', 'ir', 'iridio'],
+  },
+  {
+    key: 'rhodium',
+    label: 'Rhodium / Rh',
+    aliases: ['rhodium', 'rh', 'rodio'],
+  },
+  {
+    key: 'manganese',
+    label: 'Manganese / Mn',
+    aliases: ['manganese', 'mn', 'manganeso'],
+  },
   { key: 'uranium', label: 'Uranium / U', aliases: ['uranium', 'u', 'uranio'] },
-  { key: 'phosphate', label: 'Phosphate', aliases: ['phosphate', 'phosphates', 'fosfato'] },
-  { key: 'potash', label: 'Potash / K', aliases: ['potash', 'potassium', 'k', 'potasa'] },
-  { key: 'rareearth', label: 'Rare Earth Elements / REE', aliases: ['rare earth', 'ree', 'rareearth', 'tierras raras'] },
+  {
+    key: 'phosphate',
+    label: 'Phosphate',
+    aliases: ['phosphate', 'phosphates', 'fosfato'],
+  },
+  {
+    key: 'potash',
+    label: 'Potash / K',
+    aliases: ['potash', 'potassium', 'k', 'potasa'],
+  },
+  {
+    key: 'rareearth',
+    label: 'Rare Earth Elements / REE',
+    aliases: ['rare earth', 'ree', 'rareearth', 'tierras raras'],
+  },
 ]);
 
 const CATALOG_BY_KEY = new Map(
@@ -137,7 +189,9 @@ export async function resolveMineralSearch({
     countryArea = await findAdminArea(queryCountry, { near });
 
   if (queryCountry && !countryArea)
-    throw new Error('Country not found in the bundled global boundary dataset.');
+    throw new Error(
+      'Country not found in the bundled global boundary dataset.',
+    );
 
   const bbox = countryArea
     ? {
