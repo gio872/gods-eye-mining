@@ -32,6 +32,7 @@ module.exports = {
 
     return [
       { default: true, icon: 'fa-solid fa-power-off', text: 'Start GEM', href: 'start.js' },
+      { icon: 'fa-solid fa-satellite-dish', text: 'Configure Earth Engine', href: 'gee-auth.js' },
       { icon: 'fa-solid fa-arrows-rotate', text: 'Update', href: 'update.js' },
       { icon: 'fa-solid fa-broom', text: 'Repair installation', href: 'reset.js' },
     ];
