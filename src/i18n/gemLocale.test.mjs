@@ -14,3 +14,8 @@ test('language registry covers broad global language families',()=>{
  const x=getGemSupportedLanguages();
  for(const code of ['en','es','fr','ar','zh','hi','sw','am','yo','ja','ko','pt']) assert.ok(x[code]);
 });
+
+test('manual language preference overrides country suggestion',()=>{
+ const x=resolveGemLocale({country:'CO',language:'fr-FR'});
+ assert.equal(x.locale,'es-CO');
+});
