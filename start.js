@@ -6,7 +6,6 @@ module.exports = {
     {
       method: "shell.run",
       params: {
-        path: "app",
         message: "npm run dev -- --host 127.0.0.1"
       },
       next: [
