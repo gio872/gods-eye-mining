@@ -396,6 +396,7 @@ export function createGlobalMineralIntelligence({
   viewer,
   fetchImpl = globalThis.fetch,
   autoScan = true,
+  emitSampler,
   debounceMs = 1800,
   viewportPages = 1,
   globalPages = 6,
@@ -493,6 +494,7 @@ export function createGlobalMineralIntelligence({
           fetchImpl,
           signal: scanController.signal,
           maxGeologyTargets: isGlobal ? 96 : 64,
+          emitSampler,
         },
       );
       if (destroyed || scanController.signal.aborted) return state;
