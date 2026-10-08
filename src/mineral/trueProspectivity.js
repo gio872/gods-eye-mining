@@ -520,7 +520,15 @@ export async function enrichTargetsWithTrueProspectivity(
     concurrency = DEFAULT_CONCURRENCY,
   } = {},
 ) {
-  if (!Array.isArray(targets) || !targets.length) return [];
+  if (!Array.isArray(targets) || !targets.length)
+    return {
+      targets: [],
+      providerStatuses: {
+        geology: { ok: false, sourceId: PROSPECTIVITY_SOURCES.geology.id },
+        geophysics: { ok: false, sourceId: PROSPECTIVITY_SOURCES.magnetics.id },
+        terrain: { ok: false, sourceId: PROSPECTIVITY_SOURCES.terrain.id },
+      },
+    };
 
   const magneticsPoints = [];
   const magneticsPointKeys = [];
@@ -585,7 +593,25 @@ export async function enrichTargetsWithTrueProspectivity(
     byTargetTerrain.get(key).push(terrainResult.samples[index]);
   }
 
-  return targets
+  const providerStatuses = {
+    geology: {
+      ok: geologyResults.some((result) => result && result.ok),
+      sourceId: PROSPECTIVITY_SOURCES.geology.id,
+      sourceName: PROSPECTIVITY_SOURCES.geology.name,
+    },
+    geophysics: {
+      ok: magneticResult.ok && magneticResult.samples.length > 0,
+      sourceId: PROSPECTIVITY_SOURCES.magnetics.id,
+      sourceName: PROSPECTIVITY_SOURCES.magnetics.name,
+    },
+    terrain: {
+      ok: terrainResult.ok && terrainResult.samples.length > 0,
+      sourceId: PROSPECTIVITY_SOURCES.terrain.id,
+      sourceName: PROSPECTIVITY_SOURCES.terrain.name,
+    },
+  };
+
+  const enrichedTargets = targets
     .map((target, index) => {
       const geology = geologyResults[index] || null;
       const magnetics = magneticScore(
@@ -630,7 +656,10 @@ export async function enrichTargetsWithTrueProspectivity(
             ? { terrain: Math.round(evidence.channels.terrain) }
             : {}),
         },
-        trueProspectivity: evidence,
+        trueProspectivity: {
+          ...evidence,
+          providerStatuses,
+        },
       };
     })
     .sort((a, b) => b.score - a.score || b.referenceCount - a.referenceCount)
@@ -638,6 +667,11 @@ export async function enrichTargetsWithTrueProspectivity(
       ...target,
       rank: index + 1,
     }));
+
+  return {
+    targets: enrichedTargets,
+    providerStatuses,
+  };
 }
 
 export const DEFAULT_TRUE_CHANNELS = Object.freeze([
