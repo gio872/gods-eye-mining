@@ -1,6 +1,6 @@
 /**
  * GEM Mineral Intelligence Center
- * Presentation layer for the God's Eye View application.
+ * Presentation layer for the GEM Mineral Intelligence System application.
  * Keeps the existing Cesium/GIS controls intact and adds a focused
  * mineral-exploration command center shell around them.
  */
@@ -186,7 +186,7 @@ function topHeader() {
   header.innerHTML = `
     <div class="gem-brand"><span class="gem-brand-mark">G</span><div><strong>GEM <small>MINERAL INTELLIGENCE CENTER</small></strong><em>GLOBAL EXPLORATION & MINERAL INTELLIGENCE ENGINE</em></div></div>
     <nav class="gem-main-nav">
-      <button class="is-active">◉ <span>GOD'S EYE VIEW</span></button><button>◇ <span>GLOBAL</span></button><button>□ <span>COUNTRY</span></button><button>⌂ <span>REGION</span></button><button>◎ <span>PROSPECT</span></button><button>⊙ <span>TARGET</span></button><button>◇ <span>3D</span></button><button>⌁ <span>AI ANALYSIS</span></button><button>▣ <span>REPORTS</span></button>
+      <button class="is-active">◉ <span>MINERAL INTELLIGENCE</span></button><button>◇ <span>GLOBAL</span></button><button>□ <span>COUNTRY</span></button><button>⌂ <span>REGION</span></button><button>◎ <span>PROSPECT</span></button><button>⊙ <span>TARGET</span></button><button>◇ <span>3D</span></button><button>⌁ <span>AI ANALYSIS</span></button><button>▣ <span>REPORTS</span></button>
     </nav>
     <div class="gem-user"><span class="gem-online"></span><strong>Gio</strong><small>TerraQueen</small><span>⌄</span></div>
   `;
