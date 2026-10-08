@@ -91,7 +91,24 @@ export function hideOsmCredit(viewer, owner) {
   return true;
 }
 
-export const DATA_CREDITS = [
+export const GEM_MINERAL_INTELLIGENCE_CREDITS = [
+  {
+    key: 'usgs-mrds-mineral-intelligence',
+    html:
+      'Mineral reference occurrences: ' +
+      '<a href="https://energy.usgs.gov/arcgis/rest/services/MRData/Mineral_Resource_Data_System/FeatureServer/3" target="_blank" rel="noopener">USGS Mineral Resource Data System (MRDS)</a> ' +
+      '(worldwide reference data; coverage outside the U.S. is incomplete)',
+  },
+  {
+    key: 'usgs-critical-minerals-intelligence',
+    html:
+      'Critical mineral reference locations: ' +
+      '<a href="https://energy.usgs.gov/arcgis/rest/services/Hosted/Global_distribution_of_selected_critical_minerals/FeatureServer/2" target="_blank" rel="noopener">USGS Global Distribution of Selected Critical Minerals</a>',
+  },
+];
+
+export const DATA_CREDITS = [  ...GEM_MINERAL_INTELLIGENCE_CREDITS,
+
   // ── Live sources ────────────────────────────────────────────────
   {
     key: 'opensky',
