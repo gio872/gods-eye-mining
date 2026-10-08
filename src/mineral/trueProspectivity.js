@@ -1,5 +1,6 @@
 import { fuseEvidence } from './evidenceFusion.js';
 import { runMineralDiscoveryEngine } from './mineralDiscoveryEngine.js';
+import { buildExplorationPlan } from './explorationOptimizer.js';
 import {
   EARTH_OBSERVATION_SOURCES,
   enrichSpectralEvidence,
@@ -628,6 +629,12 @@ export function computeTrueEvidence(
           (fusion.score * 0.45 + miningEngine.score * 0.55) * 10,
         ) / 10;
 
+  const explorationPlan = buildExplorationPlan({
+    channels,
+    targetScore: score,
+    confidence: miningEngine.confidence,
+  });
+
   return {
     modelId: TRUE_PROSPECTIVITY_MODEL_ID,
     version: TRUE_PROSPECTIVITY_VERSION,
@@ -639,6 +646,7 @@ export function computeTrueEvidence(
     diagnostics: {
       ...diagnostics,
       miningEngine,
+      explorationPlan,
     },
     interpretation:
       'GEM multimodal mineral-discovery ranking combining evidence fusion with mineral-system coherence. This is deterministic model inference, not a calibrated probability of discovery, resource, reserve or grade estimate.',
@@ -989,6 +997,11 @@ export async function enrichTargetsWithTrueProspectivity(
           hardExcluded: Boolean(hardExcluded),
           detailResolved: detailedIndexes.includes(index),
           providerStatuses,
+          explorationPlan: buildExplorationPlan({
+            channels: evidence.channels,
+            targetScore: hardExcluded ? 0 : evidence.score,
+            confidence: evidence.confidence,
+          }),
         },
       };
     })
