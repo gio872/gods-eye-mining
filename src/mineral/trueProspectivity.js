@@ -1,6 +1,7 @@
 import { fuseEvidence } from './evidenceFusion.js';
 import { runMineralDiscoveryEngine } from './mineralDiscoveryEngine.js';
 import { buildExplorationPlan } from './explorationOptimizer.js';
+import { buildMineralSystemGraph, graphSupportSummary } from './mineralSystemKnowledgeGraph.js';
 import {
   EARTH_OBSERVATION_SOURCES,
   enrichSpectralEvidence,
@@ -635,6 +636,16 @@ export function computeTrueEvidence(
     confidence: miningEngine.confidence,
   });
 
+  const mineralSystemGraph = buildMineralSystemGraph(target, {
+    commodity: target.requestedCommodity || (target.commodities && target.commodities[0]) || null,
+    geology: channels.geology,
+    structure: channels.structure,
+    spectral: channels.spectral,
+    geochemistry: channels.geochemistry,
+    geophysics: channels.geophysics,
+  });
+  const mineralSystem = graphSupportSummary(mineralSystemGraph);
+
   return {
     modelId: TRUE_PROSPECTIVITY_MODEL_ID,
     version: TRUE_PROSPECTIVITY_VERSION,
@@ -647,6 +658,8 @@ export function computeTrueEvidence(
       ...diagnostics,
       miningEngine,
       explorationPlan,
+      mineralSystem,
+      mineralSystemGraph,
     },
     interpretation:
       'GEM multimodal mineral-discovery ranking combining evidence fusion with mineral-system coherence. This is deterministic model inference, not a calibrated probability of discovery, resource, reserve or grade estimate.',
@@ -997,6 +1010,8 @@ export async function enrichTargetsWithTrueProspectivity(
           hardExcluded: Boolean(hardExcluded),
           detailResolved: detailedIndexes.includes(index),
           providerStatuses,
+          mineralSystem,
+          mineralSystemGraph,
           explorationPlan: buildExplorationPlan({
             channels: evidence.channels,
             targetScore: hardExcluded ? 0 : evidence.score,
