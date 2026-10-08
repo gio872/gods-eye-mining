@@ -53,3 +53,7 @@ source → fact → indicator → inference → uncertainty → decision questio
 ## Long-term architecture
 PLANET → GEOLOGY → SUPPLY → TRADE → PROCESSING → INFRASTRUCTURE → RISK → POLICY CONTEXT → INVESTMENT → EXPLORATION → FEEDBACK
 The same planetary intelligence fabric powers mining companies, governments and investors while tenant-specific private data remains isolated.
+
+## Live official-data ingestion
+
+The ingestion layer registers USGS MCS 2026, USGS Minerals Yearbook, IEA critical-minerals datasets, UNCTAD critical-minerals trade and World Bank commodity-market data. Each normalized record carries source ID, publisher, dataset, year, value, unit and ingestion timestamp. Records without source provenance or a mineral value fail validation.
