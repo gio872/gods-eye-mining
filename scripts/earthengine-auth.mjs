@@ -25,8 +25,14 @@ if (probe.status !== 0) {
 
 const auth = spawnSync(
   python,
-  ['-m', 'ee.cli', 'authenticate', '--project', project],
+  ['-m', 'ee.cli', 'authenticate'],
   { stdio: 'inherit' },
 );
+if (auth.status !== 0) process.exit(auth.status || 1);
 
-process.exit(auth.status || 0);
+const setProject = spawnSync(
+  python,
+  ['-m', 'ee.cli', 'set_project', project],
+  { stdio: 'inherit' },
+);
+process.exit(setProject.status || 0);
