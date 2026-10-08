@@ -10,9 +10,19 @@ export const GEE_CONFIG = Object.freeze({
   shortLabel: 'GEE EO',
   kind: 'gee-imagery',
   endpoint: '/api/gee/map',
+  healthEndpoint: '/api/gee/health',
   attribution: 'Google Earth Engine / public Earth observation datasets',
-  defaultDataset: 'COPERNICUS/S2_SR_HARMONIZED',
+  defaultDataset: 'sentinel2',
 });
+
+export const GEE_DATASETS = Object.freeze([
+  { key: 'sentinel2', label: 'Sentinel-2 SR Harmonized' },
+  { key: 'hls', label: 'HLS Landsat 30 m' },
+  { key: 'sentinel1', label: 'Sentinel-1 SAR VV' },
+  { key: 'landsat', label: 'Landsat 9 SR' },
+  { key: 'elevation', label: 'Copernicus DEM 30 m' },
+  { key: 'worldcover', label: 'ESA WorldCover' },
+]);
 
 export function geeAvailable(config = {}) {
   return Boolean(String(config.endpoint || GEE_CONFIG.endpoint).trim());
