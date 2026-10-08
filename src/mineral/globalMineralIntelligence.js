@@ -759,6 +759,7 @@ export function createGlobalMineralIntelligence({
       const triagedTargets = triageTargets(targets);
       const triageSummary = summarizeTriage(triagedTargets);
       const portfolioSnapshot = buildPortfolioSnapshot(triagedTargets);
+      const scanTelemetry = telemetry.finish({ candidateCount: candidateTargets.length, enrichedTargetCount: enrichment.targets.length, decisionTargetCount: triagedTargets.length, capabilityCount: CAPABILITY_SUMMARY.capabilityCount });
       const summary = {
         ...buildEvidenceSummary(features, triagedTargets),
         candidateCount: candidateTargets.length,
@@ -766,6 +767,8 @@ export function createGlobalMineralIntelligence({
         operationalTriage: triageSummary,
         investmentReadiness: portfolioSnapshot.averageReadiness,
         investmentIntelligence: portfolioSnapshot,
+        capabilityCount: CAPABILITY_SUMMARY.capabilityCount,
+        scanTelemetry,
       };
       const statuses = results.map((result) => ({
         source: result.source,
