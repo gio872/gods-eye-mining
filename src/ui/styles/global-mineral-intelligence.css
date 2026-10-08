@@ -347,3 +347,72 @@ html[data-product='GEM Mineral Intelligence Center'] .gem-global-intel-panel {
   padding-top: 4px;
   border-top: 1px solid rgba(71, 233, 255, 0.08);
 }
+
+
+.gem-global-search {
+  margin-top: 10px;
+  padding: 9px;
+  border: 1px solid rgba(71, 233, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(5, 20, 29, 0.52);
+}
+.gem-global-search > .gem-global-section-title {
+  margin-bottom: 7px;
+}
+.gem-global-search label {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+}
+.gem-global-search label > span {
+  color: #62868e;
+  font: 700 7px JetBrains Mono, monospace;
+  letter-spacing: 0.10em;
+}
+.gem-global-search select {
+  width: 100%;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid rgba(71, 233, 255, 0.16);
+  border-radius: 5px;
+  background: #071820;
+  color: #d7f1f4;
+  font: 700 8px JetBrains Mono, monospace;
+  outline: none;
+}
+.gem-global-search select:focus {
+  border-color: rgba(71, 233, 255, 0.55);
+  box-shadow: 0 0 12px rgba(71, 233, 255, 0.08);
+}
+.gem-global-search-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+.gem-global-search-actions button {
+  height: 29px;
+  border: 1px solid rgba(71, 233, 255, 0.28);
+  border-radius: 5px;
+  background: rgba(8, 35, 46, 0.76);
+  color: #9beaf2;
+  font: 700 8px JetBrains Mono, monospace;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.gem-global-search-actions button:first-child {
+  border-color: rgba(241, 189, 90, 0.44);
+  color: #f2ce7c;
+}
+.gem-global-search-actions button:hover {
+  border-color: rgba(71, 233, 255, 0.72);
+  color: #fff;
+}
+.gem-global-search-status {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(71, 233, 255, 0.08);
+  color: #6f949d;
+  font: 700 7px JetBrains Mono, monospace;
+  letter-spacing: 0.08em;
+}
