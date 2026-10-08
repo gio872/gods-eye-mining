@@ -1,0 +1,17 @@
+export const GEM_CAPABILITY_MATRIX = Object.freeze([
+{id:'MINERAL_SYSTEMS',layer:'INTELLIGENCE',capability:'Mineral-systems prospectivity',sources:['Geoscience Australia Mineral Systems','USGS Earth MRI'],gem:['mineralSystemKnowledgeGraph','trueProspectivity','hierarchicalTargetEngine']},
+{id:'GLOBAL_DEPOSITS',layer:'DATA',capability:'Global mines, deposits, occurrences and commodities',sources:['USGS mineral resources data','USGS MRDS','national geological surveys'],gem:['globalMineralSources','globalTargetEngine']},
+{id:'GEOPHYSICS',layer:'EVIDENCE',capability:'Magnetic, radiometric, gravity and electromagnetic evidence',sources:['Earth MRI','NOAA/NCEI EMAG2v3','national airborne surveys'],gem:['trueProspectivity','evidenceFusion']},
+{id:'GEOCHEMISTRY',layer:'EVIDENCE',capability:'Pathfinder and multi-element geochemistry',sources:['Geoscience Australia CMMI','national geochemical surveys'],gem:['geochemistry','trueProspectivity']},
+{id:'HYPERSPECTRAL',layer:'EVIDENCE',capability:'Mineral and alteration spectral signatures',sources:['NASA EMIT','EnMAP','USGS hyperspectral programs','Sentinel-2'],gem:['earthObservationEvidence','emitSampler','trueProspectivity']},
+{id:'TERRAIN_STRUCTURE',layer:'EVIDENCE',capability:'Topography, drainage and structural context',sources:['global DEMs','satellite-derived terrain','geological mapping'],gem:['trueProspectivity','mineralSystemKnowledgeGraph']},
+{id:'MINE_ACTIVITY',layer:'CONTEXT',capability:'Existing mining and surface activity intelligence',sources:['Earthrise Mining Detector','public mining datasets'],gem:['earthriseMiningEvidence']},
+{id:'3D_GEOLOGY',layer:'DECISION',capability:'Living 3D geological and drillhole model',sources:['industry-standard implicit and explicit modelling workflows'],gem:['drillIntelligence','mineralSystemKnowledgeGraph']},
+{id:'DRILL_INTELLIGENCE',layer:'DECISION',capability:'Competing hypotheses and next-best drilling action',sources:['best-practice exploration workflows'],gem:['drillIntelligence','explorationOptimizer']},
+{id:'RESOURCE_PLANNING',layer:'ASSET',capability:'Resource/block-model and mine-planning interoperability',sources:['industry-standard block modelling and mine planning workflows'],gem:['investmentIntelligence']},
+{id:'COMMODITY_SUPPLY',layer:'MARKET',capability:'Global production, trade and strategic supply context',sources:['BGS World Mineral Statistics','USGS Mineral Commodity Summaries'],gem:['investmentIntelligence']},
+{id:'MINE_WASTE',layer:'CIRCULAR',capability:'Mine-waste and tailings mineral potential',sources:['USGS Earth MRI mine-waste programs'],gem:['future mineWasteEngine']},
+{id:'GOVERNANCE',layer:'TRUST',capability:'Provenance, reproducibility, auditability and security',sources:['enterprise data-governance patterns'],gem:['gemStateStore','gemRuntimePolicy']}
+]);
+export function getGemCapabilities(){return GEM_CAPABILITY_MATRIX.map(e=>({...e,sources:[...e.sources],gem:[...e.gem]}));}
+export function summarizeGemCapabilities(){const layers={};for(const e of GEM_CAPABILITY_MATRIX)layers[e.layer]=(layers[e.layer]||0)+1;return Object.freeze({capabilityCount:GEM_CAPABILITY_MATRIX.length,layers:Object.freeze(layers),strategicCommodities:['gold','silver','platinum','palladium','rhodium','iridium','copper','lithium','nickel','cobalt','graphite','manganese','rare earth elements','tungsten','tin','niobium','tantalum','vanadium','uranium','chromium','zinc','lead']});}
