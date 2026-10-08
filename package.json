@@ -308,7 +308,8 @@
     "./mineral/public-markets": "./src/mineral/publicMarkets.js",
     "./mineral/investor-room": "./src/mineral/investorRoom.js",
     "./i18n/gem-locale": "./src/i18n/gemLocale.js",
-    "./server/gem-locale": "./server/gem/gemLocale.js"
+    "./server/gem-locale": "./server/gem/gemLocale.js",
+    "./server/gem-account-api": "./server/gem/gemAccountApi.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
