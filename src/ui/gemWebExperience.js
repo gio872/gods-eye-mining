@@ -743,7 +743,7 @@ function buildShell() {
     <main class="gem-product-content">
       <section class="gem-product-hero">
         <div class="gem-product-eyebrow">GLOBAL EXPLORATION & MINERAL INTELLIGENCE</div>
-        <h1>Understand the planet.<br><em>Find what matters.</em></h1>
+        
         <p>Search the mineral world, discover opportunities, understand assets<br>and move from evidence to action.</p>
         <label class="gem-hero-search">
           <span>⌕</span>
