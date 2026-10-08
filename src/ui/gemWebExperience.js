@@ -1,222 +1,805 @@
 /**
  * GEM Web Experience
+ * Product-first discovery shell for GEM.
  *
- * Unique GEM planetary intelligence product shell:
- * fast search, entity discovery, progressive disclosure and responsive
- * navigation. It sits above the existing geospatial engine rather than
- * replacing it.
+ * Design principle:
+ * DISCOVER -> SEARCH -> OPEN WORKSPACE -> GO DEEP
+ *
+ * The geospatial command center remains underneath as the specialist workspace.
+ * The product shell is intentionally light: one search, a few decisions, then
+ * progressive disclosure into the intelligence modules already built.
  */
 
-const NAV = [
-  ['home', 'Home'],
-  ['explore', 'Explore'],
-  ['targets', 'Targets'],
-  ['assets', 'Assets'],
-  ['companies', 'Companies'],
-  ['markets', 'Markets'],
-  ['intelligence', 'Intelligence'],
-  ['investor', 'Investor'],
+const MODULES = [
+  { id: 'resources', label: 'Resource Atlas', eyebrow: 'EXPLORE', text: 'Minerals, metals, petroleum and gas with location, depth, evidence and provenance.', meta: '4D DATA FABRIC', action: 'resources' },
+  { id: 'targets', label: 'Target Intelligence', eyebrow: 'DISCOVER', text: 'Find, rank and explain exploration targets from converging planetary evidence.', meta: 'AI + EVIDENCE', action: 'targets' },
+  { id: 'assets', label: 'Asset Intelligence', eyebrow: 'OPERATE', text: 'Track physical assets, digital twins, custody, trade and settlement.', meta: 'DIGITAL TWIN', action: 'assets' },
+  { id: 'companies', label: 'Global Companies', eyebrow: 'NETWORK', text: 'Connect miners, operators, traders, producers, refineries and off-takers.', meta: 'NETWORK GRAPH', action: 'companies' },
+  { id: 'markets', label: 'Markets', eyebrow: 'TRADE', text: 'Commodity discovery, RFQ, matching, exchange and trade operations.', meta: 'COMMODITY LAYER', action: 'markets' },
+  { id: 'intelligence', label: 'Mineral Intelligence', eyebrow: 'UNDERSTAND', text: 'Geology, geophysics, geochemistry, hyperspectral and mineral systems.', meta: 'PLANETARY EVIDENCE', action: 'intelligence' },
+  { id: 'security', label: 'Mineral Security', eyebrow: 'STRATEGY', text: 'Country exposure, supply concentration, refining risk and resilience.', meta: 'NATIONAL INTELLIGENCE', action: 'security' },
+  { id: 'investor', label: 'Investor Room', eyebrow: 'CAPITAL', text: 'Business model, scenarios, capital path and public-markets readiness.', meta: 'INVESTOR INTELLIGENCE', action: 'investor' },
 ];
 
-function node(tag, className, text = '') {
-  const el = document.createElement(tag);
-  if (className) el.className = className;
-  if (text) el.textContent = text;
-  return el;
-}
+const SEARCH_INDEX = [
+  ['GOLD', 'Commodity', 'Mineral intelligence, targets, supply and markets'],
+  ['COPPER', 'Commodity', 'Geology, geochemistry, projects and supply chain'],
+  ['LITHIUM', 'Commodity', 'Critical mineral, projects, capital and security'],
+  ['TUNGSTEN', 'Commodity', 'Strategic mineral, deposits, processing and trade'],
+  ['RARE EARTHS', 'Commodity', 'Critical minerals, refining and strategic exposure'],
+  ['COLOMBIA', 'Country', 'Mineral security, resources, companies and projects'],
+  ['BOLIVIA', 'Country', 'Strategic minerals, resources and exploration'],
+  ['DUBAI', 'Market', 'Trading, capital, logistics, custody and counterparties'],
+  ['GEM TARGETS', 'Targets', 'Global prospectivity and exploration decisions'],
+  ['RESOURCE ATLAS', 'Resources', 'Depth-resolved global resource intelligence'],
+  ['MINING PARTICIPANTS', 'Companies', 'Miners, operators, traders and off-takers'],
+  ['ASSET REGISTRY', 'Assets', 'Physical assets, passports and digital twins'],
+  ['MINERAL SECURITY', 'Strategy', 'Country-level supply and strategic dependency'],
+];
 
 function emit(name, detail = {}) {
   document.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
-function installStyles() {
-  if (document.getElementById('gem-web-experience-style')) return;
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[char]));
+}
+
+function injectStyles() {
+  if (document.getElementById('gem-product-v2-style')) return;
+
   const style = document.createElement('style');
-  style.id = 'gem-web-experience-style';
+  style.id = 'gem-product-v2-style';
   style.textContent = `
-    :root{--gem-cyan:#68e8f4;--gem-blue:#4f7cff;--gem-violet:#9b7cff;--gem-white:#f4fbff;--gem-dim:#7c929d;--gem-panel:rgba(5,10,17,.72);--gem-line:rgba(150,205,220,.16)}
-    body.gem-web-product{overflow:hidden;background:#02060a}
-    .gem-web-header{position:fixed;z-index:15000;top:14px;left:18px;right:18px;height:58px;display:flex;align-items:center;gap:18px;padding:0 13px 0 15px;border:1px solid var(--gem-line);border-radius:17px;background:linear-gradient(110deg,rgba(5,12,19,.92),rgba(5,10,17,.68));backdrop-filter:blur(24px);box-shadow:0 14px 50px rgba(0,0,0,.34);font-family:Inter,system-ui,sans-serif}
-    .gem-web-logo{display:flex;align-items:center;gap:10px;min-width:205px;color:var(--gem-white);letter-spacing:-.03em}.gem-web-logo-mark{position:relative;width:35px;height:35px;border-radius:11px;display:grid;place-items:center;background:#07131b;border:1px solid rgba(104,232,244,.48);color:var(--gem-cyan);font-weight:900;box-shadow:inset 0 0 22px rgba(104,232,244,.08)}.gem-web-logo-mark:after{content:"";position:absolute;inset:5px;border:1px solid rgba(155,124,255,.4);border-radius:8px;transform:rotate(45deg)}.gem-web-logo strong{display:block;font-size:15px}.gem-web-logo small{display:block;color:var(--gem-dim);font-size:7px;letter-spacing:.2em;margin-top:2px}
-    .gem-web-search{height:38px;flex:1;max-width:610px;display:flex;align-items:center;gap:9px;padding:0 12px;border:1px solid var(--gem-line);border-radius:11px;background:rgba(255,255,255,.035);color:var(--gem-dim)}.gem-web-search input{flex:1;border:0;outline:0;background:transparent;color:var(--gem-white);font-size:12px}.gem-web-search:focus-within{border-color:rgba(104,232,244,.48);box-shadow:0 0 0 3px rgba(104,232,244,.05)}.gem-web-search kbd{border:1px solid var(--gem-line);border-radius:5px;padding:3px 6px;font-size:8px}
-    .gem-web-nav{display:flex;align-items:center;gap:2px;margin-left:auto}.gem-web-nav button{border:0;background:transparent;color:#81959e;padding:8px 9px;border-radius:8px;cursor:pointer;font-size:9px;letter-spacing:.04em}.gem-web-nav button:hover{color:var(--gem-white);background:rgba(104,232,244,.05)}.gem-web-nav button.is-active{color:var(--gem-cyan);background:rgba(104,232,244,.07);box-shadow:inset 0 -1px var(--gem-cyan)}
-    .gem-web-user{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,#17243a,#0d141f);border:1px solid var(--gem-line);color:var(--gem-white);font-size:10px;font-weight:800}
-    .gem-web-main{position:fixed;z-index:12000;inset:0;padding:105px 28px 28px;pointer-events:none;font-family:Inter,system-ui,sans-serif;background:radial-gradient(ellipse at 54% 48%,rgba(38,103,125,.08),transparent 42%)}
-    .gem-web-main:before{content:"";position:absolute;inset:68px 0 0;background-image:linear-gradient(rgba(104,232,244,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(104,232,244,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(circle at center,black,transparent 70%);pointer-events:none}
-    .gem-web-hero{position:relative;pointer-events:auto;max-width:780px;margin:8vh auto 0;text-align:center}.gem-web-kicker{color:var(--gem-cyan);font-size:8px;font-weight:800;letter-spacing:.3em}.gem-web-hero h1{margin:15px 0 10px;color:var(--gem-white);font-size:clamp(36px,5vw,70px);line-height:.98;letter-spacing:-.065em;text-shadow:0 0 45px rgba(104,232,244,.09)}.gem-web-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--gem-cyan),#fff,var(--gem-violet));background-clip:text;color:transparent}.gem-web-hero p{margin:auto;color:#849aa5;font-size:12px;line-height:1.6;max-width:590px}
-    .gem-web-stats{display:flex;justify-content:center;gap:7px;margin-top:22px}.gem-web-stat{min-width:110px;padding:10px 13px;border:1px solid var(--gem-line);border-radius:10px;background:rgba(5,11,17,.58);backdrop-filter:blur(12px)}.gem-web-stat strong{display:block;color:var(--gem-white);font-size:15px}.gem-web-stat span{color:var(--gem-dim);font-size:7px;text-transform:uppercase;letter-spacing:.14em}
-    .gem-web-card-row{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:9px;pointer-events:auto}.gem-web-card{width:min(29vw,315px);padding:15px;border:1px solid var(--gem-line);border-radius:14px;background:linear-gradient(145deg,rgba(8,16,24,.84),rgba(4,9,15,.64));backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(0,0,0,.3);transition:transform .2s,border-color .2s}.gem-web-card:hover{transform:translateY(-4px);border-color:rgba(104,232,244,.35)}.gem-web-card-head{display:flex;justify-content:space-between;color:#657b85;font-size:7px;text-transform:uppercase;letter-spacing:.15em}.gem-web-card h3{margin:9px 0 4px;color:var(--gem-white);font-size:14px}.gem-web-card p{margin:0;color:#718792;font-size:9px;line-height:1.5}.gem-web-card button{margin-top:12px;border:0;background:transparent;color:var(--gem-cyan);padding:0;font-size:8px;font-weight:800;letter-spacing:.12em;cursor:pointer}
-    .gem-web-results{position:fixed;z-index:16000;top:82px;left:50%;transform:translateX(-50%);width:min(690px,calc(100vw - 32px));display:none;border:1px solid var(--gem-line);border-radius:14px;background:rgba(4,9,15,.97);backdrop-filter:blur(24px);box-shadow:0 30px 90px rgba(0,0,0,.65);overflow:hidden}.gem-web-results.is-open{display:block}.gem-web-result{padding:12px 15px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}.gem-web-result:hover{background:rgba(104,232,244,.05)}.gem-web-result b{color:var(--gem-white);font-size:11px}.gem-web-result span{display:block;color:var(--gem-dim);font-size:8px;margin-top:3px}
-    .gem-web-mobile{display:none}
-    @media(max-width:1120px){.gem-web-nav button{padding:8px 5px;font-size:8px}.gem-web-logo{min-width:165px}}@media(max-width:850px){.gem-web-nav{display:none}.gem-web-logo{min-width:auto}.gem-web-search{max-width:none}.gem-web-card{width:31vw}}@media(max-width:650px){.gem-web-header{top:8px;left:8px;right:8px;height:54px}.gem-web-logo-text{display:none}.gem-web-search{position:absolute;top:62px;left:0;right:0}.gem-web-main{padding:94px 10px 10px}.gem-web-hero{margin-top:8vh}.gem-web-hero h1{font-size:38px}.gem-web-stats{overflow:auto;justify-content:flex-start}.gem-web-card-row{justify-content:flex-start;overflow:auto;padding:0 2px 3px}.gem-web-card{min-width:260px}.gem-web-mobile{display:grid;position:fixed;z-index:15001;right:10px;bottom:10px;width:43px;height:43px;border:1px solid var(--gem-line);border-radius:50%;background:#071019;color:var(--gem-cyan);place-items:center}}
+    :root{
+      --gem-bg:#03070b;
+      --gem-surface:rgba(9,16,24,.82);
+      --gem-surface-2:rgba(13,22,31,.9);
+      --gem-border:rgba(145,194,207,.14);
+      --gem-border-strong:rgba(104,232,244,.34);
+      --gem-text:#eefaff;
+      --gem-muted:#78909b;
+      --gem-soft:#a9bac1;
+      --gem-cyan:#68e8f4;
+      --gem-violet:#a58cff;
+      --gem-green:#7de7bd;
+    }
+
+    body.gem-web-product{overflow:hidden;background:var(--gem-bg)}
+    body.gem-web-product .gem-command-header,
+    body.gem-web-product .gem-map-hud,
+    body.gem-web-product .gem-sources-panel,
+    body.gem-web-product .gem-target-panel,
+    body.gem-web-product .gem-bottom-intelligence,
+    body.gem-web-product .gem-module-dock,
+    body.gem-web-product .gem-map-hud,
+    body.gem-web-product .gem-map-search,
+    body.gem-web-product .gem-map-modes,
+    body.gem-web-product .gem-map-meta{
+      display:none!important;
+    }
+
+    .gem-product-shell{
+      position:fixed;
+      inset:0;
+      z-index:14500;
+      color:var(--gem-text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 50% 24%,rgba(43,126,145,.12),transparent 31%),
+        radial-gradient(circle at 76% 70%,rgba(116,78,181,.08),transparent 26%),
+        linear-gradient(180deg,#03080d 0%,#02060a 100%);
+      overflow:auto;
+    }
+
+    .gem-product-shell:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.32;
+      background-image:
+        linear-gradient(rgba(104,232,244,.026) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(104,232,244,.026) 1px,transparent 1px);
+      background-size:64px 64px;
+      mask-image:radial-gradient(circle at 50% 38%,black 0%,transparent 76%);
+    }
+
+    .gem-product-header{
+      position:sticky;
+      top:0;
+      z-index:4;
+      height:68px;
+      display:grid;
+      grid-template-columns:auto minmax(260px,560px) auto;
+      align-items:center;
+      gap:28px;
+      padding:0 30px;
+      border-bottom:1px solid rgba(145,194,207,.1);
+      background:rgba(3,8,13,.78);
+      backdrop-filter:blur(24px);
+    }
+
+    .gem-product-brand{
+      display:flex;
+      align-items:center;
+      gap:11px;
+      cursor:pointer;
+      min-width:178px;
+    }
+
+    .gem-product-mark{
+      width:34px;height:34px;border-radius:11px;
+      display:grid;place-items:center;
+      color:var(--gem-cyan);
+      border:1px solid rgba(104,232,244,.46);
+      background:linear-gradient(145deg,#0b1c27,#061017);
+      box-shadow:0 0 35px rgba(104,232,244,.08);
+      font-weight:900;
+      position:relative;
+    }
+
+    .gem-product-mark:after{
+      content:"";
+      position:absolute;inset:6px;
+      border:1px solid rgba(165,140,255,.42);
+      border-radius:7px;
+      transform:rotate(45deg);
+    }
+
+    .gem-product-brand strong{font-size:14px;letter-spacing:.02em}
+    .gem-product-brand small{display:block;color:#627b86;font-size:6px;letter-spacing:.19em;margin-top:2px}
+
+    .gem-universal-search{
+      height:42px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:0 13px;
+      border:1px solid var(--gem-border);
+      border-radius:13px;
+      background:rgba(255,255,255,.035);
+      box-shadow:inset 0 1px rgba(255,255,255,.025);
+      transition:.2s;
+    }
+
+    .gem-universal-search:focus-within{
+      border-color:var(--gem-border-strong);
+      background:rgba(104,232,244,.035);
+      box-shadow:0 0 0 4px rgba(104,232,244,.035);
+    }
+
+    .gem-universal-search .search-icon{color:var(--gem-cyan);font-size:17px}
+    .gem-universal-search input{
+      flex:1;min-width:0;border:0;outline:0;background:transparent;
+      color:var(--gem-text);font-size:12px;
+    }
+    .gem-universal-search input::placeholder{color:#617780}
+    .gem-search-key{
+      color:#657b84;border:1px solid var(--gem-border);border-radius:6px;
+      padding:3px 6px;font:8px ui-monospace,monospace;
+    }
+
+    .gem-product-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}
+    .gem-product-header-actions button{
+      border:1px solid transparent;background:transparent;color:#8398a0;
+      border-radius:9px;padding:8px 10px;cursor:pointer;font-size:9px;
+    }
+    .gem-product-header-actions button:hover{
+      color:var(--gem-text);background:rgba(255,255,255,.035);
+      border-color:var(--gem-border);
+    }
+    .gem-product-profile{
+      display:flex!important;align-items:center;gap:7px;color:var(--gem-text)!important;
+    }
+    .gem-avatar{
+      width:26px;height:26px;border-radius:9px;display:grid;place-items:center;
+      background:linear-gradient(145deg,#18283a,#0b131d);border:1px solid var(--gem-border);
+      color:var(--gem-cyan);font-weight:800;
+    }
+
+    .gem-product-content{
+      position:relative;
+      z-index:1;
+      width:min(1180px,calc(100% - 48px));
+      margin:0 auto;
+      padding:54px 0 70px;
+    }
+
+    .gem-product-hero{
+      max-width:900px;
+      margin:0 auto;
+      text-align:center;
+      padding:40px 0 30px;
+    }
+
+    .gem-product-eyebrow{
+      color:var(--gem-cyan);
+      font:800 8px ui-monospace,monospace;
+      letter-spacing:.28em;
+    }
+
+    .gem-product-hero h1{
+      margin:15px 0 14px;
+      font-size:clamp(42px,6vw,74px);
+      line-height:.98;
+      letter-spacing:-.067em;
+      font-weight:720;
+    }
+
+    .gem-product-hero h1 em{
+      font-style:normal;
+      background:linear-gradient(90deg,var(--gem-cyan),#e9fcff 48%,var(--gem-violet));
+      background-clip:text;color:transparent;
+    }
+
+    .gem-product-hero p{
+      max-width:630px;margin:0 auto;color:var(--gem-muted);
+      font-size:13px;line-height:1.7;
+    }
+
+    .gem-hero-search{
+      width:min(760px,100%);
+      height:62px;
+      margin:28px auto 14px;
+      display:flex;align-items:center;gap:13px;
+      padding:0 18px;
+      border:1px solid rgba(104,232,244,.24);
+      border-radius:18px;
+      background:rgba(8,17,25,.86);
+      box-shadow:0 20px 70px rgba(0,0,0,.3),0 0 50px rgba(104,232,244,.035);
+    }
+    .gem-hero-search span{color:var(--gem-cyan);font-size:21px}
+    .gem-hero-search input{
+      flex:1;border:0;outline:0;background:transparent;color:var(--gem-text);
+      font-size:15px;
+    }
+    .gem-hero-search input::placeholder{color:#60757e}
+    .gem-hero-search button{
+      border:0;border-radius:9px;background:#dffcff;color:#061117;
+      padding:9px 13px;font-size:8px;font-weight:900;letter-spacing:.1em;cursor:pointer;
+    }
+
+    .gem-quick-links{
+      display:flex;justify-content:center;gap:7px;flex-wrap:wrap;
+    }
+    .gem-quick-links button{
+      border:1px solid var(--gem-border);border-radius:999px;
+      background:rgba(255,255,255,.02);color:#80959d;
+      padding:7px 11px;font-size:8px;cursor:pointer;
+    }
+    .gem-quick-links button:hover{color:var(--gem-cyan);border-color:var(--gem-border-strong)}
+
+    .gem-section-heading{
+      display:flex;align-items:end;justify-content:space-between;
+      margin:36px 0 12px;
+    }
+    .gem-section-heading div span{
+      color:#5f7882;font:800 7px ui-monospace,monospace;letter-spacing:.18em;
+    }
+    .gem-section-heading h2{
+      margin:5px 0 0;font-size:20px;letter-spacing:-.035em;
+    }
+    .gem-section-heading button{
+      border:0;background:transparent;color:var(--gem-cyan);
+      font-size:8px;font-weight:800;cursor:pointer;
+    }
+
+    .gem-module-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:9px;
+    }
+
+    .gem-module-card{
+      position:relative;
+      min-height:165px;
+      display:flex;flex-direction:column;justify-content:space-between;
+      padding:17px;
+      border:1px solid var(--gem-border);
+      border-radius:16px;
+      background:
+        radial-gradient(circle at 100% 0%,rgba(104,232,244,.05),transparent 38%),
+        rgba(8,15,22,.78);
+      cursor:pointer;
+      transition:transform .2s,border-color .2s,background .2s;
+    }
+    .gem-module-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(104,232,244,.28);
+      background:
+        radial-gradient(circle at 100% 0%,rgba(104,232,244,.09),transparent 40%),
+        rgba(11,22,30,.9);
+    }
+    .gem-module-card:nth-child(3n){background:
+      radial-gradient(circle at 100% 0%,rgba(165,140,255,.07),transparent 38%),
+      rgba(8,15,22,.78)}
+    .gem-module-card .module-eyebrow{
+      color:#617983;font:800 7px ui-monospace,monospace;letter-spacing:.17em;
+    }
+    .gem-module-card .module-arrow{
+      position:absolute;right:16px;top:15px;color:#516a74;font-size:18px;
+    }
+    .gem-module-card strong{display:block;margin:13px 0 7px;font-size:15px;letter-spacing:-.025em}
+    .gem-module-card p{margin:0;color:#718892;font-size:9px;line-height:1.55}
+    .gem-module-card footer{display:flex;align-items:center;justify-content:space-between;margin-top:15px}
+    .gem-module-card footer span{color:#536b75;font:7px ui-monospace,monospace;letter-spacing:.1em}
+    .gem-module-card footer b{color:var(--gem-cyan);font-size:8px}
+
+    .gem-lower-grid{
+      display:grid;grid-template-columns:1.35fr .65fr;gap:10px;margin-top:10px;
+    }
+    .gem-feature-panel,.gem-status-panel{
+      min-height:190px;padding:19px;border:1px solid var(--gem-border);
+      border-radius:16px;background:rgba(8,15,22,.72);
+    }
+    .gem-feature-panel{position:relative;overflow:hidden}
+    .gem-feature-panel:after{
+      content:"";position:absolute;width:260px;height:260px;right:-90px;bottom:-150px;
+      border-radius:50%;border:1px solid rgba(104,232,244,.14);
+      box-shadow:0 0 0 28px rgba(104,232,244,.025),0 0 0 58px rgba(104,232,244,.018);
+    }
+    .gem-panel-label{color:#607984;font:800 7px ui-monospace,monospace;letter-spacing:.17em}
+    .gem-feature-panel h3{margin:10px 0 5px;font-size:19px}
+    .gem-feature-panel p{max-width:590px;color:#718993;font-size:9px;line-height:1.6}
+    .gem-feature-actions{display:flex;gap:7px;margin-top:17px}
+    .gem-feature-actions button{
+      border:1px solid var(--gem-border);border-radius:8px;background:rgba(255,255,255,.025);
+      color:#c6d8dd;padding:8px 11px;font-size:8px;cursor:pointer;
+    }
+    .gem-feature-actions button.primary{border-color:rgba(104,232,244,.3);background:rgba(104,232,244,.08);color:var(--gem-cyan)}
+    .gem-status-list{display:grid;gap:8px;margin-top:13px}
+    .gem-status-item{display:flex;align-items:center;justify-content:space-between;font-size:9px}
+    .gem-status-item span{color:#718993}.gem-status-item b{color:var(--gem-green);font-size:8px}
+
+    .gem-search-popover{
+      position:fixed;z-index:18000;top:73px;left:50%;
+      transform:translateX(-50%);
+      width:min(760px,calc(100vw - 28px));
+      max-height:70vh;overflow:auto;
+      display:none;padding:8px;
+      border:1px solid rgba(104,232,244,.2);border-radius:15px;
+      background:rgba(4,10,16,.98);box-shadow:0 30px 100px rgba(0,0,0,.7);
+      backdrop-filter:blur(24px);
+    }
+    .gem-search-popover.is-open{display:block}
+    .gem-search-result{
+      width:100%;display:grid;grid-template-columns:90px 1fr auto;gap:12px;
+      align-items:center;text-align:left;border:0;border-radius:10px;background:transparent;
+      padding:12px;cursor:pointer;color:var(--gem-text);
+    }
+    .gem-search-result:hover{background:rgba(104,232,244,.055)}
+    .gem-search-result b{font:800 8px ui-monospace,monospace;color:var(--gem-cyan);letter-spacing:.12em}
+    .gem-search-result strong{font-size:11px}.gem-search-result span{display:block;color:#687f88;font-size:8px;margin-top:3px}
+    .gem-search-result i{color:var(--gem-cyan);font-style:normal;font-size:18px}
+    .gem-search-empty{padding:18px;color:#617780;font-size:9px}
+
+    .gem-workspace{
+      position:fixed;inset:0;z-index:17500;
+      display:none;overflow:auto;
+      background:
+        radial-gradient(circle at 80% 15%,rgba(104,232,244,.07),transparent 30%),
+        linear-gradient(180deg,#03080d,#02060a);
+      font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+    }
+    .gem-workspace.is-open{display:block}
+    .gem-workspace-header{
+      position:sticky;top:0;z-index:2;height:70px;
+      display:flex;align-items:center;gap:16px;padding:0 28px;
+      border-bottom:1px solid var(--gem-border);
+      background:rgba(3,8,13,.82);backdrop-filter:blur(20px);
+    }
+    .gem-back{border:1px solid var(--gem-border);background:transparent;color:#8ba0a8;border-radius:9px;padding:8px 10px;cursor:pointer}
+    .gem-workspace-header span{color:#617983;font:800 7px ui-monospace,monospace;letter-spacing:.16em}
+    .gem-workspace-header h2{margin:4px 0 0;font-size:18px}
+    .gem-workspace-body{width:min(1180px,calc(100% - 48px));margin:auto;padding:38px 0 70px}
+    .gem-workspace-command{
+      display:flex;gap:8px;flex-wrap:wrap;margin:20px 0;
+    }
+    .gem-workspace-command input{
+      flex:1;min-width:220px;height:44px;border:1px solid var(--gem-border);border-radius:11px;
+      outline:0;background:rgba(255,255,255,.025);color:var(--gem-text);padding:0 13px;
+    }
+    .gem-workspace-command button{
+      height:44px;border:1px solid var(--gem-border);border-radius:11px;background:rgba(255,255,255,.025);
+      color:#9bb0b8;padding:0 14px;font-size:8px;font-weight:800;cursor:pointer;
+    }
+    .gem-workspace-command button:hover{border-color:var(--gem-border-strong);color:var(--gem-cyan)}
+    .gem-workspace-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .gem-work-card{padding:20px;border:1px solid var(--gem-border);border-radius:15px;background:rgba(255,255,255,.025);min-height:150px}
+    .gem-work-card span{color:#617983;font:800 7px ui-monospace,monospace;letter-spacing:.14em}
+    .gem-work-card strong{display:block;font-size:15px;margin:10px 0 6px}
+    .gem-work-card p{color:#718993;font-size:9px;line-height:1.55;margin:0}
+    .gem-work-card button{margin-top:18px;border:0;background:none;color:var(--gem-cyan);font-size:8px;font-weight:800;cursor:pointer}
+    .gem-work-note{margin-top:12px;padding:14px;border:1px dashed rgba(104,232,244,.16);border-radius:12px;color:#647b84;font-size:9px;line-height:1.6}
+
+    @media(max-width:950px){
+      .gem-product-header{grid-template-columns:auto 1fr auto;gap:12px;padding:0 15px}
+      .gem-product-header-actions button[data-nav]{display:none}
+      .gem-module-grid{grid-template-columns:repeat(2,1fr)}
+      .gem-lower-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:600px){
+      .gem-product-header{height:60px}
+      .gem-product-brand{min-width:0}.gem-product-brand div{display:none}
+      .gem-product-header-actions .gem-language{display:none}
+      .gem-product-content{width:min(100% - 24px,1180px);padding-top:34px}
+      .gem-product-hero{padding-top:25px}
+      .gem-product-hero h1{font-size:43px}
+      .gem-hero-search{height:56px}
+      .gem-search-key{display:none}
+      .gem-module-grid{grid-template-columns:1fr}
+      .gem-workspace-grid{grid-template-columns:1fr}
+      .gem-workspace-body{width:calc(100% - 24px)}
+      .gem-workspace-header{padding:0 12px}
+    }
   `;
   document.head.append(style);
 }
-function openExplore() {
-  document.querySelector('.gem-explore-overlay')?.remove();
-  const overlay=node('section','gem-explore-overlay');
-  overlay.innerHTML=`
-    <div class="gem-explore-backdrop"></div>
-    <div class="gem-explore-panel">
-      <div class="gem-explore-top"><div><span>GEM DISCOVERY FABRIC</span><h2>Explore the mineral planet</h2><p>Navigate from commodity to country, resource, target, company and asset without leaving the intelligence layer.</p></div><button data-close>×</button></div>
-      <div class="gem-explore-command">
-        <span>⌕</span><input data-explore-query placeholder="Search gold, copper, Colombia, target, company..." autocomplete="off">
-        <div class="gem-explore-filters"><button class="is-active" data-filter="all">ALL</button><button data-filter="commodity">COMMODITIES</button><button data-filter="country">COUNTRIES</button><button data-filter="target">TARGETS</button><button data-filter="asset">ASSETS</button><button data-filter="company">COMPANIES</button></div>
-      </div>
-      <div class="gem-explore-grid">
-        <article class="gem-discovery-card gem-discovery-feature"><span>PLANETARY ATLAS</span><strong>Global Resource Atlas</strong><p>Minerals · metals · petroleum · gas · depth · evidence</p><button data-action="resource">OPEN ATLAS →</button></article>
-        <article class="gem-discovery-card"><span>MINERAL SYSTEMS</span><strong>Target Intelligence</strong><p>Evidence convergence and next-best exploration actions.</p><button data-action="target">DISCOVER TARGETS →</button></article>
-        <article class="gem-discovery-card"><span>NETWORK</span><strong>Mining Participants</strong><p>Miners · operators · traders · producers · off-takers.</p><button data-action="company">OPEN NETWORK →</button></article>
-        <article class="gem-discovery-card"><span>PHYSICAL WORLD</span><strong>Asset Intelligence</strong><p>Digital twins, custody, trade, finance and settlement links.</p><button data-action="asset">OPEN ASSETS →</button></article>
-        <article class="gem-discovery-card"><span>MARKET</span><strong>Commodity Intelligence</strong><p>Supply, processing, demand, capital and strategic exposure.</p><button data-action="market">OPEN MARKETS →</button></article>
-        <article class="gem-discovery-card"><span>COUNTRY</span><strong>Mineral Security</strong><p>Geology, production, trade, refining and strategic dependency.</p><button data-action="country">COUNTRY INTELLIGENCE →</button></article>
-      </div>
-      <div class="gem-explore-results" data-explore-results><div class="gem-explore-empty">Begin with a mineral, location, company or GEM target.</div></div>
-    </div>`;
-  document.body.append(overlay);
-  const query=overlay.querySelector('[data-explore-query]');
-  const results=overlay.querySelector('[data-explore-results]');
-  const render=()=>{
-    const q=query.value.trim().toLowerCase();
-    if(!q){results.innerHTML='<div class="gem-explore-empty">Begin with a mineral, location, company or GEM target.</div>';return;}
-    const data=[
-      ['GOLD','COMMODITY','Global mineral intelligence · supply · targets'],
-      ['COPPER','COMMODITY','Geology · geochemistry · supply chain'],
-      ['LITHIUM','COMMODITY','Critical mineral · projects · capital'],
-      ['COLOMBIA','COUNTRY','National mineral security · geology · projects'],
-      ['BOLIVIA','COUNTRY','Strategic minerals · tungsten · lithium'],
-      ['GEM TARGETS','TARGET','Global prospectivity · evidence · decision'],
-      ['RESOURCE ATLAS','RESOURCE','Depth-resolved global resource data'],
-      ['MINING PARTICIPANTS','COMPANY','Miners · operators · traders · off-takers'],
-      ['ASSET REGISTRY','ASSET','Physical assets · digital twins · custody']
-    ].filter(x=>(x[0]+' '+x[1]+' '+x[2]).toLowerCase().includes(q));
-    results.innerHTML=data.length?data.map(x=>'<button class="gem-explore-result"><b>'+x[0]+'</b><span>'+x[1]+' · '+x[2]+'</span><i>›</i></button>').join(''):'<div class="gem-explore-empty">No indexed entity matches this query yet.</div>';
-    results.querySelectorAll('button').forEach((b,i)=>b.addEventListener('click',()=>{const x=data[i];emit('gem:web-search',{query:query.value,name:x[0],type:x[1]});}));
-  };
-  query.addEventListener('input',render);
-  overlay.querySelector('[data-close]').addEventListener('click',()=>overlay.remove());
-  overlay.querySelector('.gem-explore-backdrop').addEventListener('click',()=>overlay.remove());
-  overlay.querySelectorAll('.gem-explore-filters button').forEach(b=>b.addEventListener('click',()=>{overlay.querySelectorAll('.gem-explore-filters button').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');}));
-  overlay.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>{
-    const a=b.dataset.action;
-    if(a==='target')emit('gem:open-targets');
-    if(a==='asset')emit('gem:open-asset-registry');
-    if(a==='market')emit('gem:open-asset-exchange');
-    if(a==='resource')emit('gem:web-section',{section:'resources'});
-    if(a==='company')emit('gem:web-section',{section:'companies'});
-    if(a==='country')emit('gem:web-section',{section:'country'});
-  }));
-  requestAnimationFrame(()=>query.focus());
+
+function installSearchPopover() {
+  if (document.querySelector('.gem-search-popover')) return;
+  const popover = document.createElement('div');
+  popover.className = 'gem-search-popover';
+  document.body.append(popover);
+  return popover;
 }
 
-function installExploreStyles() {
-  if(document.getElementById('gem-explore-style'))return;
-  const style=document.createElement('style');style.id='gem-explore-style';style.textContent=`
-    .gem-explore-overlay{position:fixed;inset:0;z-index:17000;font-family:Inter,system-ui,sans-serif;color:#eefaff}.gem-explore-backdrop{position:absolute;inset:0;background:rgba(1,5,9,.72);backdrop-filter:blur(16px)}.gem-explore-panel{position:absolute;inset:8vh 7vw;background:linear-gradient(145deg,rgba(7,15,24,.97),rgba(3,8,14,.96));border:1px solid rgba(104,232,244,.18);border-radius:24px;box-shadow:0 40px 140px rgba(0,0,0,.7);padding:34px;overflow:auto}.gem-explore-top{display:flex;justify-content:space-between;gap:20px}.gem-explore-top>div>span{color:#68e8f4;font:800 8px ui-monospace,monospace;letter-spacing:.25em}.gem-explore-top h2{font-size:32px;letter-spacing:-.04em;margin:8px 0}.gem-explore-top p{color:#7d949e;font-size:11px;max-width:650px}.gem-explore-top>button{width:38px;height:38px;border:1px solid rgba(150,205,220,.16);border-radius:50%;background:transparent;color:#9bb0b8;font-size:23px;cursor:pointer}.gem-explore-command{margin:25px 0 16px;padding:13px;border:1px solid rgba(104,232,244,.18);border-radius:14px;background:rgba(255,255,255,.025)}.gem-explore-command>span{color:#68e8f4}.gem-explore-command input{width:calc(100% - 30px);border:0;outline:0;background:transparent;color:#eefaff;font-size:14px}.gem-explore-filters{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.gem-explore-filters button{border:1px solid rgba(150,205,220,.13);border-radius:999px;background:transparent;color:#738a94;padding:6px 9px;font-size:7px;letter-spacing:.12em;cursor:pointer}.gem-explore-filters button.is-active,.gem-explore-filters button:hover{color:#68e8f4;border-color:rgba(104,232,244,.35);background:rgba(104,232,244,.05)}.gem-explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.gem-discovery-card{min-height:125px;padding:17px;border:1px solid rgba(150,205,220,.12);border-radius:15px;background:rgba(255,255,255,.025);transition:.2s}.gem-discovery-card:hover{transform:translateY(-3px);border-color:rgba(104,232,244,.3);background:rgba(104,232,244,.035)}.gem-discovery-card span{color:#647c86;font:700 7px ui-monospace,monospace;letter-spacing:.16em}.gem-discovery-card strong{display:block;margin-top:9px;font-size:14px}.gem-discovery-card p{color:#728a94;font-size:9px;line-height:1.5;max-width:280px}.gem-discovery-card button{border:0;background:none;color:#68e8f4;font-size:8px;font-weight:800;letter-spacing:.1em;cursor:pointer}.gem-discovery-feature{background:radial-gradient(circle at 80% 20%,rgba(104,232,244,.1),transparent 40%),rgba(255,255,255,.025)}.gem-explore-results{margin-top:13px;border-top:1px solid rgba(150,205,220,.09)}.gem-explore-result{width:100%;display:flex;align-items:center;gap:12px;padding:12px 4px;border:0;border-bottom:1px solid rgba(150,205,220,.08);background:transparent;color:#eafaff;text-align:left;cursor:pointer}.gem-explore-result:hover{background:rgba(104,232,244,.04)}.gem-explore-result b{min-width:125px}.gem-explore-result span{flex:1;color:#718993;font-size:9px}.gem-explore-result i{color:#68e8f4;font-style:normal;font-size:18px}.gem-explore-empty{padding:25px 4px;color:#647b85;font-size:10px}@media(max-width:800px){.gem-explore-panel{inset:4vh 3vw;padding:20px}.gem-explore-grid{grid-template-columns:1fr 1fr}.gem-explore-top h2{font-size:25px}}@media(max-width:520px){.gem-explore-grid{grid-template-columns:1fr}.gem-explore-panel{border-radius:17px}}
-  `;document.head.append(style);
-}
-
-function searchResults(query) {
+function searchMatches(query) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  const base = [
-    ['Gold · Global', 'Commodity intelligence · targets · supply chain'],
-    ['Gold · Colombia', 'Country intelligence · geology · targets · projects'],
-    ['GEM Targets', 'Global target discovery and prospectivity'],
-    ['Global Resource Atlas', 'Depth-resolved minerals, metals, petroleum and gas'],
-    ['Companies', 'Mining companies, operators, traders and off-takers'],
-  ];
-  return base.filter(([name, detail]) => (name + ' ' + detail).toLowerCase().includes(q) || q.length > 1);
+  return SEARCH_INDEX
+    .filter(([name, type, description]) =>
+      (name + ' ' + type + ' ' + description).toLowerCase().includes(q),
+    )
+    .slice(0, 8);
 }
 
-function installSearch() {
-  const input = document.querySelector('.gem-web-search input');
-  const results = document.querySelector('.gem-web-results');
-  if (!input || !results) return;
-  const render = () => {
-    results.innerHTML = '';
-    searchResults(input.value).slice(0,6).forEach(([name, detail]) => {
-      const row = node('div','gem-web-result');
-      row.innerHTML = '<b></b><span></span>';
-      row.querySelector('b').textContent = name;
-      row.querySelector('span').textContent = detail;
-      row.addEventListener('click',()=>{emit('gem:web-search',{query:input.value,name});results.classList.remove('is-open');});
-      results.append(row);
+function renderSearch(popover, query) {
+  const matches = searchMatches(query);
+  if (!query.trim()) {
+    popover.classList.remove('is-open');
+    return;
+  }
+  popover.innerHTML = matches.length
+    ? matches.map(([name, type, description]) => `
+      <button class="gem-search-result" data-name="${esc(name)}" data-type="${esc(type)}">
+        <b>${esc(type)}</b><div><strong>${esc(name)}</strong><span>${esc(description)}</span></div><i>›</i>
+      </button>`).join('')
+    : '<div class="gem-search-empty">No indexed result yet. Try a mineral, country, target, company or asset.</div>';
+  popover.classList.add('is-open');
+
+  popover.querySelectorAll('.gem-search-result').forEach((row) => {
+    row.addEventListener('click', () => {
+      const name = row.dataset.name;
+      const type = row.dataset.type;
+      popover.classList.remove('is-open');
+      emit('gem:web-search', { query, name, type });
+      openModuleFromType(type);
     });
-    results.classList.toggle('is-open',Boolean(input.value.trim()));
+  });
+}
+
+function openModuleFromType(type) {
+  const map = {
+    Commodity: 'intelligence',
+    Country: 'security',
+    Targets: 'targets',
+    Resources: 'resources',
+    Companies: 'companies',
+    Assets: 'assets',
+    Market: 'markets',
   };
-  input.addEventListener('input',render);
-  input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';results.classList.remove('is-open')}});
-  document.addEventListener('click',e=>{if(!e.target.closest('.gem-web-search')&&!e.target.closest('.gem-web-results'))results.classList.remove('is-open')});
+  openWorkspace(map[type] || 'intelligence');
+}
+
+function workspaceContent(module) {
+  const cards = {
+    resources: [
+      ['QUERY', 'Global Resource Atlas', 'Search depth-resolved resource observations and provenance.', 'OPEN RESOURCE ATLAS', 'gem:web-section', { section: 'resources' }],
+      ['DATA', 'Geochemistry', 'Explore geochemical samples and pathfinder evidence.', 'OPEN GEOCHEMISTRY', 'gem:source-toggle', { label: 'Geochemistry', active: true }],
+      ['PLANET', 'Planetary Observations', 'Sentinel-2, EnMAP and EMIT observation inventory.', 'OPEN OBSERVATIONS', 'gem:web-section', { section: 'resources' }],
+    ],
+    targets: [
+      ['TARGET', 'Global Target Engine', 'Rank candidates from independent evidence channels and mineral-system context.', 'OPEN LIVE TARGETS', 'gem:open-targets', {}],
+      ['DECISION', 'Next-Best Action', 'Move from a target score to the next discriminating exploration action.', 'OPEN DECISION CENTER', 'gem:open-targets', {}],
+      ['DRILL', 'Drill Intelligence', 'Compare geological hypotheses and only recommend geometry when evidence supports it.', 'OPEN DRILL INTELLIGENCE', 'gem:open-targets', {}],
+    ],
+    assets: [
+      ['ASSET', 'Global Asset Registry', 'Locate physical assets and follow their verified lifecycle.', 'OPEN ASSET REGISTRY', 'gem:open-asset-registry', {}],
+      ['TWIN', 'Asset Digital Twin', 'Connect location, assay, custody, shipment, trade and finance.', 'OPEN DIGITAL TWINS', 'gem:open-asset-registry', {}],
+      ['CUSTODY', 'Passport & Custody', 'Trace origin, assay, ownership and custody evidence.', 'OPEN CUSTODY', 'gem:open-asset-registry', {}],
+    ],
+    companies: [
+      ['NETWORK', 'Mining Participants', 'Miners, operators, producers, traders and off-takers.', 'OPEN NETWORK', 'gem:web-section', { section: 'companies' }],
+      ['REFINING', 'Refinery Network', 'Smelters, refineries and processing relationships.', 'OPEN REFINERIES', 'gem:web-section', { section: 'companies' }],
+      ['CAPITAL', 'Capital Network', 'Banks, funds, lenders and project-finance providers.', 'OPEN CAPITAL', 'gem:web-section', { section: 'capital' }],
+    ],
+    markets: [
+      ['TRADE', 'Commodity Marketplace', 'Offers, bids, matching and physical commodity workflows.', 'OPEN MARKETPLACE', 'gem:open-asset-exchange', {}],
+      ['EXCHANGE', 'Global Exchange', 'RFQ, contracts, logistics and settlement orchestration.', 'OPEN EXCHANGE', 'gem:open-asset-exchange', {}],
+      ['FINANCE', 'Trade Finance', 'Finance requests and provider matching without pretending approval.', 'OPEN FINANCE', 'gem:web-section', { section: 'capital' }],
+    ],
+    intelligence: [
+      ['EVIDENCE', 'Multisource Evidence', 'Geology, geophysics, geochemistry, spectral and terrain channels.', 'OPEN EVIDENCE', 'gem:open-intelligence', {}],
+      ['SYSTEMS', 'Mineral Systems', 'Knowledge graph relationships between targets, commodities, hosts and structures.', 'OPEN MINERAL SYSTEMS', 'gem:open-intelligence', {}],
+      ['AI', 'AI Analysis', 'Run deep global intelligence only when requested.', 'RUN AI ANALYSIS', 'gem:run-global-analysis', {}],
+    ],
+    security: [
+      ['COUNTRY', 'Mineral Security Index', 'Import dependence, processing concentration and resilience indicators.', 'OPEN SECURITY', 'gem:web-section', { section: 'country' }],
+      ['SUPPLY', 'Supply Chain Graph', 'Trace extraction, concentration, refining and manufacturing dependencies.', 'OPEN SUPPLY CHAIN', 'gem:web-section', { section: 'supply' }],
+      ['STRATEGY', 'Government Intelligence', 'Country × mineral profiles, projects, trade and policy signals.', 'OPEN GOVERNMENT INTELLIGENCE', 'gem:web-section', { section: 'country' }],
+    ],
+    investor: [
+      ['CAPITAL', 'Investor Room', 'Five-year scenarios, use of funds and public-market readiness.', 'OPEN INVESTOR ROOM', 'gem:open-investor', {}],
+      ['MARKETS', 'Public Markets', 'Cap table, equity rounds and IPO-readiness framework.', 'OPEN PUBLIC MARKETS', 'gem:open-investor', {}],
+      ['MOAT', 'GEM Network Effects', 'Data, workflow and network advantages across the platform.', 'OPEN INVESTOR INTELLIGENCE', 'gem:open-investor', {}],
+    ],
+  };
+  return cards[module] || cards.intelligence;
+}
+
+function openWorkspace(module) {
+  let workspace = document.querySelector('.gem-workspace');
+  if (!workspace) {
+    workspace = document.createElement('section');
+    workspace.className = 'gem-workspace';
+    document.body.append(workspace);
+  }
+  const titleMap = Object.fromEntries(MODULES.map((item) => [item.id, item]));
+  const meta = titleMap[module] || titleMap.intelligence;
+  workspace.innerHTML = `
+    <header class="gem-workspace-header">
+      <button class="gem-back" data-back>← BACK</button>
+      <div><span>${esc(meta.eyebrow)}</span><h2>${esc(meta.label)}</h2></div>
+    </header>
+    <main class="gem-workspace-body">
+      <div class="gem-panel-label">GEM WORKSPACE</div>
+      <h1 style="font-size:34px;letter-spacing:-.05em;margin:8px 0 0">${esc(meta.label)}</h1>
+      <p style="color:#718993;max-width:720px;font-size:11px;line-height:1.6">${esc(meta.text)}</p>
+      <div class="gem-workspace-command">
+        <input placeholder="Search within ${esc(meta.label.toLowerCase())}..." data-workspace-search>
+        <button data-live>OPEN LIVE VIEW</button>
+        <button data-map>MAP</button>
+      </div>
+      <div class="gem-workspace-grid">
+        ${workspaceContent(module).map(([eyebrow,title,text,label,eventName,detail]) => `
+          <article class="gem-work-card">
+            <span>${esc(eyebrow)}</span>
+            <strong>${esc(title)}</strong>
+            <p>${esc(text)}</p>
+            <button data-event="${esc(eventName)}" data-detail="${esc(JSON.stringify(detail))}">${esc(label)} →</button>
+          </article>`).join('')}
+      </div>
+      <div class="gem-work-note">GEM keeps evidence, provenance and decision boundaries explicit. A prospectivity signal is not a mineral resource, reserve, grade, discovery probability or economic valuation without validated evidence.</div>
+    </main>`;
+  workspace.classList.add('is-open');
+
+  workspace.querySelector('[data-back]').addEventListener('click', () => workspace.classList.remove('is-open'));
+  workspace.querySelector('[data-map]').addEventListener('click', () => {
+    workspace.classList.remove('is-open');
+    document.querySelector('.gem-product-shell')?.classList.add('is-map-mode');
+  });
+  workspace.querySelector('[data-live]').addEventListener('click', () => {
+    const live = module === 'targets' ? 'gem:open-targets'
+      : module === 'assets' ? 'gem:open-asset-registry'
+      : module === 'markets' ? 'gem:open-asset-exchange'
+      : module === 'investor' ? 'gem:open-investor'
+      : module === 'intelligence' ? 'gem:open-intelligence'
+      : 'gem:web-section';
+    emit(live, live === 'gem:web-section' ? { section: module } : {});
+    if (module !== 'resources' && module !== 'companies' && module !== 'security') {
+      workspace.classList.remove('is-open');
+    }
+  });
+  workspace.querySelectorAll('[data-event]').forEach((button) => {
+    button.addEventListener('click', () => {
+      let detail = {};
+      try { detail = JSON.parse(button.dataset.detail || '{}'); } catch {}
+      emit(button.dataset.event, detail);
+    });
+  });
+}
+
+function buildShell() {
+  const shell = document.createElement('div');
+  shell.className = 'gem-product-shell';
+  shell.innerHTML = `
+    <header class="gem-product-header">
+      <div class="gem-product-brand" data-home>
+        <span class="gem-product-mark">G</span>
+        <div><strong>GEM</strong><small>GLOBAL EXPLORATION & MINERAL INTELLIGENCE</small></div>
+      </div>
+
+      <label class="gem-universal-search">
+        <span class="search-icon">⌕</span>
+        <input data-search-input placeholder="Search minerals, targets, companies, projects, countries..." autocomplete="off">
+        <kbd class="gem-search-key">⌘ K</kbd>
+      </label>
+
+      <div class="gem-product-header-actions">
+        <button data-nav="explore">EXPLORE</button>
+        <button data-nav="targets">TARGETS</button>
+        <button data-nav="markets">MARKETS</button>
+        <button data-nav="investor">INVESTOR</button>
+        <button class="gem-language" data-language>GLOBAL</button>
+        <button class="gem-product-profile" data-profile><span class="gem-avatar">G</span><span>Gio</span></button>
+      </div>
+    </header>
+
+    <main class="gem-product-content">
+      <section class="gem-product-hero">
+        <div class="gem-product-eyebrow">GLOBAL EXPLORATION & MINERAL INTELLIGENCE</div>
+        <h1>Understand the planet.<br><em>Find what matters.</em></h1>
+        <p>Search the mineral world, discover opportunities, understand assets and move from evidence to action.</p>
+
+        <label class="gem-hero-search">
+          <span>⌕</span>
+          <input data-hero-search placeholder="What are you looking for?" autocomplete="off">
+          <button data-explore>EXPLORE</button>
+        </label>
+
+        <div class="gem-quick-links">
+          <button data-query="Gold">Gold</button>
+          <button data-query="Copper">Copper</button>
+          <button data-query="Lithium">Lithium</button>
+          <button data-query="Colombia">Colombia</button>
+          <button data-query="GEM Targets">GEM Targets</button>
+          <button data-query="Resource Atlas">Resource Atlas</button>
+        </div>
+      </section>
+
+      <section class="gem-section-heading">
+        <div><span>DISCOVER GEM</span><h2>Explore the intelligence universe</h2></div>
+        <button data-all-modules>VIEW ALL MODULES →</button>
+      </section>
+      <section class="gem-module-grid">
+        ${MODULES.map((module) => `
+          <article class="gem-module-card" data-module="${module.id}">
+            <span class="module-eyebrow">${esc(module.eyebrow)}</span>
+            <span class="module-arrow">↗</span>
+            <div><strong>${esc(module.label)}</strong><p>${esc(module.text)}</p></div>
+            <footer><span>${esc(module.meta)}</span><b>OPEN →</b></footer>
+          </article>`).join('')}
+      </section>
+
+      <section class="gem-lower-grid">
+        <article class="gem-feature-panel">
+          <div class="gem-panel-label">THE GEM LOOP</div>
+          <h3>From planetary evidence to real-world decisions.</h3>
+          <p>Discover → Target → Decide → Invest → Drill → Learn. Every layer is connected, but nothing is presented until the user needs it.</p>
+          <div class="gem-feature-actions">
+            <button class="primary" data-open-module="targets">DISCOVER TARGETS</button>
+            <button data-open-module="resources">EXPLORE RESOURCES</button>
+            <button data-open-module="assets">VIEW ASSETS</button>
+          </div>
+        </article>
+        <article class="gem-status-panel">
+          <div class="gem-panel-label">GEM PLATFORM</div>
+          <div class="gem-status-list">
+            <div class="gem-status-item"><span>Planetary data fabric</span><b>READY</b></div>
+            <div class="gem-status-item"><span>Mineral intelligence</span><b>READY</b></div>
+            <div class="gem-status-item"><span>Target engine</span><b>READY</b></div>
+            <div class="gem-status-item"><span>Asset intelligence</span><b>READY</b></div>
+            <div class="gem-status-item"><span>Markets & capital</span><b>READY</b></div>
+          </div>
+        </article>
+      </section>
+    </main>
+  `;
+  document.body.append(shell);
+  return shell;
+}
+
+function wireShell(shell) {
+  const popover = installSearchPopover();
+  const searchInputs = [
+    shell.querySelector('[data-search-input]'),
+    shell.querySelector('[data-hero-search]'),
+  ].filter(Boolean);
+
+  searchInputs.forEach((input) => {
+    input.addEventListener('input', () => renderSearch(popover, input.value));
+    input.addEventListener('focus', () => renderSearch(popover, input.value));
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && input.value.trim()) {
+        openWorkspaceFromQuery(input.value.trim());
+        popover.classList.remove('is-open');
+      }
+      if (event.key === 'Escape') popover.classList.remove('is-open');
+    });
+  });
+
+  shell.querySelector('[data-explore]').addEventListener('click', () => {
+    const query = shell.querySelector('[data-hero-search]').value.trim();
+    if (query) openWorkspaceFromQuery(query);
+    else openWorkspace('resources');
+  });
+
+  shell.querySelectorAll('[data-query]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const input = shell.querySelector('[data-hero-search]');
+      input.value = button.dataset.query;
+      input.focus();
+      renderSearch(popover, input.value);
+    });
+  });
+
+  shell.querySelectorAll('[data-module]').forEach((card) => {
+    card.addEventListener('click', () => openWorkspace(card.dataset.module));
+  });
+  shell.querySelectorAll('[data-open-module]').forEach((button) => {
+    button.addEventListener('click', () => openWorkspace(button.dataset.openModule));
+  });
+  shell.querySelector('[data-all-modules]').addEventListener('click', () => {
+    shell.querySelector('.gem-module-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  shell.querySelectorAll('[data-nav]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const nav = button.dataset.nav;
+      if (nav === 'explore') openWorkspace('resources');
+      else if (nav === 'targets') openWorkspace('targets');
+      else if (nav === 'markets') openWorkspace('markets');
+      else if (nav === 'investor') openWorkspace('investor');
+    });
+  });
+
+  shell.querySelector('[data-home]').addEventListener('click', () => {
+    document.querySelector('.gem-workspace')?.classList.remove('is-open');
+    shell.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  shell.querySelector('[data-language]').addEventListener('click', () =>
+    emit('gem:open-language-settings'),
+  );
+  shell.querySelector('[data-profile]').addEventListener('click', () =>
+    openWorkspace('investor'),
+  );
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.gem-universal-search') && !event.target.closest('.gem-hero-search') && !event.target.closest('.gem-search-popover')) {
+      popover.classList.remove('is-open');
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      shell.querySelector('[data-search-input]')?.focus();
+    }
+  });
+}
+
+function openWorkspaceFromQuery(query) {
+  const matches = searchMatches(query);
+  const type = matches[0]?.[1];
+  if (type) {
+    emit('gem:web-search', { query, name: matches[0][0], type });
+    openModuleFromType(type);
+  } else {
+    openWorkspace('intelligence');
+  }
 }
 
 export function installGemWebExperience() {
-  if (document.querySelector('.gem-web-header')) return;
-  installStyles();
-  installExploreStyles();
+  if (document.querySelector('.gem-product-shell')) return;
+  injectStyles();
   document.body.classList.add('gem-web-product');
+  const shell = buildShell();
+  wireShell(shell);
 
-  const header = node('header','gem-web-header');
-  header.innerHTML = `
-    <div class="gem-web-logo"><span class="gem-web-logo-mark">G</span><div class="gem-web-logo-text"><strong>GEM</strong><small>GLOBAL MINERAL INTELLIGENCE</small></div></div>
-    <label class="gem-web-search"><span>⌕</span><input aria-label="Search GEM" placeholder="Search minerals, targets, companies, projects..." autocomplete="off"><kbd>⌘ K</kbd></label>
-    <nav class="gem-web-nav"></nav>
-    <div class="gem-web-user" title="Gio">G</div>
-  `;
-  const nav = header.querySelector('.gem-web-nav');
-  NAV.forEach(([id,label],index)=>{
-    const button=node('button',index===0?'is-active':'',label);
-    button.dataset.section=id;
-    button.addEventListener('click',()=>{
-      nav.querySelectorAll('button').forEach(x=>x.classList.remove('is-active'));
-      button.classList.add('is-active');
-      emit('gem:web-section',{section:id});
-      if(id==='targets') emit('gem:open-targets');
-      if(id==='assets') emit('gem:open-asset-registry');
-      if(id==='markets') emit('gem:open-asset-exchange');
-      if(id==='investor') emit('gem:open-investor');
-      if(id==='explore') openExplore();
-    });
-    nav.append(button);
+  // Keep the automatic locale experience, but present it through the product header.
+  document.addEventListener('gem:locale-ready', (event) => {
+    const detail = event.detail || {};
+    const language = shell.querySelector('[data-language]');
+    if (language) language.textContent = (detail.country || 'GLOBAL') + ' · ' + (detail.languageName || detail.language || 'English');
   });
-  document.body.append(header);
 
-  const main=node('main','gem-web-main');
-  main.innerHTML=`
-    <section class="gem-web-hero">
-      <div class="gem-web-kicker">GLOBAL EXPLORATION & MINERAL INTELLIGENCE</div>
-      <h1>Understand the planet.<br><em>Find what matters.</em></h1>
-      <p>Planetary evidence, mineral systems, targets, assets, markets and capital in one operating platform.</p>
-      <div class="gem-web-stats">
-        <div class="gem-web-stat"><strong>GLOBAL</strong><span>Planetary coverage</span></div>
-        <div class="gem-web-stat"><strong>24/7</strong><span>Data intelligence</span></div>
-        <div class="gem-web-stat"><strong>4D</strong><span>Resource intelligence</span></div>
-      </div>
-    </section>
-    <div class="gem-web-card-row">
-      <article class="gem-web-card"><div class="gem-web-card-head"><span>Explore</span><span>01</span></div><h3>Global Resource Atlas</h3><p>Search minerals, metals, petroleum and gas by location, depth, evidence and source.</p><button data-open="resources">EXPLORE RESOURCES →</button></article>
-      <article class="gem-web-card"><div class="gem-web-card-head"><span>Discover</span><span>02</span></div><h3>Target Intelligence</h3><p>Move from planetary evidence to ranked targets and explainable next-best actions.</p><button data-open="targets">FIND TARGETS →</button></article>
-      <article class="gem-web-card"><div class="gem-web-card-head"><span>Operate</span><span>03</span></div><h3>Assets & Markets</h3><p>Connect projects, assets, counterparties, capital, trade, logistics and settlement.</p><button data-open="assets">OPEN OPERATING LAYER →</button></article>
-    </div>
-  `;
-  document.body.append(main);
-
-  const results=node('div','gem-web-results');
-  document.body.append(results);
-  const mobile=node('button','gem-web-mobile','☰');
-  mobile.setAttribute('aria-label','Open GEM navigation');
-  mobile.addEventListener('click',()=>header.classList.toggle('is-mobile-open'));
-  document.body.append(mobile);
-
-  main.querySelectorAll('[data-open]').forEach(button=>button.addEventListener('click',()=>{
-    const action=button.dataset.open;
-    if(action==='resources') openExplore();
-    if(action==='targets') emit('gem:open-targets');
-    if(action==='assets') emit('gem:open-asset-registry');
-  }));
-
-  installSearch();
-  document.addEventListener('keydown',event=>{
-    if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();document.querySelector('.gem-web-search input')?.focus();}
+  // Existing specialist actions remain available to the product shell.
+  document.addEventListener('gem:open-targets', () => {
+    shell.querySelector('.gem-workspace')?.classList.remove('is-open');
   });
 }
