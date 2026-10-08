@@ -1,8 +1,8 @@
 {
-  "name": "gods-eye-view",
+  "name": "gem-mineral-intelligence",
   "private": true,
   "version": "0.1.1",
-  "description": "A real-time intelligence console for planet Earth — photorealistic 3D globe, live aircraft/ships/satellites/earthquakes/CCTV, and hands-free voice control. Runs in a browser.",
+  "description": "GEM — Global Exploration & Mineral Intelligence System",
   "type": "module",
   "license": "MIT",
   "author": "Bilawal Sidhu",
@@ -266,5 +266,6 @@
     "./mineral/mineral-system-kg": "./src/mineral/mineralSystemKnowledgeGraph.js",
     "./mineral/hierarchical-target-engine": "./src/mineral/hierarchicalTargetEngine.js",
     "./mineral/drill-intelligence": "./src/mineral/drillIntelligence.js"
-  }
+  },
+  "productName": "GEM Mineral Intelligence System"
 }
