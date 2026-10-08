@@ -353,13 +353,13 @@ function injectStyles() {
     }
 
     .gem-module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .gem-module-card{
-      position:relative;min-height:118px;display:grid;grid-template-columns:58px 1fr 18px;align-items:center;gap:12px;
-      padding:12px 13px;border:1px solid rgba(74,211,255,.42);border-radius:13px;
-      background:linear-gradient(105deg,rgba(2,15,25,.86),rgba(3,19,29,.58)),radial-gradient(circle at 100% 0%,rgba(28,215,255,.13),transparent 48%);
-      backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 35px rgba(0,0,0,.24),0 0 22px rgba(0,188,255,.035);
-      cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s
-    }
+    .gem-module-card{position:relative;min-height:118px;display:grid;grid-template-columns:52px minmax(0,1fr) 78px 16px;align-items:center;gap:10px;padding:10px 11px;border:1px solid rgba(74,211,255,.42);border-radius:13px;overflow:hidden;background:linear-gradient(105deg,rgba(2,15,25,.92),rgba(3,19,29,.64)),radial-gradient(circle at 100% 0%,rgba(28,215,255,.13),transparent 48%);backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 35px rgba(0,0,0,.24),0 0 22px rgba(0,188,255,.035);cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+    .gem-module-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;z-index:2;border:1px solid rgba(71,224,255,.55);background:radial-gradient(circle,rgba(33,193,255,.20),rgba(3,14,23,.82) 68%);box-shadow:0 0 22px rgba(20,208,255,.16),inset 0 0 18px rgba(70,218,255,.07)}
+    .gem-module-icon svg{width:29px;height:29px;fill:none;stroke:#69eaff;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(75,225,255,.45))}
+    .gem-module-copy{min-width:0;position:relative;z-index:2}.gem-module-copy strong{display:block;margin:0 0 4px;font-size:13px;letter-spacing:-.025em;white-space:nowrap}.gem-module-copy p{margin:0;color:#a4bcc5;font-size:7.5px;line-height:1.42;max-width:190px}
+    .gem-module-card .module-eyebrow{display:block;color:#68d9e9;font:800 5.5px ui-monospace,monospace;letter-spacing:.18em;margin-bottom:4px}
+    .gem-module-art{position:absolute;right:0;top:0;bottom:0;width:86px;background-size:cover;background-position:center;opacity:.86;filter:saturate(1.18) contrast(1.06);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.62) 18%,#000 46%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.62) 18%,#000 46%);z-index:1}.gem-module-art:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,15,23,.88),transparent 55%,rgba(0,0,0,.08)),linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,8,15,.28))}
+    .gem-module-card .module-arrow{position:relative;z-index:3;color:#72e7f7;font-size:23px;align-self:center;justify-self:end}.gem-module-card footer{display:none}
     .gem-module-card:hover{transform:translateY(-2px);border-color:rgba(79,229,255,.78);box-shadow:inset 0 1px rgba(255,255,255,.08),0 14px 38px rgba(0,0,0,.3),0 0 28px rgba(0,211,255,.12)}
     .gem-module-icon{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(71,224,255,.55);background:radial-gradient(circle,rgba(33,193,255,.18),rgba(3,14,23,.76) 68%);box-shadow:0 0 22px rgba(20,208,255,.13),inset 0 0 18px rgba(70,218,255,.07)}
     .gem-module-icon svg{width:31px;height:31px;fill:none;stroke:#69eaff;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(75,225,255,.45))}
@@ -757,12 +757,13 @@ function buildShell() {
       <section class="gem-module-grid">
         ${MODULES.map((module) => `
           <article class="gem-module-card" data-module="${module.id}">
-            <span class="gem-module-icon">${moduleIcon(module.id)}</span>
-            <div>
-              <span class="module-eyebrow">${esc(module.eyebrow)}</span>
-              <strong>${esc(module.label)}</strong>
-              <p>${esc(module.text)}</p>
+            <span class="gem-module-icon">\${moduleIcon(module.id)}</span>
+            <div class="gem-module-copy">
+              <span class="module-eyebrow">\${esc(module.eyebrow)}</span>
+              <strong>\${esc(module.label)}</strong>
+              <p>\${esc(module.text)}</p>
             </div>
+            <span class="gem-module-art" style="background-image:url('\${esc(module.art)}')"></span>
             <span class="module-arrow">›</span>
             <footer><span>${esc(module.meta)}</span><b>OPEN →</b></footer>
           </article>`).join('')}
