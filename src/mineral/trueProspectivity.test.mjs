@@ -47,8 +47,8 @@ const target = {
   assert.equal(result.modelId, TRUE_PROSPECTIVITY_MODEL_ID);
   assert.equal(result.mode, 'MULTIMODAL_FUSION');
   assert.ok(result.score > 70);
-  assert.equal(result.coverage, 100);
-  assert.ok(result.confidence > 60);
+  assert.equal(result.coverage, 55);
+  assert.ok(result.confidence > 45);
   assert.deepEqual(
     Object.keys(result.channels).sort(),
     ['geology', 'geophysics', 'structure'],
@@ -101,6 +101,8 @@ const target = {
   ];
   const samples = extractGeochemistrySamples(features);
   assert.equal(samples.length, 3);
+  assert.equal(samples[0].elements.s, undefined);
+  assert.equal(samples[0].elements.sample, undefined);
   const result = geochemistryScore(
     { latitude: 5, longitude: -73, commodities: ['gold'] },
     samples,
@@ -108,4 +110,21 @@ const target = {
   assert.ok(result);
   assert.equal(result.commodity, 'gold');
   assert.ok(result.sampleCount >= 3);
+}
+
+{
+  const result = computeTrueEvidence(target, {
+    geology: { score: 95, lithology: 'Metamorphic rocks' },
+    magnetics: { geophysics: 88, structure: 70, anomalyNt: 420, localRangeNt: 300 },
+    geochemistry: { score: 82, commodity: 'gold', sampleCount: 18 },
+    spectral: { spectral: 79, activeProviders: ['Sentinel-2 L2A', 'EnMAP L2A'] },
+  });
+
+  assert.equal(result.modelId, TRUE_PROSPECTIVITY_MODEL_ID);
+  assert.equal(result.coverage, 100);
+  assert.equal(
+    Object.keys(result.channels).sort(),
+    ['geochemistry', 'geology', 'geophysics', 'spectral', 'structure'],
+  );
+  assert.ok(result.score > 75);
 }
