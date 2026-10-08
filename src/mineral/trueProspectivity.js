@@ -242,15 +242,18 @@ function pointGeometry(longitude, latitude) {
   });
 }
 
-async function queryGlmLithology(target, {
-  fetchImpl,
-  timeoutMs = DEFAULT_TIMEOUT_MS,
-  signal,
-} = {}) {
+async function queryGlmLithology(
+  target,
+  { fetchImpl, timeoutMs = DEFAULT_TIMEOUT_MS, signal } = {},
+) {
   const longitude = finite(target.longitude);
   const latitude = finite(target.latitude);
   if (longitude == null || latitude == null)
-    return { ok: false, channel: 'geology', error: new Error('Invalid target coordinates') };
+    return {
+      ok: false,
+      channel: 'geology',
+      error: new Error('Invalid target coordinates'),
+    };
 
   const url = new URL(PROSPECTIVITY_SOURCES.geology.endpoint);
   url.searchParams.set('where', '1=1');
@@ -268,12 +271,13 @@ async function queryGlmLithology(target, {
       signal: createTimeoutSignal(signal, timeoutMs),
     });
     const feature = payload.features && payload.features[0];
-    const lithology = feature && feature.attributes
-      ? feature.attributes.xx_Description ||
-        feature.attributes.Litho ||
-        feature.attributes.IDENTITY_ ||
-        null
-      : null;
+    const lithology =
+      feature && feature.attributes
+        ? feature.attributes.xx_Description ||
+          feature.attributes.Litho ||
+          feature.attributes.IDENTITY_ ||
+          null
+        : null;
     return {
       ok: true,
       channel: 'geology',
@@ -297,12 +301,8 @@ function parseImageSamples(payload) {
   if (!payload || !Array.isArray(payload.samples)) return [];
   return payload.samples
     .map((sample) => ({
-      longitude: finite(
-        sample.location && sample.location.x,
-      ),
-      latitude: finite(
-        sample.location && sample.location.y,
-      ),
+      longitude: finite(sample.location && sample.location.x),
+      latitude: finite(sample.location && sample.location.y),
       value: finite(sample.value),
       resolution: finite(sample.resolution),
     }))
@@ -317,11 +317,7 @@ function parseImageSamples(payload) {
 async function sampleImageService(
   source,
   points,
-  {
-    fetchImpl,
-    timeoutMs = DEFAULT_TIMEOUT_MS,
-    signal,
-  } = {},
+  { fetchImpl, timeoutMs = DEFAULT_TIMEOUT_MS, signal } = {},
 ) {
   const url = new URL(source.endpoint);
   url.searchParams.set(
@@ -360,11 +356,7 @@ async function sampleImageService(
 async function sampleImageServiceBatched(
   source,
   points,
-  {
-    fetchImpl,
-    signal,
-    chunkSize = 800,
-  } = {},
+  { fetchImpl, signal, chunkSize = 800 } = {},
 ) {
   const batches = [];
   for (let index = 0; index < points.length; index += chunkSize)
@@ -382,16 +374,18 @@ async function sampleImageServiceBatched(
     sourceId: source.id,
     sourceName: source.name,
     samples: successful.flatMap((result) => result.samples),
-    errors: results.filter((result) => !result.ok).map((result) => result.error),
+    errors: results
+      .filter((result) => !result.ok)
+      .map((result) => result.error),
   };
 }
 
 function magneticCenterScore(sample) {
   const value = sample ? finite(sample.value) : null;
   if (value == null) return null;
-  return Math.round(
-    clamp(100 * (1 - Math.exp(-Math.abs(value) / 450))) * 10,
-  ) / 10;
+  return (
+    Math.round(clamp(100 * (1 - Math.exp(-Math.abs(value) / 450))) * 10) / 10
+  );
 }
 
 function offsetPoint(target, deltaKmEast, deltaKmNorth) {
@@ -399,10 +393,7 @@ function offsetPoint(target, deltaKmEast, deltaKmNorth) {
   const lon = finite(target.longitude);
   const latRadians = (lat * Math.PI) / 180;
   const cosLat = Math.max(0.15, Math.cos(latRadians));
-  return [
-    lon + deltaKmEast / (111.32 * cosLat),
-    lat + deltaKmNorth / 111.32,
-  ];
+  return [lon + deltaKmEast / (111.32 * cosLat), lat + deltaKmNorth / 111.32];
 }
 
 function nearestSample(samples, target) {
@@ -434,9 +425,9 @@ function magneticScore(samples, target) {
   const contrastEvidence = 100 * (1 - Math.exp(-range / 300));
 
   return {
-    geophysics: Math.round(
-      clamp(anomalyEvidence * 0.62 + contrastEvidence * 0.38) * 10,
-    ) / 10,
+    geophysics:
+      Math.round(clamp(anomalyEvidence * 0.62 + contrastEvidence * 0.38) * 10) /
+      10,
     structure: Math.round(contrastEvidence * 10) / 10,
     anomalyNt: Math.round(center.value * 10) / 10,
     localRangeNt: Math.round(range * 10) / 10,
@@ -448,11 +439,14 @@ function terrainScore(samples, target) {
   const center = nearestSample(samples, target);
   if (!center) return null;
 
-  const elevations = samples.map((sample) => sample.value).filter(Number.isFinite);
+  const elevations = samples
+    .map((sample) => sample.value)
+    .filter(Number.isFinite);
   if (elevations.length < 2) return null;
 
   const elevationRange = Math.max(...elevations) - Math.min(...elevations);
-  const weakSurfaceExpression = 100 * Math.exp(-Math.abs(elevationRange - 250) / 400);
+  const weakSurfaceExpression =
+    100 * Math.exp(-Math.abs(elevationRange - 250) / 400);
 
   return {
     terrain: Math.round(clamp(weakSurfaceExpression) * 10) / 10,
@@ -464,8 +458,14 @@ function terrainScore(samples, target) {
 }
 
 export function geologyScore(lithology, target) {
-  const normalized = String(lithology || '').toLowerCase().trim();
-  if (!normalized || normalized.includes('no data') || normalized.includes('water'))
+  const normalized = String(lithology || '')
+    .toLowerCase()
+    .trim();
+  if (
+    !normalized ||
+    normalized.includes('no data') ||
+    normalized.includes('water')
+  )
     return null;
 
   const keys = targetCommodityKeys(target);
@@ -474,15 +474,16 @@ export function geologyScore(lithology, target) {
     const prior = LITHOLOGY_PRIORS[key];
     if (!prior) continue;
     for (const [rock, score] of Object.entries(prior)) {
-      if (normalized === rock || normalized.includes(rock))
-        scores.push(score);
+      if (normalized === rock || normalized.includes(rock)) scores.push(score);
     }
   }
 
   if (!scores.length) return 50;
-  return Math.round(
-    (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10,
-  ) / 10;
+  return (
+    Math.round(
+      (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10,
+    ) / 10
+  );
 }
 
 export function computeTrueEvidence(
@@ -497,12 +498,12 @@ export function computeTrueEvidence(
     diagnostics.geology = geology;
   }
   if (magnetics) {
-    if (magnetics.geophysics != null) channels.geophysics = magnetics.geophysics;
+    if (magnetics.geophysics != null)
+      channels.geophysics = magnetics.geophysics;
     if (magnetics.structure != null) channels.structure = magnetics.structure;
     diagnostics.magnetics = magnetics;
   }
-  if (terrain && terrain.terrain != null)
-    diagnostics.terrain = terrain;
+  if (terrain && terrain.terrain != null) diagnostics.terrain = terrain;
 
   const fusion = fuseEvidence(target.score, channels, {
     weights: TRUE_PROSPECTIVITY_WEIGHTS,
@@ -575,8 +576,8 @@ export async function enrichTargetsWithTrueProspectivity(
     { fetchImpl, signal },
   );
 
-  const centerMagneticScores = centerMagneticResult.samples.map(
-    (sample) => magneticCenterScore(sample),
+  const centerMagneticScores = centerMagneticResult.samples.map((sample) =>
+    magneticCenterScore(sample),
   );
 
   const rankedForDetail = targets
@@ -587,7 +588,8 @@ export async function enrichTargetsWithTrueProspectivity(
     }))
     .sort(
       (a, b) =>
-        (b.centerMagneticScore + a.target.score * 0.35) -
+        b.centerMagneticScore +
+        a.target.score * 0.35 -
         (a.centerMagneticScore + b.target.score * 0.35),
     );
 
@@ -636,21 +638,16 @@ export async function enrichTargetsWithTrueProspectivity(
     }
   }
 
-  const [
-    magneticResult,
-    terrainResult,
-    geologyResults,
-  ] = await Promise.all([
+  const [magneticResult, terrainResult, geologyResults] = await Promise.all([
     sampleImageServiceBatched(
       PROSPECTIVITY_SOURCES.magnetics,
       magneticsPoints,
       { fetchImpl, signal },
     ),
-    sampleImageServiceBatched(
-      PROSPECTIVITY_SOURCES.terrain,
-      terrainPoints,
-      { fetchImpl, signal },
-    ),
+    sampleImageServiceBatched(PROSPECTIVITY_SOURCES.terrain, terrainPoints, {
+      fetchImpl,
+      signal,
+    }),
     mapWithConcurrency(detailedTargets, concurrency, (target) =>
       queryGlmLithology(target, { fetchImpl, signal }),
     ),
@@ -683,16 +680,12 @@ export async function enrichTargetsWithTrueProspectivity(
       sourceName: PROSPECTIVITY_SOURCES.geology.name,
     },
     geophysics: {
-      ok:
-        centerMagneticResult.ok &&
-        centerMagneticResult.samples.length > 0,
+      ok: centerMagneticResult.ok && centerMagneticResult.samples.length > 0,
       sourceId: PROSPECTIVITY_SOURCES.magnetics.id,
       sourceName: PROSPECTIVITY_SOURCES.magnetics.name,
     },
     terrain: {
-      ok:
-        terrainResult.ok &&
-        terrainResult.samples.length > 0,
+      ok: terrainResult.ok && terrainResult.samples.length > 0,
       sourceId: PROSPECTIVITY_SOURCES.terrain.id,
       sourceName: PROSPECTIVITY_SOURCES.terrain.name,
     },
@@ -701,28 +694,21 @@ export async function enrichTargetsWithTrueProspectivity(
   const enrichedTargets = targets
     .map((target, index) => {
       const geology = geologyByIndex.get(index) || null;
-      const magnetics =
-        detailedIndexes.includes(index)
-          ? magneticScore(
-              byTargetMagnetic.get(target.id) || [],
-              target,
-            )
-          : centerMagneticScores[index] != null
-            ? {
-                geophysics: centerMagneticScores[index],
-                structure: centerMagneticScores[index] * 0.7,
-                anomalyNt: null,
-                localRangeNt: null,
-                sampleCount: 1,
-                interpretation:
-                  'Center-point magnetic evidence only; detailed local gradient was reserved for higher-ranked candidates.',
-              }
-            : null;
+      const magnetics = detailedIndexes.includes(index)
+        ? magneticScore(byTargetMagnetic.get(target.id) || [], target)
+        : centerMagneticScores[index] != null
+          ? {
+              geophysics: centerMagneticScores[index],
+              structure: centerMagneticScores[index] * 0.7,
+              anomalyNt: null,
+              localRangeNt: null,
+              sampleCount: 1,
+              interpretation:
+                'Center-point magnetic evidence only; detailed local gradient was reserved for higher-ranked candidates.',
+            }
+          : null;
       const terrain = detailedIndexes.includes(index)
-        ? terrainScore(
-            byTargetTerrain.get(target.id) || [],
-            target,
-          )
+        ? terrainScore(byTargetTerrain.get(target.id) || [], target)
         : null;
 
       const evidence = computeTrueEvidence(target, {

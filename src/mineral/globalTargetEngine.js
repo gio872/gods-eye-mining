@@ -161,10 +161,7 @@ function iterateGrid(bbox, cellSize) {
   const rows = Math.max(1, Math.ceil((bbox.north - bbox.south) / cellSize));
 
   for (let row = 0; row < rows; row += 1) {
-    const latitude = Math.min(
-      bbox.north,
-      bbox.south + (row + 0.5) * cellSize,
-    );
+    const latitude = Math.min(bbox.north, bbox.south + (row + 0.5) * cellSize);
     for (let column = 0; column < columns; column += 1) {
       const longitude = Math.min(
         bbox.east,
@@ -214,11 +211,8 @@ function referenceCellEvidence(features, center, cellSize) {
 
   const density = 1 - Math.exp(-kernel / 2.5);
   const sourceConvergence = Math.min(1, sources.size / 2);
-  const score = Math.round(
-    clamp(
-      (density * 0.72 + sourceConvergence * 0.28),
-    ) * 1000,
-  ) / 10;
+  const score =
+    Math.round(clamp(density * 0.72 + sourceConvergence * 0.28) * 1000) / 10;
 
   nearby.sort((a, b) => a.distance - b.distance);
   const commoditySet = new Set();
@@ -235,9 +229,7 @@ function referenceCellEvidence(features, center, cellSize) {
       ? Math.round(nearby[0].distance * 10) / 10
       : null,
     nearestReference:
-      nearby.length &&
-      nearby[0].feature &&
-      nearby[0].feature.properties
+      nearby.length && nearby[0].feature && nearby[0].feature.properties
         ? nearby[0].feature.properties.name || null
         : null,
     commodities: Array.from(commoditySet).slice(0, 6),
@@ -247,10 +239,7 @@ function referenceCellEvidence(features, center, cellSize) {
 export function generateProspectivityCandidates(
   features,
   bbox,
-  {
-    cellSize = adaptiveGridCellSize(bbox),
-    maxCells = 512,
-  } = {},
+  { cellSize = adaptiveGridCellSize(bbox), maxCells = 512 } = {},
 ) {
   if (!Array.isArray(features))
     throw new TypeError('features must be an array');

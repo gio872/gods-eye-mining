@@ -139,7 +139,8 @@ function renderEvidenceStatus(panel, providerStatuses) {
     const name = document.createElement('span');
     const state = document.createElement('b');
 
-    name.textContent = status.sourceName || status.sourceId || 'Evidence source';
+    name.textContent =
+      status.sourceName || status.sourceId || 'Evidence source';
     state.textContent = status.ok ? 'READY' : 'OFF';
 
     row.append(dot, name, state);
@@ -309,12 +310,13 @@ function addReferencePoint(dataSource, feature) {
 function addTarget(dataSource, target) {
   const color = Cesium.Color.fromCssColorString(tierColor(target.tier));
 
-  const gridKm =
-    Number(target.gridCellSize || 0) * 111.32 * 0.35;
+  const gridKm = Number(target.gridCellSize || 0) * 111.32 * 0.35;
   const referenceKm = Number(target.nearestReferenceKm || 0);
   const zoneKm = Math.max(
     0.9,
-    referenceKm > 0 ? Math.min(referenceKm * 0.5, gridKm || referenceKm * 0.5) : gridKm,
+    referenceKm > 0
+      ? Math.min(referenceKm * 0.5, gridKm || referenceKm * 0.5)
+      : gridKm,
   );
 
   dataSource.entities.add({
@@ -352,13 +354,11 @@ function addTarget(dataSource, target) {
           ? target.trueProspectivity.coverage
           : null,
       channels:
-        target.trueProspectivity &&
-        target.trueProspectivity.channels
+        target.trueProspectivity && target.trueProspectivity.channels
           ? JSON.stringify(target.trueProspectivity.channels)
           : '',
       interpretation:
-        target.trueProspectivity &&
-        target.trueProspectivity.interpretation
+        target.trueProspectivity && target.trueProspectivity.interpretation
           ? target.trueProspectivity.interpretation
           : target.interpretation || '',
       commodities: (target.commodities || []).join(', '),
