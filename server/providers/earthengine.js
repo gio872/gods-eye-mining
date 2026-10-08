@@ -60,32 +60,101 @@ export function earthEngineProxy() {
   return {
     name: 'earthengine-proxy',
     configureServer(server) {
-      server.middlewares.use('/api/gee/health', async (_req, res) => {
-        const enabled = Boolean(process.env.GEM_EARTHENGINE_PROJECT);
-        res.statusCode = enabled ? 200 : 503;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(
-          JSON.stringify({
-            ok: enabled,
-            provider: 'earth-engine',
-            configured: enabled,
-          }),
+      const installHealth = () => {
+        server.middlewares.use('/api/gee/health', async (_req, res) => {
+          const configured = Boolean(
+            process.env.GEM_EARTHENGINE_PROJECT &&
+              process.env.GEM_EARTHENGINE_GATEWAY_PORT,
+          );
+          const gatewayPort = Number(
+            process.env.GEM_EARTHENGINE_GATEWAY_PORT || 0,
+          );
+          if (!configured || !Number.isInteger(gatewayPort)) {
+            res.statusCode = 503;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(
+              JSON.stringify({
+                ok: false,
+                provider: 'earth-engine',
+                configured: false,
+              }),
+            );
+            return;
+          }
+          try {
+            const response = await fetch(
+              'http://127.0.0.1:' + gatewayPort + '/api/gee/health',
+            );
+            const body = await response.text();
+            res.statusCode = response.status;
+            res.setHeader(
+              'Content-Type',
+              response.headers.get('content-type') ||
+                'application/json',
+            );
+            res.end(body);
+          } catch (error) {
+            res.statusCode = 503;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(
+              JSON.stringify({
+                ok: false,
+                provider: 'earth-engine',
+                configured: true,
+                error: error.message,
+              }),
+            );
+          }
+        });
+      };
+      installHealth();
+      server.middlewares.use('/api/gee/map', async (req, res) => {
+        const gatewayPort = Number(
+          process.env.GEM_EARTHENGINE_GATEWAY_PORT || 0,
         );
+        if (!Number.isInteger(gatewayPort)) {
+          res.statusCode = 503;
+          res.end(JSON.stringify({ ok: false, error: 'GEE gateway is not configured' }));
+          return;
+        }
+        let body = '';
+        req.on('data', (chunk) => {
+          body += chunk;
+        });
+        req.on('end', async () => {
+          try {
+            const response = await fetch(
+              'http://127.0.0.1:' + gatewayPort + '/api/gee/map',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body,
+              },
+            );
+            const payload = await response.text();
+            res.statusCode = response.status;
+            res.setHeader(
+              'Content-Type',
+              response.headers.get('content-type') ||
+                'application/json',
+            );
+            res.end(payload);
+          } catch (error) {
+            res.statusCode = 503;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(
+              JSON.stringify({
+                ok: false,
+                provider: 'earth-engine',
+                error: error.message,
+              }),
+            );
+          }
+        });
       });
     },
     configurePreviewServer(server) {
-      server.middlewares.use('/api/gee/health', async (_req, res) => {
-        const enabled = Boolean(process.env.GEM_EARTHENGINE_PROJECT);
-        res.statusCode = enabled ? 200 : 503;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(
-          JSON.stringify({
-            ok: enabled,
-            provider: 'earth-engine',
-            configured: enabled,
-          }),
-        );
-      });
+      this.configureServer({ middlewares: server.middlewares });
     },
   };
 }
