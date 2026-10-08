@@ -525,9 +525,7 @@ export function geologyScore(lithology, target, options = {}) {
         ? inferred
         : SUPPORTED_COMMODITIES;
 
-  const scores = Object.values(
-    geologyScoresByCommodity(lithology, requested),
-  );
+  const scores = Object.values(geologyScoresByCommodity(lithology, requested));
   if (!scores.length) return 50;
 
   return (
