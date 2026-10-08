@@ -469,6 +469,7 @@ export function createGlobalMineralIntelligence({
           maxGeologyTargets: isGlobal ? 384 : 256,
         },
       );
+      if (destroyed || scanController.signal.aborted) return state;
       const referenceTargets = generateGlobalTargets(features, queryBox, {
         topN: isGlobal ? 64 : 32,
       });
