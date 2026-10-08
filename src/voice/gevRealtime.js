@@ -1,11 +1,3 @@
-import { createGevActionRunner } from './gevActions.js';
-import { createVoiceCommands } from './commands.js';
-export * from './realtimeController.js';
-
-/** Compose the standalone action runner with the voice controls. */
-export function initGemVoiceCommands(options) {
-  return createVoiceCommands({
-    ...options,
-    runner: createGevActionRunner(options),
-  });
-}
+/** @deprecated GEM compatibility facade. Use ./gemRealtime.js. */
+export * from './gemRealtime.js';
+export { initGemVoiceCommands as initGevVoiceCommands } from './gemRealtime.js';
