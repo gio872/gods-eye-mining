@@ -325,7 +325,7 @@ const BASEMAP_CONTEXT_WAIT_MS = 1500;
 const viewTargetCache = new WeakMap();
 
 /** Create application actions over the supplied scene and services. */
-export function createGevActionRunner({
+export function createGemActionRunner({
   viewer,
   styleManager,
   dataManager,
