@@ -17,6 +17,7 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
     attribution: 'U.S. Geological Survey (USGS) — MRDS',
     globalCoverage: true,
     maxViewportRecords: 1200,
+    queryFields: ['objectid_1', 'dep_id', 'site_name', 'dev_stat', 'code_list', 'grade'],
     limitation:
       'Worldwide coverage is incomplete outside the United States; operational, ownership, production, reserve and resource fields may be historical.',
     licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
@@ -32,6 +33,7 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
       'U.S. Geological Survey (USGS) — Global Distribution of Selected Critical Minerals',
     globalCoverage: true,
     maxViewportRecords: 1600,
+    queryFields: ['mineral', 'dep_type', 'latitude', 'longitude', 'location'],
     limitation:
       'Reference compilation of documented deposits/occurrences; not an exhaustive global inventory and not a deposit-probability surface.',
     licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
@@ -152,8 +154,9 @@ export async function fetchArcGISPoints(
     signal,
     fetchImpl = globalThis.fetch,
     where = '1=1',
-    outFields = DEFAULT_QUERY_FIELDS,
+    outFields,
     limit,
+    maxPages = 1,
   } = {},
 ) {
   if (!source || !source.endpoint)
@@ -167,7 +170,8 @@ export async function fetchArcGISPoints(
   url.searchParams.set('geometryType', 'esriGeometryEnvelope');
   url.searchParams.set('inSR', '4326');
   url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
-  url.searchParams.set('outFields', outFields.join(','));
+  const fields = outFields || source.queryFields || DEFAULT_QUERY_FIELDS;
+  url.searchParams.set('outFields', fields.join(','));
   url.searchParams.set('returnGeometry', 'true');
   url.searchParams.set('outSR', '4326');
   url.searchParams.set('f', 'geojson');
@@ -175,21 +179,31 @@ export async function fetchArcGISPoints(
     'resultRecordCount',
     String(Math.max(1, Math.min(2000, limit || source.maxViewportRecords || 1200))),
   );
-  url.searchParams.set('returnExceededLimitFeatures', 'false');
+  url.searchParams.set('returnExceededLimitFeatures', 'true');
 
-  const response = await fetchImpl(url, {
-    signal,
-    headers: { Accept: 'application/geo+json, application/json' },
-  });
-  if (!response.ok) {
-    throw new Error(
-      [source.name, 'HTTP', response.status, response.statusText]
-        .filter(Boolean)
-        .join(' '),
-    );
+  const pageLimit = Math.max(1, Math.min(10, Number(maxPages) || 1));
+  const pageSize = Math.max(1, Math.min(2000, limit || source.maxViewportRecords || 1200));
+  const features = [];
+  for (let page = 0; page < pageLimit; page += 1) {
+    const pageUrl = new URL(url);
+    pageUrl.searchParams.set('resultRecordCount', String(pageSize));
+    pageUrl.searchParams.set('resultOffset', String(page * pageSize));
+    const response = await fetchImpl(pageUrl, {
+      signal,
+      headers: { Accept: 'application/geo+json, application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(
+        [source.name, 'HTTP', response.status, response.statusText]
+          .filter(Boolean)
+          .join(' '),
+      );
+    }
+    const pageFeatures = parseGeoJsonPayload(await response.json());
+    features.push(...pageFeatures);
+    if (pageFeatures.length < pageSize) break;
   }
-  return parseGeoJsonPayload(await response.json());
-}
+  return features;
 
 function normalizeProperties(feature, source) {
   const properties = feature && feature.properties ? feature.properties : {};
@@ -268,6 +282,7 @@ export async function queryMineralSources(
           fetchImpl,
           signal,
           where,
+          maxPages: 1,
         });
         const features = normalizeMineralFeatures(raw, source);
         return {
