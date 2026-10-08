@@ -53,8 +53,8 @@ const DEFAULT_WEIGHTS = Object.freeze({
   occurrenceDensity: 0.34,
   commodityDiversity: 0.18,
   criticalMineralEvidence: 0.18,
-  developmentEvidence: 0.10,
-  multisourceConvergence: 0.20,
+  developmentEvidence: 0.1,
+  multisourceConvergence: 0.2,
 });
 
 function clamp(value, min = 0, max = 1) {
@@ -145,7 +145,6 @@ function stableTargetToken(value) {
   return (hash >>> 0).toString(16).padStart(8, '0').toUpperCase();
 }
 
-
 function scoreCell(bucket, neighborCount, sourceCount, weights) {
   const count = bucket.features.length;
   const density = clamp(count / 6);
@@ -158,7 +157,8 @@ function scoreCell(bucket, neighborCount, sourceCount, weights) {
   const diversity = clamp(commodityCount / 4);
   const critical = clamp(bucket.critical / Math.max(1, count));
   const development = bucket.producers / Math.max(1, count);
-  const convergence = clamp(sourceCount / 2) * 0.7 + clamp(neighborCount / 6) * 0.3;
+  const convergence =
+    clamp(sourceCount / 2) * 0.7 + clamp(neighborCount / 6) * 0.3;
 
   const raw =
     density * weights.occurrenceDensity +
@@ -199,15 +199,12 @@ export function generateGlobalTargets(
 
   for (const feature of features) {
     const coordinates =
-      feature &&
-      feature.geometry &&
-      Array.isArray(feature.geometry.coordinates)
+      feature && feature.geometry && Array.isArray(feature.geometry.coordinates)
         ? feature.geometry.coordinates
         : [];
     const longitude = Number(coordinates[0]);
     const latitude = Number(coordinates[1]);
-    if (!Number.isFinite(longitude) || !Number.isFinite(latitude))
-      continue;
+    if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) continue;
     if (
       longitude < bbox.west ||
       longitude > bbox.east ||
@@ -229,9 +226,7 @@ export function generateGlobalTargets(
     }
 
     bucket.features.push(feature);
-    bucket.sources.add(
-      feature.properties && feature.properties.sourceId,
-    );
+    bucket.sources.add(feature.properties && feature.properties.sourceId);
     if (
       feature.properties &&
       feature.properties.sourceId === 'usgs-critical-minerals'
@@ -254,12 +249,7 @@ export function generateGlobalTargets(
         0,
       );
     const center = cellCenter(key, cellSize);
-    const scored = scoreCell(
-      bucket,
-      neighbors,
-      bucket.sources.size,
-      weights,
-    );
+    const scored = scoreCell(bucket, neighbors, bucket.sources.size, weights);
     const rawChannels =
       typeof evidenceResolver === 'function'
         ? evidenceResolver({
@@ -324,9 +314,7 @@ export function buildEvidenceSummary(features, targets) {
   const bySource = new Map();
   for (const feature of features || []) {
     const id =
-      feature &&
-      feature.properties &&
-      feature.properties.sourceId
+      feature && feature.properties && feature.properties.sourceId
         ? feature.properties.sourceId
         : 'unknown';
     bySource.set(id, (bySource.get(id) || 0) + 1);
@@ -342,9 +330,10 @@ export function buildEvidenceSummary(features, targets) {
     tier2: (targets || []).filter((target) => target.tier === 'TIER 2').length,
     topScore: scores.length ? Math.max(...scores) : 0,
     modelId: TARGET_MODEL_ID,
-    evidenceState: features && features.length
-      ? 'REFERENCE_DATA_ACTIVE'
-      : 'NO_REFERENCE_DATA',
+    evidenceState:
+      features && features.length
+        ? 'REFERENCE_DATA_ACTIVE'
+        : 'NO_REFERENCE_DATA',
     evidenceCoverage:
       targets && targets.length
         ? Math.round(
@@ -374,9 +363,5 @@ export function distanceKm(a, b) {
   const h =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-  return (
-    2 *
-    radiusKm *
-    Math.asin(Math.sqrt(Math.max(0, Math.min(1, h))))
-  );
+  return 2 * radiusKm * Math.asin(Math.sqrt(Math.max(0, Math.min(1, h))));
 }

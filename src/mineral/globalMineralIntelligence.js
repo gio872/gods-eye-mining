@@ -22,15 +22,14 @@ function radiansToDegrees(value) {
 }
 
 function currentBBox(viewer) {
-  const rectangle = viewer &&
-    viewer.camera &&
-    viewer.camera.computeViewRectangle
-    ? viewer.camera.computeViewRectangle(
-        viewer.scene && viewer.scene.globe
-          ? viewer.scene.globe.ellipsoid
-          : undefined,
-      )
-    : null;
+  const rectangle =
+    viewer && viewer.camera && viewer.camera.computeViewRectangle
+      ? viewer.camera.computeViewRectangle(
+          viewer.scene && viewer.scene.globe
+            ? viewer.scene.globe.ellipsoid
+            : undefined,
+        )
+      : null;
 
   if (!rectangle) return WORLD_BBOX;
 
@@ -39,11 +38,9 @@ function currentBBox(viewer) {
   const south = Math.max(-85, radiansToDegrees(rectangle.south));
   const north = Math.min(85, radiansToDegrees(rectangle.north));
 
-  if (![west, east, south, north].every(Number.isFinite))
-    return WORLD_BBOX;
+  if (![west, east, south, north].every(Number.isFinite)) return WORLD_BBOX;
 
-  if (east < west || east - west > 300)
-    return WORLD_BBOX;
+  if (east < west || east - west > 300) return WORLD_BBOX;
 
   return {
     west: Math.max(-180, west),
@@ -130,9 +127,10 @@ function renderSourceStatus(panel, statuses) {
     const name = document.createElement('span');
     const count = document.createElement('b');
 
-    name.textContent = status.source && status.source.name
-      ? status.source.name
-      : 'Unknown source';
+    name.textContent =
+      status.source && status.source.name
+        ? status.source.name
+        : 'Unknown source';
     count.textContent = status.ok
       ? Number(status.count || 0).toLocaleString()
       : 'OFF';
@@ -157,8 +155,7 @@ function renderTargets(panel, targets) {
   for (const target of targets.slice(0, 8)) {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className =
-      'gem-global-target-row ' + tierClass(target.tier);
+    button.className = 'gem-global-target-row ' + tierClass(target.tier);
     button.dataset.targetId = target.id;
 
     const dot = document.createElement('span');
@@ -172,9 +169,10 @@ function renderTargets(panel, targets) {
     score.textContent = Number(target.score || 0).toFixed(1);
 
     const detail = document.createElement('small');
-    detail.textContent = target.commodities && target.commodities.length
-      ? target.commodities.join(' · ')
-      : 'Documented mineral evidence';
+    detail.textContent =
+      target.commodities && target.commodities.length
+        ? target.commodities.join(' · ')
+        : 'Documented mineral evidence';
 
     button.append(dot, id, score, detail);
     host.append(button);
@@ -182,14 +180,15 @@ function renderTargets(panel, targets) {
 }
 
 function updatePanel(panel, summary, statuses, targets, phase) {
-  panel.querySelector('[data-role="status-dot"]').classList.toggle(
-    'is-busy',
-    phase === 'scanning',
-  );
-  panel.querySelector('[data-role="status-dot"]').classList.toggle(
-    'is-error',
-    statuses.length > 0 && statuses.every((status) => !status.ok),
-  );
+  panel
+    .querySelector('[data-role="status-dot"]')
+    .classList.toggle('is-busy', phase === 'scanning');
+  panel
+    .querySelector('[data-role="status-dot"]')
+    .classList.toggle(
+      'is-error',
+      statuses.length > 0 && statuses.every((status) => !status.ok),
+    );
 
   renderSourceStatus(panel, statuses);
 
@@ -228,8 +227,7 @@ function updatePanel(panel, summary, statuses, targets, phase) {
 function addReferencePoint(dataSource, feature) {
   const coordinates = feature.geometry.coordinates;
   const properties = feature.properties || {};
-  const sourceIsCritical =
-    properties.sourceId === 'usgs-critical-minerals';
+  const sourceIsCritical = properties.sourceId === 'usgs-critical-minerals';
 
   dataSource.entities.add({
     id:
@@ -241,10 +239,7 @@ function addReferencePoint(dataSource, feature) {
       String(coordinates[0]) +
       '-' +
       String(coordinates[1]),
-    position: Cesium.Cartesian3.fromDegrees(
-      coordinates[0],
-      coordinates[1],
-    ),
+    position: Cesium.Cartesian3.fromDegrees(coordinates[0], coordinates[1]),
     point: {
       pixelSize: sourceIsCritical ? 7 : 4,
       color: Cesium.Color.fromCssColorString(
@@ -271,10 +266,7 @@ function addTarget(dataSource, target) {
 
   dataSource.entities.add({
     id: 'gem-target-' + target.id,
-    position: Cesium.Cartesian3.fromDegrees(
-      target.longitude,
-      target.latitude,
-    ),
+    position: Cesium.Cartesian3.fromDegrees(target.longitude, target.latitude),
     ellipse: {
       semiMajorAxis: Math.max(
         900,
@@ -365,11 +357,9 @@ export function createGlobalMineralIntelligence({
     const isGlobal = reason === 'global';
     const cameraKey = bboxKey(queryBox);
 
-    if (reason === 'camera' && cameraKey === lastCameraKey)
-      return state;
+    if (reason === 'camera' && cameraKey === lastCameraKey) return state;
 
-    if (reason === 'camera')
-      lastCameraKey = cameraKey;
+    if (reason === 'camera') lastCameraKey = cameraKey;
 
     scanPromise = (async () => {
       panel.classList.add('is-busy');
@@ -415,8 +405,7 @@ export function createGlobalMineralIntelligence({
 
       for (const feature of features.slice(0, 3000))
         addReferencePoint(dataSource, feature);
-      for (const target of targets)
-        addTarget(dataSource, target);
+      for (const target of targets) addTarget(dataSource, target);
 
       const nextState = {
         phase: 'ready',
@@ -475,7 +464,7 @@ export function createGlobalMineralIntelligence({
   }
 
   function onRunAnalysis() {
-    scan(currentBBox(viewer), "manual");
+    scan(currentBBox(viewer), 'manual');
   }
 
   function mount() {
@@ -483,19 +472,17 @@ export function createGlobalMineralIntelligence({
     document.body.append(panel);
     viewer.dataSources.add(dataSource);
 
-    panel.querySelector('[data-action="scan"]').addEventListener(
-      'click',
-      () => scan(currentBBox(viewer), 'manual'),
-    );
+    panel
+      .querySelector('[data-action="scan"]')
+      .addEventListener('click', () => scan(currentBBox(viewer), 'manual'));
 
-    panel.querySelector('[data-action="world"]').addEventListener(
-      'click',
-      () => scan(WORLD_BBOX, 'global'),
-    );
+    panel
+      .querySelector('[data-action="world"]')
+      .addEventListener('click', () => scan(WORLD_BBOX, 'global'));
 
-    panel.querySelector('[data-role="targets"]').addEventListener(
-      'click',
-      (event) => {
+    panel
+      .querySelector('[data-role="targets"]')
+      .addEventListener('click', (event) => {
         const button = event.target.closest('[data-target-id]');
         if (!button) return;
         const target = state.targets.find(
@@ -507,10 +494,7 @@ export function createGlobalMineralIntelligence({
           destination: Cesium.Cartesian3.fromDegrees(
             target.longitude,
             target.latitude,
-            Math.max(
-              25000,
-              Number(target.nearestReferenceKm || 0) * 1200,
-            ),
+            Math.max(25000, Number(target.nearestReferenceKm || 0) * 1200),
           ),
           duration: 1.8,
         });
@@ -520,23 +504,15 @@ export function createGlobalMineralIntelligence({
             detail: Object.freeze({ ...target }),
           }),
         );
-      },
-    );
+      });
 
     if (viewer.camera && viewer.camera.moveEnd)
       viewer.camera.moveEnd.addEventListener(onCameraChanged);
-    document.addEventListener("gem:run-global-analysis", onRunAnalysis);
+    document.addEventListener('gem:run-global-analysis', onRunAnalysis);
 
-    updatePanel(
-      panel,
-      state.summary,
-      state.statuses,
-      state.targets,
-      'idle',
-    );
+    updatePanel(panel, state.summary, state.statuses, state.targets, 'idle');
 
-    if (autoScan)
-      scan(currentBBox(viewer), 'startup');
+    if (autoScan) scan(currentBBox(viewer), 'startup');
 
     return api;
   }
@@ -548,7 +524,7 @@ export function createGlobalMineralIntelligence({
     if (scanTimer) clearTimeout(scanTimer);
     if (viewer.camera && viewer.camera.moveEnd)
       viewer.camera.moveEnd.removeEventListener(onCameraChanged);
-    document.removeEventListener("gem:run-global-analysis", onRunAnalysis);
+    document.removeEventListener('gem:run-global-analysis', onRunAnalysis);
 
     viewer.dataSources.remove(dataSource, true);
     panel.remove();

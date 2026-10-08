@@ -12,8 +12,8 @@ export const EVIDENCE_CHANNELS = Object.freeze({
   reference: 0.35,
   geology: 0.12,
   geophysics: 0.13,
-  geochemistry: 0.10,
-  spectral: 0.10,
+  geochemistry: 0.1,
+  spectral: 0.1,
   structure: 0.07,
   terrain: 0.04,
   hydrology: 0.03,
@@ -44,7 +44,8 @@ function normalizedWeights(weights) {
     clean[channel] = value;
     total += value;
   }
-  if (!total) throw new RangeError('At least one positive evidence weight is required');
+  if (!total)
+    throw new RangeError('At least one positive evidence weight is required');
   return Object.fromEntries(
     Object.entries(clean).map(([channel, weight]) => [channel, weight / total]),
   );
@@ -107,11 +108,18 @@ export function fuseEvidence(
   return {
     score: Math.round(clamp(score) * 10) / 10,
     coverage: Math.round(clamp(coverage, 0, 1) * 1000) / 10,
-    confidence: Math.round(clamp(
-      Math.min(1, coverage * (0.65 + 0.35 * Math.min(1, availableChannels.length / 4))),
-      0,
-      1,
-    ) * 1000) / 10,
+    confidence:
+      Math.round(
+        clamp(
+          Math.min(
+            1,
+            coverage *
+              (0.65 + 0.35 * Math.min(1, availableChannels.length / 4)),
+          ),
+          0,
+          1,
+        ) * 1000,
+      ) / 10,
     mode,
     contributions,
     availableChannels,

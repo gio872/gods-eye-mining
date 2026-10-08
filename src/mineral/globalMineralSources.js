@@ -17,11 +17,20 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
     attribution: 'U.S. Geological Survey (USGS) — MRDS',
     globalCoverage: true,
     maxViewportRecords: 1200,
-    queryFields: ['gid', 'dep_id', 'site_name', 'dev_stat', 'code_list', 'url', 'grade'],
+    queryFields: [
+      'gid',
+      'dep_id',
+      'site_name',
+      'dev_stat',
+      'code_list',
+      'url',
+      'grade',
+    ],
     orderByFields: 'gid ASC',
     limitation:
       'Worldwide coverage is incomplete outside the United States; operational, ownership, production, reserve and resource fields may be historical.',
-    licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
+    licenseHint:
+      'USGS data/public-data terms apply; preserve source attribution.',
   }),
   criticalMinerals: Object.freeze({
     id: 'usgs-critical-minerals',
@@ -34,11 +43,20 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
       'U.S. Geological Survey (USGS) — Global Distribution of Selected Critical Minerals',
     globalCoverage: true,
     maxViewportRecords: 1600,
-    queryFields: ['gid', 'dep_name', 'mineral', 'dep_type', 'latitude', 'longitude', 'location'],
+    queryFields: [
+      'gid',
+      'dep_name',
+      'mineral',
+      'dep_type',
+      'latitude',
+      'longitude',
+      'location',
+    ],
     orderByFields: 'gid ASC',
     limitation:
       'Reference compilation of documented deposits/occurrences; not an exhaustive global inventory and not a deposit-probability surface.',
-    licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
+    licenseHint:
+      'USGS data/public-data terms apply; preserve source attribution.',
   }),
   oneGeology: Object.freeze({
     id: 'onegeology',
@@ -121,24 +139,23 @@ export function normalizeBBox(bbox) {
 }
 
 function bboxGeometry(bbox) {
-  return [
-    bbox.west,
-    bbox.south,
-    bbox.east,
-    bbox.north,
-  ].join(',');
+  return [bbox.west, bbox.south, bbox.east, bbox.north].join(',');
 }
 
 function parseGeoJsonPayload(payload) {
   if (!payload || typeof payload !== 'object')
     throw new Error('Mineral source returned a non-object payload');
   if (payload.error) {
-    const detail = payload.error.message || (payload.error.details || []).join('; ');
+    const detail =
+      payload.error.message || (payload.error.details || []).join('; ');
     throw new Error(detail || 'Mineral source returned an ArcGIS error');
   }
   const features = Array.isArray(payload.features) ? payload.features : [];
   return features
-    .filter((feature) => feature && feature.geometry && feature.geometry.type === 'Point')
+    .filter(
+      (feature) =>
+        feature && feature.geometry && feature.geometry.type === 'Point',
+    )
     .map((feature) => ({
       type: 'Feature',
       geometry: feature.geometry,
@@ -181,12 +198,17 @@ export async function fetchArcGISPoints(
   url.searchParams.set('f', 'geojson');
   url.searchParams.set(
     'resultRecordCount',
-    String(Math.max(1, Math.min(2000, limit || source.maxViewportRecords || 1200))),
+    String(
+      Math.max(1, Math.min(2000, limit || source.maxViewportRecords || 1200)),
+    ),
   );
   url.searchParams.set('returnExceededLimitFeatures', 'true');
 
   const pageLimit = Math.max(1, Math.min(10, Number(maxPages) || 1));
-  const pageSize = Math.max(1, Math.min(2000, limit || source.maxViewportRecords || 1200));
+  const pageSize = Math.max(
+    1,
+    Math.min(2000, limit || source.maxViewportRecords || 1200),
+  );
   const features = [];
   for (let page = 0; page < pageLimit; page += 1) {
     const pageUrl = new URL(url);
@@ -214,10 +236,20 @@ function normalizeProperties(feature, source) {
   const properties = feature && feature.properties ? feature.properties : {};
   const latitude =
     asFiniteNumber(properties.latitude) ??
-    asFiniteNumber(feature && feature.geometry && feature.geometry.coordinates && feature.geometry.coordinates[1]);
+    asFiniteNumber(
+      feature &&
+        feature.geometry &&
+        feature.geometry.coordinates &&
+        feature.geometry.coordinates[1],
+    );
   const longitude =
     asFiniteNumber(properties.longitude) ??
-    asFiniteNumber(feature && feature.geometry && feature.geometry.coordinates && feature.geometry.coordinates[0]);
+    asFiniteNumber(
+      feature &&
+        feature.geometry &&
+        feature.geometry.coordinates &&
+        feature.geometry.coordinates[0],
+    );
   return {
     sourceId: source.id,
     sourceName: source.name,
@@ -236,10 +268,7 @@ function normalizeProperties(feature, source) {
       properties.code_list ||
       properties.code ||
       null,
-    depositType:
-      properties.dep_type ||
-      properties.deposit_type ||
-      null,
+    depositType: properties.dep_type || properties.deposit_type || null,
     grade: properties.grade || null,
     location: properties.location || null,
     url: properties.url || null,
