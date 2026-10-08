@@ -145,19 +145,25 @@ A future ingestion service can move long-running world acquisition into a server
 When these channels become available, evidenceResolver can provide target-local normalized scores to the fusion engine; the same target IDs, tiering and provenance contract remain intact.
 
 
-## True Multisource Mineral Prospectivity
+## True Multisource Mineral Prospectivity / Mineral Discovery Engine
 
-`src/mineral/trueProspectivity.js` is the calibrated evidence-fusion layer.
+`src/mineral/trueProspectivity.js` remains the single model contract: `GEM-TRUE-MULTISOURCE-01`, now versioned as 2.0.0.
 
-Current active prospectivity channels:
-- Reference mineral occurrences: documented mineral evidence already present in public datasets.
-- Geology: GLiM v1.1 lithology sampled at each target coordinate and scored against commodity/deposit-style lithology priors.
-- Geophysics: EMAG2v3 magnetic anomaly sampled at the target and a local 3x3 neighborhood.
-- Structure: a deterministic local magnetic-contrast derivative; it is explicitly marked as derived evidence, not an independent sensor.
+The active evidence channels are:
+- **Reference (10%)** — documented mineral occurrences and critical-mineral reference records.
+- **Geology (20%)** — GLiM v1.1 lithology compatibility and commodity-specific lithology priors.
+- **Geophysics (20%)** — EMAG2v3 anomaly magnitude plus local contrast.
+- **Structure (5%)** — deterministic magnetic-contrast derivative; it is derived from the geophysical channel, not an independent sensor.
+- **Geochemistry (20%)** — numeric concentrations from the CMMI / Geoscience Australia Critical Minerals in Ores geochemistry service, scored as local robust anomalies against retrieved samples.
+- **Spectral (25%)** — a composite of actual Sentinel-2 L2A surface-reflectance COG pixels, EnMAP L2A hyperspectral COG pixels, and EMIT L2BMIN mineral-identification evidence when authenticated Earthdata pixel access is available.
 
-Current fusion weights are reference 20%, geology 35%, geophysics 30% and structure 15%. Missing channels reduce evidence coverage rather than becoming zero-valued evidence.
+Sentinel-2 and EnMAP are sampled at target-local windows and transformed into deterministic ferric-iron, clay/short-wave-infrared and vegetation/surface-condition proxies. GEM does not treat mere scene coverage as evidence.
 
-Terrain is sampled and retained as diagnostic context, but is not currently assigned prospectivity weight. Spectral evidence is reserved for actual per-pixel mineral-identification/abundance values from sensors such as EMIT; merely having an image over the target is not treated as mineral evidence.
+EMIT L2BMIN is connected through NASA CMR granule discovery. Pixel-level mineral IDs, band depths, fit and uncertainty are only admitted into the spectral channel when an authenticated `emitSampler` is supplied by the host application; an unauthenticated deployment reports `AUTH_REQUIRED` instead of fabricating a mineral score.
+
+Terrain remains diagnostic context and is deliberately excluded from the prospectivity denominator.
+
+The model is still deterministic rather than statistically calibrated. Its score is a **prospectivity/discovery ranking**, not a probability of discovery, resource/reserve estimate or grade prediction. Evidence coverage, provider status and source provenance are retained on every target so future statistical calibration can be performed without changing the target API.
 
 ## Operational safety
 
