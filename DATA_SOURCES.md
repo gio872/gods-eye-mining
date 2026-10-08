@@ -384,3 +384,13 @@ The required Google Maps / Cesium credit renders on the on-globe credit line (`#
 - **Code license:** MIT. **Published data:** CC BY 4.0.
 - **Important limitation:** current public detections are Amazon-basin focused. GEM must report `NOT COVERED` outside the published footprint rather than treating absence of detections as evidence of absence of mining.
 - **Architecture:** GEM consumes public detections in the browser; heavyweight TensorFlow/PyTorch/SAM2 inference belongs in an optional worker/service and is not bundled into the Cesium frontend.
+
+
+## Google Earth Engine (GEE)
+
+- **Role in GEM:** global Earth-observation processing and dynamic imagery provider. Cesium remains the 3D renderer.
+- **Official client/runtime:** Google Earth Engine API; local backend uses the official Python client when configured.
+- **Datasets exposed by GEM:** Sentinel-2 Surface Reflectance Harmonized, HLS Landsat 30 m, Sentinel-1 SAR VV, Landsat 9 Surface Reflectance, Copernicus DEM GLO-30 and ESA WorldCover.
+- **Authentication:** server-side/local. Configure `GEM_EARTHENGINE_PROJECT` and authenticate the local Earth Engine runtime. No private key is committed to Git.
+- **Fallback:** if GEE is unavailable or not authenticated, GEM falls back to the existing satellite source instead of blocking application startup.
+- **Important distinction:** GEE is an observation/processing backend, not the 3D renderer and not itself a mineral-reserve estimator.
