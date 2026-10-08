@@ -32,6 +32,9 @@ function makeElement(tagName = 'div') {
       element.children.push(child);
       return child;
     },
+    append(...children) {
+      for (const child of children) element.children.push(child);
+    },
     setAttribute(name, value) {
       element.attributes[name] = String(value);
     },
