@@ -621,7 +621,8 @@ export function createGlobalMineralIntelligence({
     getWorldBbox: () => WORLD_BBOX,
     sources: GLOBAL_MINERAL_SOURCES,
     configuration: Object.freeze({
-      modelId: TARGET_MODEL_ID,
+      modelId: TRUE_PROSPECTIVITY_MODEL_ID,
+      referenceModelId: TARGET_MODEL_ID,
       viewportPages,
       globalPages,
     }),
