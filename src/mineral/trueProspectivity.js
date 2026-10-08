@@ -137,6 +137,10 @@ const LITHOLOGY_PRIORS = Object.freeze({
   }),
 });
 
+const SUPPORTED_COMMODITIES = Object.freeze(
+  Object.keys(LITHOLOGY_PRIORS),
+);
+
 const COMMODITY_ALIASES = Object.freeze({
   au: 'gold',
   gold: 'gold',
@@ -283,6 +287,11 @@ async function queryGlmLithology(
       channel: 'geology',
       lithology,
       score: geologyScore(lithology, target),
+      commodityScores: rankLithologyCommodities(
+        targetCommodityKeys(target).length
+          ? targetCommodityKeys(target)
+          : SUPPORTED_COMMODITIES,
+      ),
       sourceId: PROSPECTIVITY_SOURCES.geology.id,
       sourceName: PROSPECTIVITY_SOURCES.geology.name,
     };
@@ -457,7 +466,7 @@ function terrainScore(samples, target) {
   };
 }
 
-export function geologyScore(lithology, target) {
+function geologyScoresByCommodity(lithology, requestedCommodities) {
   const normalized = String(lithology || '')
     .toLowerCase()
     .trim();
@@ -466,24 +475,67 @@ export function geologyScore(lithology, target) {
     normalized.includes('no data') ||
     normalized.includes('water')
   )
-    return null;
+    return {};
 
-  const keys = targetCommodityKeys(target);
-  const scores = [];
-  for (const key of keys) {
+  const commodities =
+    Array.isArray(requestedCommodities) && requestedCommodities.length
+      ? requestedCommodities
+      : SUPPORTED_COMMODITIES;
+  const result = {};
+
+  for (const key of commodities) {
     const prior = LITHOLOGY_PRIORS[key];
     if (!prior) continue;
+
+    const scores = [];
     for (const [rock, score] of Object.entries(prior)) {
       if (normalized === rock || normalized.includes(rock)) scores.push(score);
     }
+
+    if (scores.length) {
+      result[key] =
+        Math.round(
+          (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10,
+        ) / 10;
+    }
   }
 
+  return result;
+}
+
+export function geologyScore(lithology, target, options = {}) {
+  const explicit = Array.isArray(options.commodities)
+    ? options.commodities
+    : null;
+  const inferred = targetCommodityKeys(target);
+  const requested =
+    explicit && explicit.length
+      ? explicit
+      : inferred.length
+        ? inferred
+        : SUPPORTED_COMMODITIES;
+
+  const scores = Object.values(
+    geologyScoresByCommodity(lithology, requested),
+  );
   if (!scores.length) return 50;
+
   return (
     Math.round(
       (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10,
     ) / 10
   );
+}
+
+export function rankLithologyCommodities(
+  lithology,
+  requestedCommodities = SUPPORTED_COMMODITIES,
+) {
+  return Object.entries(
+    geologyScoresByCommodity(lithology, requestedCommodities),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .map(([commodity, score]) => ({ commodity, score }));
 }
 
 export function computeTrueEvidence(
