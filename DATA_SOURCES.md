@@ -24,7 +24,9 @@ How to read this:
 
 Sentinel-2 and EnMAP do not contribute simply because an image overlaps a target. GEM reads local COG pixels, applies a cloud/invalid-pixel screen where available, and computes deterministic ferric-iron, SWIR/clay and surface-condition proxies.
 
-EMIT L2BMIN is a 60 m mineral-identification/band-depth/uncertainty product. GEM discovers covering granules through NASA CMR and admits pixel-level EMIT evidence only through an authenticated host sampler; otherwise the provider state is explicitly `AUTH_REQUIRED`.
+EMIT L2BMIN is a 60 m mineral-identification/band-depth/uncertainty product.
+
+The application accepts an authenticated EMIT sampler through the host hook `globalThis.GEM_EMIT_L2BMIN_SAMPLER`. The hook receives the selected target and CMR granule metadata and must return the pixel-derived mineral signal; unauthenticated deployments remain explicitly `AUTH_REQUIRED` rather than fabricating spectral evidence. GEM discovers covering granules through NASA CMR and admits pixel-level EMIT evidence only through an authenticated host sampler; otherwise the provider state is explicitly `AUTH_REQUIRED`.
 
 The CMMI geochemistry source is deposit-proximate by design. GEM therefore labels this channel as a geochemical pathfinder/reference prior rather than an unbiased regional baseline. It must not be interpreted as assay control or proof of mineralisation at the candidate coordinate.
 
