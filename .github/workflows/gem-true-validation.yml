@@ -1,0 +1,56 @@
+name: GEM true prospectivity validation
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out PR head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 26.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Normalize GEM formatting
+        run: |
+          npx prettier --write \
+            src/mineral/evidenceFusion.js \
+            src/mineral/globalMineralIntelligence.js \
+            src/mineral/globalMineralSources.js \
+            src/mineral/globalTargetEngine.js \
+            src/mineral/trueProspectivity.js
+
+      - name: Run GEM unit tests
+        run: node --test src/mineral/*.test.mjs
+
+      - name: Check controller syntax
+        run: node --check src/mineral/globalMineralIntelligence.js
+
+      - name: Publish canonical formatting and remove workflow
+        shell: bash
+        run: |
+          git config user.name "GEM Validation"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/mineral/evidenceFusion.js src/mineral/globalMineralIntelligence.js src/mineral/globalMineralSources.js src/mineral/globalTargetEngine.js src/mineral/trueProspectivity.js
+          git rm .github/workflows/gem-true-validation.yml
+          git commit -m 'Validate and format GEM true prospectivity'
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git rebase origin/${{ github.event.pull_request.head.ref }}
+          git push --force-with-lease origin "HEAD:${{ github.event.pull_request.head.ref }}"
