@@ -282,7 +282,7 @@ export async function queryMineralSources(
           fetchImpl,
           signal,
           where,
-          maxPages: 1,
+          maxPages,
         });
         const features = normalizeMineralFeatures(raw, source);
         return {
