@@ -29,6 +29,10 @@ import {
   enrichTargetsWithTrueProspectivity,
   TRUE_PROSPECTIVITY_MODEL_ID,
 } from './trueProspectivity.js';
+import {
+  buildInvestmentProfile,
+  buildPortfolioSnapshot,
+} from './investmentIntelligence.js';
 
 const DATA_SOURCE_NAME = 'GEM Global Mineral Intelligence';
 const WORLD_BBOX = Object.freeze({
@@ -129,7 +133,7 @@ function createPanel() {
     '  <div><b data-metric="targets">0</b><span>targets generated</span></div>',
     '  <div><b data-metric="tier1">0</b><span>tier 1 targets</span></div>',
     '  <div><b data-metric="top">0.0</b><span>top score / 100</span></div>',
-    '  <div><b data-metric="coverage">0.0%</b><span>evidence coverage</span></div>',
+    '  <div><b data-metric="coverage">0.0%</b><span>evidence coverage</span></div>',\n    '  <div><b data-metric="readiness">0.0</b><span>investment readiness</span></div>',
     '</div>',
     '<div class="gem-global-top-targets">',
     '  <div class="gem-global-section-title">TOP TARGETS</div>',
@@ -371,7 +375,7 @@ function updatePanel(
   appendText(
     panel.querySelector('[data-metric="coverage"]'),
     Number(summary.evidenceCoverage || 0).toFixed(1) + '%',
-  );
+  );\n  appendText(\n    panel.querySelector('[data-metric="readiness"]'),\n    Number(summary.investmentReadiness || 0).toFixed(1),\n  );
 
   renderOperationalTriage(panel, targets);
   renderTargets(panel, targets);
@@ -717,11 +721,14 @@ export function createGlobalMineralIntelligence({
             );
       const triagedTargets = triageTargets(targets);
       const triageSummary = summarizeTriage(triagedTargets);
+      const portfolioSnapshot = buildPortfolioSnapshot(triagedTargets);
       const summary = {
         ...buildEvidenceSummary(features, triagedTargets),
         candidateCount: candidateTargets.length,
         modelId: TRUE_PROSPECTIVITY_MODEL_ID,
         operationalTriage: triageSummary,
+        investmentReadiness: portfolioSnapshot.averageReadiness,
+        investmentIntelligence: portfolioSnapshot,
       };
       const statuses = results.map((result) => ({
         source: result.source,
