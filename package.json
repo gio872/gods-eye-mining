@@ -271,6 +271,7 @@
     "./mineral/hierarchical-target-engine": "./src/mineral/hierarchicalTargetEngine.js",
     "./mineral/drill-intelligence": "./src/mineral/drillIntelligence.js",
     "./mineral/investment-intelligence": "./src/mineral/investmentIntelligence.js",
+    "./mineral/subsurface-resource-intelligence": "./src/mineral/subsurfaceResourceIntelligence.js",
     "./server/gem-state-store": "./server/gem/gemStateStore.js",
     "./server/gem-runtime-policy": "./server/gem/gemRuntimePolicy.js",
     "./server/gem-run-metadata": "./server/gem/gemRunMetadata.js",
