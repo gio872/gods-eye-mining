@@ -11,18 +11,18 @@
  */
 
 const MODULES = [
-  { id: 'map', label: 'Planet Map', eyebrow: 'ORIENT', text: 'Navigate the living planetary surface and move from geography into intelligence.', meta: 'GLOBAL SURFACE', action: 'map' },
-  { id: 'resources', label: 'Resource Atlas', eyebrow: 'EXPLORE', text: 'Minerals, metals, petroleum and gas with location, depth, evidence and provenance.', meta: '4D DATA FABRIC', action: 'resources' },
-  { id: 'targets', label: 'Target Intelligence', eyebrow: 'DISCOVER', text: 'Find, rank and explain exploration targets from converging planetary evidence.', meta: 'AI + EVIDENCE', action: 'targets' },
-  { id: 'assets', label: 'Asset Intelligence', eyebrow: 'OPERATE', text: 'Track physical assets, digital twins, custody, trade and settlement.', meta: 'DIGITAL TWIN', action: 'assets' },
-  { id: 'companies', label: 'Global Companies', eyebrow: 'NETWORK', text: 'Connect miners, operators, traders, producers, refineries and off-takers.', meta: 'NETWORK GRAPH', action: 'companies' },
-  { id: 'markets', label: 'Markets', eyebrow: 'TRADE', text: 'Commodity discovery, RFQ, matching, exchange and trade operations.', meta: 'COMMODITY LAYER', action: 'markets' },
-  { id: 'intelligence', label: 'Mineral Intelligence', eyebrow: 'UNDERSTAND', text: 'Geology, geophysics, geochemistry, hyperspectral and mineral systems.', meta: 'PLANETARY EVIDENCE', action: 'intelligence' },
-  { id: 'security', label: 'Mineral Security', eyebrow: 'STRATEGY', text: 'Country exposure, supply concentration, refining risk and resilience.', meta: 'NATIONAL INTELLIGENCE', action: 'security' },
-  { id: 'investor', label: 'Investor Room', eyebrow: 'CAPITAL', text: 'Business model, scenarios, capital path and public-markets readiness.', meta: 'INVESTOR INTELLIGENCE', action: 'investor' },
-  { id: 'reports', label: 'Reports', eyebrow: 'DELIVER', text: 'Turn intelligence into decision-ready reports, evidence packages and investor briefs.', meta: 'DECISION OUTPUT', action: 'reports' },
-  { id: 'supply', label: 'Supply Chain', eyebrow: 'CONNECT', text: 'Trace extraction, processing, refining, manufacturing and strategic dependencies.', meta: 'GLOBAL VALUE CHAIN', action: 'supply' },
-  { id: 'operations', label: 'Operations', eyebrow: 'OPERATE', text: 'Plan, monitor and manage exploration, projects, logistics and physical assets.', meta: 'OPERATING LAYER', action: 'operations' },
+  { id: 'map', label: 'Planet Map', eyebrow: 'ORIENT', text: 'Navigate the living planetary surface and move from geography into intelligence.', meta: 'GLOBAL SURFACE', action: 'map', art: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg' },
+  { id: 'resources', label: 'Resource Atlas', eyebrow: 'EXPLORE', text: 'Minerals, metals, petroleum and gas with location, depth, evidence and provenance.', meta: '4D DATA FABRIC', action: 'resources', art: 'https://img-mm.manoramaonline.com/content/dam/mm/mo/archive/technology/science/images/2026/2/1/rare-earth-mineral.jpg?h=583&w=1120' },
+  { id: 'targets', label: 'Target Intelligence', eyebrow: 'DISCOVER', text: 'Find, rank and explain exploration targets from converging planetary evidence.', meta: 'AI + EVIDENCE', action: 'targets', art: 'https://content.geovalevektor.com/images/mineral-exploration/1765722830595-Mineral-exploration.png' },
+  { id: 'assets', label: 'Asset Intelligence', eyebrow: 'OPERATE', text: 'Track physical assets, digital twins, custody, trade and settlement.', meta: 'DIGITAL TWIN', action: 'assets', art: 'https://dela.ru/medianew/img/2-8958794.jpg' },
+  { id: 'companies', label: 'Global Companies', eyebrow: 'NETWORK', text: 'Connect miners, operators, traders, producers, refineries and off-takers.', meta: 'NETWORK GRAPH', action: 'companies', art: 'https://www.laizquierdadiario.com/IMG/arton24564.jpg' },
+  { id: 'markets', label: 'Markets', eyebrow: 'TRADE', text: 'Commodity discovery, RFQ, matching, exchange and trade operations.', meta: 'COMMODITY LAYER', action: 'markets', art: 'https://mdb.ad-hoc-news.de/bilder/bild-2385448_800_600.jpg' },
+  { id: 'intelligence', label: 'Mineral Intelligence', eyebrow: 'UNDERSTAND', text: 'Geology, geophysics, geochemistry, hyperspectral and mineral systems.', meta: 'PLANETARY EVIDENCE', action: 'intelligence', art: 'https://images.squarespace-cdn.com/content/v1/66a30c0625c3d256b1b3d2e2/785c5c07-a40a-4c22-87b5-f5b7e044480f/Mieral%2BMap-3D.jpg' },
+  { id: 'security', label: 'Mineral Security', eyebrow: 'STRATEGY', text: 'Country exposure, supply concentration, refining risk and resilience.', meta: 'NATIONAL INTELLIGENCE', action: 'security', art: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg' },
+  { id: 'investor', label: 'Investor Room', eyebrow: 'CAPITAL', text: 'Business model, scenarios, capital path and public-markets readiness.', meta: 'INVESTOR INTELLIGENCE', action: 'investor', art: 'https://start-up.ro/img/articles/3/0/7/30782/cover-30782-src.jpg' },
+  { id: 'reports', label: 'Reports', eyebrow: 'DELIVER', text: 'Turn intelligence into decision-ready reports, evidence packages and investor briefs.', meta: 'DECISION OUTPUT', action: 'reports', art: 'https://assets.zyrosite.com/cdn-cgi/image/format%3Dauto%2Cw%3D1024%2Ch%3D896%2Cfit%3Dcrop%2Ctrim%3D0%3B0%3B257.50884086444006%3B0/5CR3CTlG2YYPc05o/1770819080873-rLFgdCUELR2RqbGF.png' },
+  { id: 'supply', label: 'Supply Chain', eyebrow: 'CONNECT', text: 'Trace extraction, processing, refining, manufacturing and strategic dependencies.', meta: 'GLOBAL VALUE CHAIN', action: 'supply', art: 'https://www.gettyimages.com/' },
+  { id: 'operations', label: 'Operations', eyebrow: 'OPERATE', text: 'Plan, monitor and manage exploration, projects, logistics and physical assets.', meta: 'OPERATING LAYER', action: 'operations', art: 'https://assets.cmcmarkets.com/images/1656941142_OilGas-1404562174_1200px.jpg' },
 ];
 
 const SEARCH_INDEX = [
