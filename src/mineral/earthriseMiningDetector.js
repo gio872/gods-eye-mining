@@ -100,10 +100,10 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
     (sum, entry) =>
       sum +
       Math.exp(
-        -(
-          entry.distanceKm /
-          Math.max(0.75, radiusKm * 0.55)
-        ) ** 2,
+        -Math.pow(
+          entry.distanceKm / Math.max(0.75, radiusKm * 0.55),
+          2,
+        ),
       ) *
         (entry.confirmed ? 1 : 0.65) *
         (entry.confidence == null
