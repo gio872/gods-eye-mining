@@ -52,14 +52,37 @@ async function start() {
         windowsHide: true,
       },
     );
-    geeProcess.stdout?.on('data', (chunk) =>
-      process.stdout.write('[GEE] ' + String(chunk)),
-    );
-    geeProcess.stderr?.on('data', (chunk) =>
-      process.stderr.write('[GEE] ' + String(chunk)),
-    );
-    geeProcess.on('error', (error) =>
-      console.warn('[GEE] Gateway unavailable:', error.message),
+    let geeReady = false;
+    const geeReadyPromise = new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(false), 4000);
+      geeProcess.stdout?.on('data', (chunk) => {
+        const text = String(chunk);
+        process.stdout.write('[GEE] ' + text);
+        if (!geeReady && text.includes('gateway listening')) {
+          geeReady = true;
+          clearTimeout(timeout);
+          resolve(true);
+        }
+      });
+      geeProcess.stderr?.on('data', (chunk) =>
+        process.stderr.write('[GEE] ' + String(chunk)),
+      );
+      geeProcess.on('error', (error) => {
+        console.warn('[GEE] Gateway unavailable:', error.message);
+        clearTimeout(timeout);
+        resolve(false);
+      });
+      geeProcess.on('exit', (code) => {
+        if (!geeReady) resolve(false);
+        if (code !== null && code !== 0)
+          console.warn('[GEE] Gateway exited with code', code);
+      });
+    });
+    const gatewayReady = await geeReadyPromise;
+    console.log(
+      gatewayReady
+        ? '[GEE] Gateway ready.'
+        : '[GEE] Gateway did not become ready; GEM will use fallback imagery until available.',
     );
   }
 
