@@ -65,6 +65,9 @@ function fixture() {
   const container = makeElement();
   const parent = makeElement();
   parent.children = [container];
+  parent.querySelector = (selector) =>
+    parent.children.find((child) => selector === '[data-gee-dataset]' && child.dataset?.geeDataset === '1') || null;
+
   container.parentElement = parent;
   container.ownerDocument = { createElement: (tag) => makeElement(tag) };
   const statusElement = makeElement();
