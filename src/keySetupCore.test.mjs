@@ -69,7 +69,7 @@ test('the status payload reports presence without any credential material', () =
   const opensky = status.keys.find((key) => key.id === 'opensky');
   assert.equal(opensky.set, false, 'half a credential pair is not configured');
   const serialized = JSON.stringify(status);
-  assert.ok(!serialized.includes('AIzaSyFakeFakeFakeFake1234'), 'a value leaked into status');
+  assert.ok(!serialized.includes('TEST_GOOGLE_MAPS_KEY_1234'), 'a value leaked into status');
   assert.ok(!serialized.includes('client-id-abcdef'), 'a value leaked into status');
   assert.ok(!serialized.includes('1234'), 'a credential suffix leaked into status');
   assert.ok(!serialized.includes('abcdef'), 'a credential suffix leaked into status');
