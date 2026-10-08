@@ -26,6 +26,7 @@ module.exports = {
           OPENSKY_CLIENT_ID: '{{env.OPENSKY_CLIENT_ID || ""}}',
           OPENSKY_CLIENT_SECRET: '{{env.OPENSKY_CLIENT_SECRET || ""}}',
           LL2_API_TOKEN: '{{env.LL2_API_TOKEN || ""}}',
+          GEM_EARTHENGINE_PROJECT: '{{env.GEM_EARTHENGINE_PROJECT || ""}}',
           GEV_RATELIMIT_OPENAI_PER_MIN: '{{env.GEV_RATELIMIT_OPENAI_PER_MIN || ""}}',
           GEV_RATELIMIT_GOOGLE_PER_MIN: '{{env.GEV_RATELIMIT_GOOGLE_PER_MIN || ""}}',
         },
