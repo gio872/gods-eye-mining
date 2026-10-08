@@ -154,7 +154,8 @@ export function earthEngineProxy() {
       });
     },
     configurePreviewServer(server) {
-      this.configureServer({ middlewares: server.middlewares });
+      const install = this.configureServer;
+      return install.call({ middlewares: server.middlewares }, server);
     },
   };
 }
