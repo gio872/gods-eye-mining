@@ -55,7 +55,7 @@ export function quoteFx(input={}){
  const fee=Number(input.fee||0);
  return Object.freeze({
   id:clean(input.id||'fx-'+Date.now().toString(36)),from,to,amount,rate,
-  grossDestinationAmount:amount*rate,fee,netDestinationAmount=Math.max(0,amount*rate-fee),
+  grossDestinationAmount:amount*rate,fee,netDestinationAmount:Math.max(0,amount*rate-fee),
   provider:input.provider||null,expiresAt:input.expiresAt||null,
   sourceId:input.sourceId||null,provenance:Array.isArray(input.provenance)?[...input.provenance]:[]
  });
