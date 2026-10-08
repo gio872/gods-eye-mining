@@ -273,7 +273,8 @@
     "./mineral/investment-intelligence": "./src/mineral/investmentIntelligence.js",
     "./server/gem-state-store": "./server/gem/gemStateStore.js",
     "./server/gem-runtime-policy": "./server/gem/gemRuntimePolicy.js",
-    "./server/gem-run-metadata": "./server/gem/gemRunMetadata.js"
+    "./server/gem-run-metadata": "./server/gem/gemRunMetadata.js",
+    "./mineral/exploration-learning": "./src/mineral/explorationLearning.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
