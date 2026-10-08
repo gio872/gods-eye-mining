@@ -357,6 +357,43 @@ async function sampleImageService(
   }
 }
 
+async function sampleImageServiceBatched(
+  source,
+  points,
+  {
+    fetchImpl,
+    signal,
+    chunkSize = 800,
+  } = {},
+) {
+  const batches = [];
+  for (let index = 0; index < points.length; index += chunkSize)
+    batches.push(points.slice(index, index + chunkSize));
+
+  const results = await Promise.all(
+    batches.map((batch) =>
+      sampleImageService(source, batch, { fetchImpl, signal }),
+    ),
+  );
+
+  const successful = results.filter((result) => result.ok);
+  return {
+    ok: successful.length > 0,
+    sourceId: source.id,
+    sourceName: source.name,
+    samples: successful.flatMap((result) => result.samples),
+    errors: results.filter((result) => !result.ok).map((result) => result.error),
+  };
+}
+
+function magneticCenterScore(sample) {
+  const value = sample ? finite(sample.value) : null;
+  if (value == null) return null;
+  return Math.round(
+    clamp(100 * (1 - Math.exp(-Math.abs(value) / 450))) * 10,
+  ) / 10;
+}
+
 function offsetPoint(target, deltaKmEast, deltaKmNorth) {
   const lat = finite(target.latitude);
   const lon = finite(target.longitude);
@@ -514,6 +551,7 @@ export async function enrichTargetsWithTrueProspectivity(
     fetchImpl = globalThis.fetch,
     signal,
     concurrency = DEFAULT_CONCURRENCY,
+    maxGeologyTargets = 384,
   } = {},
 ) {
   if (!Array.isArray(targets) || !targets.length)
@@ -526,12 +564,47 @@ export async function enrichTargetsWithTrueProspectivity(
       },
     };
 
+  const centerPoints = targets.map((target) => [
+    target.longitude,
+    target.latitude,
+  ]);
+
+  const centerMagneticResult = await sampleImageServiceBatched(
+    PROSPECTIVITY_SOURCES.magnetics,
+    centerPoints,
+    { fetchImpl, signal },
+  );
+
+  const centerMagneticScores = centerMagneticResult.samples.map(
+    (sample) => magneticCenterScore(sample),
+  );
+
+  const rankedForDetail = targets
+    .map((target, index) => ({
+      target,
+      index,
+      centerMagneticScore: centerMagneticScores[index] || 0,
+    }))
+    .sort(
+      (a, b) =>
+        (b.centerMagneticScore + a.target.score * 0.35) -
+        (a.centerMagneticScore + b.target.score * 0.35),
+    );
+
+  const detailCount = Math.min(
+    Math.max(1, Number(maxGeologyTargets) || 384),
+    targets.length,
+  );
+  const detailed = rankedForDetail.slice(0, detailCount);
+  const detailedTargets = detailed.map((entry) => entry.target);
+  const detailedIndexes = detailed.map((entry) => entry.index);
+
   const magneticsPoints = [];
   const magneticsPointKeys = [];
   const terrainPoints = [];
   const terrainPointKeys = [];
 
-  for (const target of targets) {
+  for (const target of detailedTargets) {
     const magneticOffsets = [
       [0, 0],
       [-5, 0],
@@ -543,8 +616,9 @@ export async function enrichTargetsWithTrueProspectivity(
       [5, -5],
       [5, 5],
     ];
-    for (const [east, north] of magneticOffsets) {
-      magneticsPoints.push(offsetPoint(target, east, north));
+
+    for (const offset of magneticOffsets) {
+      magneticsPoints.push(offsetPoint(target, offset[0], offset[1]));
       magneticsPointKeys.push(target.id);
     }
 
@@ -555,29 +629,37 @@ export async function enrichTargetsWithTrueProspectivity(
       [0, -2],
       [0, 2],
     ];
-    for (const [east, north] of terrainOffsets) {
-      terrainPoints.push(offsetPoint(target, east, north));
+
+    for (const offset of terrainOffsets) {
+      terrainPoints.push(offsetPoint(target, offset[0], offset[1]));
       terrainPointKeys.push(target.id);
     }
   }
 
-  const [magneticResult, terrainResult, geologyResults] = await Promise.all([
-    sampleImageService(PROSPECTIVITY_SOURCES.magnetics, magneticsPoints, {
-      fetchImpl,
-      signal,
-    }),
-    sampleImageService(PROSPECTIVITY_SOURCES.terrain, terrainPoints, {
-      fetchImpl,
-      signal,
-    }),
-    mapWithConcurrency(targets, concurrency, (target) =>
+  const [
+    magneticResult,
+    terrainResult,
+    geologyResults,
+  ] = await Promise.all([
+    sampleImageServiceBatched(
+      PROSPECTIVITY_SOURCES.magnetics,
+      magneticsPoints,
+      { fetchImpl, signal },
+    ),
+    sampleImageServiceBatched(
+      PROSPECTIVITY_SOURCES.terrain,
+      terrainPoints,
+      { fetchImpl, signal },
+    ),
+    mapWithConcurrency(detailedTargets, concurrency, (target) =>
       queryGlmLithology(target, { fetchImpl, signal }),
     ),
   ]);
 
   const byTargetMagnetic = new Map();
-  for (let index = 0; index < magneticsResult.samples.length; index += 1) {
+  for (let index = 0; index < magneticResult.samples.length; index += 1) {
     const key = magneticsPointKeys[index];
+    if (!key) continue;
     if (!byTargetMagnetic.has(key)) byTargetMagnetic.set(key, []);
     byTargetMagnetic.get(key).push(magneticResult.samples[index]);
   }
@@ -585,9 +667,14 @@ export async function enrichTargetsWithTrueProspectivity(
   const byTargetTerrain = new Map();
   for (let index = 0; index < terrainResult.samples.length; index += 1) {
     const key = terrainPointKeys[index];
+    if (!key) continue;
     if (!byTargetTerrain.has(key)) byTargetTerrain.set(key, []);
     byTargetTerrain.get(key).push(terrainResult.samples[index]);
   }
+
+  const geologyByIndex = new Map();
+  for (let index = 0; index < geologyResults.length; index += 1)
+    geologyByIndex.set(detailedIndexes[index], geologyResults[index]);
 
   const providerStatuses = {
     geology: {
@@ -596,12 +683,16 @@ export async function enrichTargetsWithTrueProspectivity(
       sourceName: PROSPECTIVITY_SOURCES.geology.name,
     },
     geophysics: {
-      ok: magneticResult.ok && magneticResult.samples.length > 0,
+      ok:
+        centerMagneticResult.ok &&
+        centerMagneticResult.samples.length > 0,
       sourceId: PROSPECTIVITY_SOURCES.magnetics.id,
       sourceName: PROSPECTIVITY_SOURCES.magnetics.name,
     },
     terrain: {
-      ok: terrainResult.ok && terrainResult.samples.length > 0,
+      ok:
+        terrainResult.ok &&
+        terrainResult.samples.length > 0,
       sourceId: PROSPECTIVITY_SOURCES.terrain.id,
       sourceName: PROSPECTIVITY_SOURCES.terrain.name,
     },
@@ -609,28 +700,50 @@ export async function enrichTargetsWithTrueProspectivity(
 
   const enrichedTargets = targets
     .map((target, index) => {
-      const geology = geologyResults[index] || null;
-      const magnetics = magneticScore(
-        byTargetMagnetic.get(target.id) || [],
-        target,
-      );
-      const terrain = terrainScore(
-        byTargetTerrain.get(target.id) || [],
-        target,
-      );
+      const geology = geologyByIndex.get(index) || null;
+      const magnetics =
+        detailedIndexes.includes(index)
+          ? magneticScore(
+              byTargetMagnetic.get(target.id) || [],
+              target,
+            )
+          : centerMagneticScores[index] != null
+            ? {
+                geophysics: centerMagneticScores[index],
+                structure: centerMagneticScores[index] * 0.7,
+                anomalyNt: null,
+                localRangeNt: null,
+                sampleCount: 1,
+                interpretation:
+                  'Center-point magnetic evidence only; detailed local gradient was reserved for higher-ranked candidates.',
+              }
+            : null;
+      const terrain = detailedIndexes.includes(index)
+        ? terrainScore(
+            byTargetTerrain.get(target.id) || [],
+            target,
+          )
+        : null;
+
       const evidence = computeTrueEvidence(target, {
         geology,
         magnetics,
         terrain,
       });
 
+      const hardExcluded =
+        geology &&
+        geology.lithology &&
+        /water|ice and glaciers/i.test(String(geology.lithology));
+
       return {
         ...target,
         modelId: TRUE_PROSPECTIVITY_MODEL_ID,
         referenceModelId: target.modelId,
-        score: evidence.score,
-        tier:
-          evidence.score >= 85
+        score: hardExcluded ? 0 : evidence.score,
+        tier: hardExcluded
+          ? 'EXCLUDED'
+          : evidence.score >= 85
             ? 'TIER 1'
             : evidence.score >= 70
               ? 'TIER 2'
@@ -648,12 +761,10 @@ export async function enrichTargetsWithTrueProspectivity(
           ...(evidence.channels.structure != null
             ? { structure: Math.round(evidence.channels.structure) }
             : {}),
-          ...(evidence.channels.terrain != null
-            ? { terrain: Math.round(evidence.channels.terrain) }
-            : {}),
         },
         trueProspectivity: {
           ...evidence,
+          hardExcluded: Boolean(hardExcluded),
           providerStatuses,
         },
       };
