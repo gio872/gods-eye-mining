@@ -165,6 +165,63 @@ export function migrateGemResourceDatabase(db) {
       min_lon, max_lon
     );
 
+
+    CREATE TABLE IF NOT EXISTS geochemical_samples (
+      sample_pk INTEGER PRIMARY KEY,
+      sample_id TEXT NOT NULL UNIQUE,
+      latitude REAL NOT NULL,
+      longitude REAL NOT NULL,
+      source_id TEXT,
+      observed_at TEXT,
+      evidence_class TEXT NOT NULL,
+      confidence REAL,
+      elements_json TEXT NOT NULL,
+      original_json TEXT NOT NULL,
+      ingestion_batch_id TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(source_id) REFERENCES resource_sources(source_id),
+      FOREIGN KEY(ingestion_batch_id) REFERENCES ingestion_batches(batch_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS planetary_observations (
+      observation_pk INTEGER PRIMARY KEY,
+      observation_id TEXT NOT NULL UNIQUE,
+      provider TEXT NOT NULL,
+      collection TEXT,
+      item_id TEXT,
+      asset_uri TEXT,
+      footprint_json TEXT,
+      observed_at TEXT,
+      processing_level TEXT,
+      metadata_json TEXT,
+      source_id TEXT,
+      ingestion_batch_id TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY(source_id) REFERENCES resource_sources(source_id),
+      FOREIGN KEY(ingestion_batch_id) REFERENCES ingestion_batches(batch_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS geology_services (
+      service_pk INTEGER PRIMARY KEY,
+      service_id TEXT NOT NULL UNIQUE,
+      provider TEXT,
+      country TEXT,
+      service_type TEXT,
+      service_url TEXT,
+      title TEXT,
+      abstract TEXT,
+      access_constraints TEXT,
+      metadata_json TEXT,
+      discovered_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_geochem_location ON geochemical_samples(latitude, longitude);
+    CREATE INDEX IF NOT EXISTS idx_geochem_source ON geochemical_samples(source_id);
+    CREATE INDEX IF NOT EXISTS idx_planet_provider ON planetary_observations(provider);
+    CREATE INDEX IF NOT EXISTS idx_planet_collection ON planetary_observations(collection);
+    CREATE INDEX IF NOT EXISTS idx_geology_country ON geology_services(country);
+
     CREATE INDEX IF NOT EXISTS idx_resources_commodity ON resources(commodity);
     CREATE INDEX IF NOT EXISTS idx_resources_family ON resources(family);
     CREATE INDEX IF NOT EXISTS idx_resources_depth ON resources(depth_midpoint_m);
@@ -349,6 +406,9 @@ export function getResourceDatabaseSnapshot(db) {
   const sources = db.prepare('SELECT COUNT(*) AS count FROM resource_sources').get().count;
   const batches = db.prepare('SELECT COUNT(*) AS count FROM ingestion_batches').get().count;
   const commodities = db.prepare('SELECT commodity, COUNT(*) AS count FROM resources GROUP BY commodity ORDER BY count DESC').all();
+  const geochemicalSamples = db.prepare('SELECT COUNT(*) AS count FROM geochemical_samples').get().count;
+  const planetaryObservations = db.prepare('SELECT COUNT(*) AS count FROM planetary_observations').get().count;
+  const geologyServices = db.prepare('SELECT COUNT(*) AS count FROM geology_services').get().count;
   return {
     version: GEM_RESOURCE_DB_VERSION,
     schemaVersion: SCHEMA_VERSION,
@@ -359,9 +419,142 @@ export function getResourceDatabaseSnapshot(db) {
     sources: Number(sources),
     ingestionBatches: Number(batches),
     commodities,
+    geochemicalSamples: Number(geochemicalSamples),
+    planetaryObservations: Number(planetaryObservations),
+    geologyServices: Number(geologyServices),
   };
 }
 
 export function closeGemResourceDatabase(db) {
   db.close();
+}
+
+
+export function ingestGeochemicalSamples(db, samples = [], { batchId = null, source = null } = {}) {
+  if (source) createResourceSource(db, source);
+  const timestamp = now();
+  let accepted = 0;
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO geochemical_samples
+        (sample_id,latitude,longitude,source_id,observed_at,evidence_class,confidence,elements_json,original_json,ingestion_batch_id,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(sample_id) DO UPDATE SET
+        latitude=excluded.latitude, longitude=excluded.longitude,
+        source_id=excluded.source_id, observed_at=excluded.observed_at,
+        evidence_class=excluded.evidence_class, confidence=excluded.confidence,
+        elements_json=excluded.elements_json, original_json=excluded.original_json,
+        ingestion_batch_id=excluded.ingestion_batch_id, updated_at=excluded.updated_at
+    `);
+    for (const sample of samples) {
+      const sampleId = String(sample.sampleId || sample.id || [
+        source?.id || 'source',
+        sample.latitude,
+        sample.longitude,
+        sample.observedAt || ''
+      ].join(':'));
+      stmt.run(
+        sampleId,
+        Number(sample.latitude),
+        Number(sample.longitude),
+        source?.id || sample.sourceId || null,
+        sample.observedAt || null,
+        sample.evidenceClass || 'OBSERVED',
+        Number.isFinite(Number(sample.confidence)) ? Number(sample.confidence) : 70,
+        json(sample.elements || {}),
+        json(sample),
+        batchId,
+        timestamp,
+        timestamp,
+      );
+      accepted += 1;
+    }
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+  return { accepted };
+}
+
+export function ingestPlanetaryObservations(db, observations = [], { batchId = null, source = null } = {}) {
+  if (source) createResourceSource(db, source);
+  const timestamp = now();
+  let accepted = 0;
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO planetary_observations
+        (observation_id,provider,collection,item_id,asset_uri,footprint_json,observed_at,processing_level,metadata_json,source_id,ingestion_batch_id,created_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(observation_id) DO UPDATE SET
+        provider=excluded.provider, collection=excluded.collection,
+        item_id=excluded.item_id, asset_uri=excluded.asset_uri,
+        footprint_json=excluded.footprint_json, observed_at=excluded.observed_at,
+        processing_level=excluded.processing_level, metadata_json=excluded.metadata_json,
+        source_id=excluded.source_id, ingestion_batch_id=excluded.ingestion_batch_id
+    `);
+    for (const observation of observations) {
+      const itemId = String(observation.itemId || observation.id || '');
+      if (!itemId) continue;
+      const observationId = [
+        observation.provider || source?.id || 'provider',
+        observation.collection || '',
+        itemId,
+      ].join(':');
+      stmt.run(
+        observationId,
+        observation.provider || source?.id || 'unknown',
+        observation.collection || null,
+        itemId,
+        observation.assetUri || null,
+        json(observation.footprint || null),
+        observation.observedAt || null,
+        observation.processingLevel || null,
+        json(observation.metadata || observation),
+        source?.id || observation.sourceId || null,
+        batchId,
+        timestamp,
+      );
+      accepted += 1;
+    }
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+  return { accepted };
+}
+
+export function ingestGeologyServices(db, services = []) {
+  const timestamp = now();
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO geology_services
+        (service_id,provider,country,service_type,service_url,title,abstract,access_constraints,metadata_json,discovered_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(service_id) DO UPDATE SET
+        provider=excluded.provider, country=excluded.country,
+        service_type=excluded.service_type, service_url=excluded.service_url,
+        title=excluded.title, abstract=excluded.abstract,
+        access_constraints=excluded.access_constraints, metadata_json=excluded.metadata_json,
+        discovered_at=excluded.discovered_at
+    `);
+    for (const service of services) {
+      if (!service.serviceId || !service.serviceUrl) continue;
+      stmt.run(
+        service.serviceId, service.provider || 'OneGeology',
+        service.country || null, service.serviceType || null,
+        service.serviceUrl, service.title || null, service.abstract || null,
+        service.accessConstraints || null, json(service.metadata || service), timestamp,
+      );
+    }
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+  return { accepted: services.filter((entry) => entry?.serviceId && entry?.serviceUrl).length };
 }
