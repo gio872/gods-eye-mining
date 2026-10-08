@@ -283,6 +283,22 @@ function installModuleDock() {
   activate('map');
 }
 
+function installLanguagePicker(){
+  if(document.querySelector('.gem-language-picker'))return;
+  const wrap=el('div','gem-language-picker');
+  const languages=globalThis.GEM_SUPPORTED_LANGUAGES||{};
+  wrap.innerHTML='<div class="gem-language-picker-head"><b>GEM LANGUAGE</b><button type="button" data-language-close>×</button></div><p>Choose the language you prefer. Your choice overrides automatic country detection.</p><select data-language-select></select><button type="button" data-language-apply>APPLY LANGUAGE</button>';
+  const select=wrap.querySelector('[data-language-select]');
+  Object.entries(languages).sort((a,b)=>a[1].localeCompare(b[1])).forEach(([code,name])=>{const o=document.createElement('option');o.value=code;o.textContent=name;select.append(o);});
+  wrap.querySelector('[data-language-close]').addEventListener('click',()=>wrap.classList.remove('is-open'));
+  wrap.querySelector('[data-language-apply]').addEventListener('click',async()=>{
+    const {setPreferredGemLanguage,resolveGemLocale,applyGemLocale}=await import('../i18n/gemLocale.js');
+    const chosen=setPreferredGemLanguage(select.value); applyGemLocale(resolveGemLocale({country:document.documentElement.dataset.gemCountry,language:chosen.locale,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone})); wrap.classList.remove('is-open');
+  });
+  document.body.append(wrap);
+  document.addEventListener('gem:open-language-settings',()=>{select.value=(globalThis.GEM_LOCALE?.language)||'en';wrap.classList.add('is-open');});
+}
+
 function installLocaleIndicator(){
   if(document.querySelector('.gem-locale-indicator'))return;
   const pill=el('button','gem-locale-indicator','AUTO · GLOBAL');
@@ -302,7 +318,7 @@ function forceGemCommandCenter() {
   const style = document.createElement('style');
   style.id = 'gem-progressive-module-style';
   style.textContent = [
-    '.gem-locale-indicator{position:fixed;right:18px;top:18px;z-index:14000;padding:8px 11px;border:1px solid rgba(88,213,232,.35);border-radius:999px;background:rgba(5,10,15,.86);backdrop-filter:blur(10px);color:#dffbff;font:700 9px ui-monospace,monospace;letter-spacing:.06em;cursor:pointer}.gem-locale-indicator:hover{border-color:#58d5e8;color:#58d5e8}.gem-module-dock{position:fixed;left:18px;top:96px;z-index:13000;width:132px;padding:8px;border:1px solid rgba(88,213,232,.28);background:rgba(5,10,15,.88);backdrop-filter:blur(12px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28)}',
+    '.gem-language-picker{position:fixed;right:18px;top:58px;z-index:14001;width:300px;padding:16px;border:1px solid rgba(88,213,232,.35);border-radius:12px;background:rgba(5,10,15,.96);backdrop-filter:blur(14px);box-shadow:0 20px 60px rgba(0,0,0,.45);color:#dffbff;display:none}.gem-language-picker.is-open{display:block}.gem-language-picker-head{display:flex;justify-content:space-between}.gem-language-picker-head b{color:#58d5e8;font:700 10px ui-monospace,monospace;letter-spacing:.12em}.gem-language-picker-head button{border:0;background:none;color:#9db5bc;font-size:20px;cursor:pointer}.gem-language-picker p{color:#829aa2;font-size:11px;line-height:1.4}.gem-language-picker select,.gem-language-picker [data-language-apply]{width:100%;box-sizing:border-box;padding:9px;border-radius:7px}.gem-language-picker select{background:#09161c;color:#e8f7fa;border:1px solid rgba(130,180,190,.25)}.gem-language-picker [data-language-apply]{margin-top:8px;border:1px solid #58d5e8;background:#58d5e8;color:#041016;font-weight:800;cursor:pointer}.gem-locale-indicator{position:fixed;right:18px;top:18px;z-index:14000;padding:8px 11px;border:1px solid rgba(88,213,232,.35);border-radius:999px;background:rgba(5,10,15,.86);backdrop-filter:blur(10px);color:#dffbff;font:700 9px ui-monospace,monospace;letter-spacing:.06em;cursor:pointer}.gem-locale-indicator:hover{border-color:#58d5e8;color:#58d5e8}.gem-module-dock{position:fixed;left:18px;top:96px;z-index:13000;width:132px;padding:8px;border:1px solid rgba(88,213,232,.28);background:rgba(5,10,15,.88);backdrop-filter:blur(12px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28)}',
     '.gem-module-title{padding:5px 8px 8px;color:#58d5e8;font:700 9px/1 ui-monospace,monospace;letter-spacing:.16em}',
     '.gem-module-dock button{display:block;width:100%;margin:3px 0;padding:8px;border:1px solid transparent;border-radius:7px;background:transparent;color:#b8cdd2;text-align:left;cursor:pointer}',
     '.gem-module-dock button:hover,.gem-module-dock button[aria-pressed="true"]{border-color:rgba(88,213,232,.35);background:rgba(88,213,232,.08);color:#effcff}',
@@ -336,6 +352,7 @@ export function installMineralIntelligenceCenter() {
     forceGemCommandCenter();
     installModuleDock();
     installLocaleIndicator();
+    installLanguagePicker();
     document.body.classList.add('gem-mineral-center');
     document.documentElement.dataset.gemCenterInstalled = 'true';
     // Static scene chrome owns the GEM shell. Runtime mounting remains as a
