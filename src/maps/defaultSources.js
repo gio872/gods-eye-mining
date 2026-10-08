@@ -27,7 +27,11 @@ export function createDefaultMapSources({
       : createKeylessTerrain,
   };
   return {
-    defaultId: googleTileset ? 'photoreal' : 'gee-global-eo',
+    defaultId: googleTileset
+      ? 'photoreal'
+      : geeAvailable
+        ? 'gee-global-eo'
+        : 'esri-imagery',
     unknownId: 'photoreal',
     recoveryId: googleTileset ? 'photoreal' : null,
     state: { hasCesiumIonToken: hasIon },
