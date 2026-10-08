@@ -11,6 +11,7 @@
  */
 
 const MODULES = [
+  { id: 'map', label: 'Planet Map', eyebrow: 'ORIENT', text: 'Navigate the living planetary surface and move from geography into intelligence.', meta: 'GLOBAL SURFACE', action: 'map' },
   { id: 'resources', label: 'Resource Atlas', eyebrow: 'EXPLORE', text: 'Minerals, metals, petroleum and gas with location, depth, evidence and provenance.', meta: '4D DATA FABRIC', action: 'resources' },
   { id: 'targets', label: 'Target Intelligence', eyebrow: 'DISCOVER', text: 'Find, rank and explain exploration targets from converging planetary evidence.', meta: 'AI + EVIDENCE', action: 'targets' },
   { id: 'assets', label: 'Asset Intelligence', eyebrow: 'OPERATE', text: 'Track physical assets, digital twins, custody, trade and settlement.', meta: 'DIGITAL TWIN', action: 'assets' },
@@ -19,6 +20,7 @@ const MODULES = [
   { id: 'intelligence', label: 'Mineral Intelligence', eyebrow: 'UNDERSTAND', text: 'Geology, geophysics, geochemistry, hyperspectral and mineral systems.', meta: 'PLANETARY EVIDENCE', action: 'intelligence' },
   { id: 'security', label: 'Mineral Security', eyebrow: 'STRATEGY', text: 'Country exposure, supply concentration, refining risk and resilience.', meta: 'NATIONAL INTELLIGENCE', action: 'security' },
   { id: 'investor', label: 'Investor Room', eyebrow: 'CAPITAL', text: 'Business model, scenarios, capital path and public-markets readiness.', meta: 'INVESTOR INTELLIGENCE', action: 'investor' },
+  { id: 'reports', label: 'Reports', eyebrow: 'DELIVER', text: 'Turn intelligence into decision-ready reports, evidence packages and investor briefs.', meta: 'DECISION OUTPUT', action: 'reports' },
 ];
 
 const SEARCH_INDEX = [
@@ -531,6 +533,16 @@ function workspaceContent(module) {
       ['COUNTRY', 'Mineral Security Index', 'Import dependence, processing concentration and resilience indicators.', 'OPEN SECURITY', 'gem:web-section', { section: 'country' }],
       ['SUPPLY', 'Supply Chain Graph', 'Trace extraction, concentration, refining and manufacturing dependencies.', 'OPEN SUPPLY CHAIN', 'gem:web-section', { section: 'supply' }],
       ['STRATEGY', 'Government Intelligence', 'Country × mineral profiles, projects, trade and policy signals.', 'OPEN GOVERNMENT INTELLIGENCE', 'gem:web-section', { section: 'country' }],
+    ],
+    map: [
+      ['PLANET', 'Global Surface', 'Start from the planetary map and move into any intelligence layer.', 'OPEN PLANET MAP', 'gem:open-map', {}],
+      ['LAYERS', 'Evidence Surfaces', 'Satellite, geology, structure, terrain and infrastructure as discoverable layers.', 'OPEN MAP LAYERS', 'gem:open-map', {}],
+      ['SEARCH', 'Map Search', 'Jump to a country, coordinate, project or target.', 'SEARCH THE MAP', 'gem:open-map', {}],
+    ],
+    reports: [
+      ['REPORT', 'Decision Report', 'Turn a target and its evidence into a structured decision package.', 'CREATE REPORT', 'gem:open-reports', {}],
+      ['INVESTOR', 'Investor Brief', 'Present platform intelligence, scenarios and opportunities.', 'CREATE INVESTOR BRIEF', 'gem:investor-brief-requested', {}],
+      ['EVIDENCE', 'Evidence Package', 'Preserve sources, provenance, confidence and limitations.', 'BUILD EVIDENCE PACKAGE', 'gem:open-reports', {}],
     ],
     investor: [
       ['CAPITAL', 'Investor Room', 'Five-year scenarios, use of funds and public-market readiness.', 'OPEN INVESTOR ROOM', 'gem:open-investor', {}],
