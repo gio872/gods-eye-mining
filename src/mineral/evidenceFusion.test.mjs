@@ -33,3 +33,14 @@ assert.equal(
   Object.values(EVIDENCE_CHANNELS).reduce((sum, value) => sum + value, 0),
   1,
 );
+
+
+{
+  const result = fuseEvidence(
+    90,
+    { geology: 70 },
+    { weights: { reference: 0.5, geology: 0.5 } },
+  );
+  assert.equal(result.coverage, 100);
+  assert.equal(result.score, 80);
+}
