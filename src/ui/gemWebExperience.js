@@ -109,17 +109,22 @@ function injectStyles() {
       z-index:0;
       pointer-events:none;
       background:
-        linear-gradient(180deg,rgba(1,5,8,.18) 0%,rgba(1,5,8,.02) 35%,rgba(1,5,8,.42) 100%),
-        url("/gem-planet-hero.svg") center center / cover no-repeat;
+        radial-gradient(circle at 50% 40%,rgba(104,232,244,.10),transparent 34%),
+        linear-gradient(180deg,rgba(1,5,8,.34) 0%,rgba(1,5,8,.05) 35%,rgba(1,5,8,.58) 100%),
+        url("https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg") center 56% / cover no-repeat;
       transform:scale(1.015);
       transform-origin:center;
-      filter:saturate(1.12) contrast(1.04);
-      animation:gemPlanetDrift 28s ease-in-out infinite alternate;
+      filter:saturate(1.14) contrast(1.08) brightness(.9);
+      animation:gemPlanetDrift 32s ease-in-out infinite alternate;
     }
 
     @keyframes gemPlanetDrift{
       from{transform:scale(1.015) translate3d(0,0,0)}
-      to{transform:scale(1.045) translate3d(-.7%,.4%,0)}
+      to{transform:scale(1.04) translate3d(-.35%,.18%,0)}
+    }
+
+    .gem-product-shell:after{
+      box-shadow:inset 0 0 180px rgba(0,0,0,.34);
     }
 
     .gem-product-shell:before{
