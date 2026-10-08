@@ -282,24 +282,9 @@ export function installMineralIntelligenceCenter() {
       document.body.append(targetPanel());
       document.body.append(bottomIntelligence());
     }
-    // Future cockpit mode retains the original functional controls.
-    document.documentElement.dataset.gemExperience = 'center';
-    const launch = document.querySelector('[data-gem-initialize]');
-    launch?.addEventListener(
-      'click',
-      () => {
-        document
-          .querySelector('.gem-launch-panel')
-          ?.classList.add('is-launching');
-        const existingGemEntry = document.querySelector('[data-first-run-gem]');
-        if (existingGemEntry) existingGemEntry.click();
-        else {
-          document.documentElement.dataset.gemExperience = 'center';
-          document.body.classList.add('gem-center-active');
-        }
-      },
-      { once: true },
-    );
+    // GEM now enters directly into the command center. The legacy launch
+    // panel is intentionally absent so Pinokio cannot strand the operator
+    // behind an unresponsive INITIALIZE GEM screen.
   };
   if (document.body) install();
   else document.addEventListener('DOMContentLoaded', install, { once: true });
