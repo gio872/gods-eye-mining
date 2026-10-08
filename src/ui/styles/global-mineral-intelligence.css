@@ -416,3 +416,55 @@ html[data-product='GEM Mineral Intelligence Center'] .gem-global-intel-panel {
   font: 700 7px JetBrains Mono, monospace;
   letter-spacing: 0.08em;
 }
+
+
+.gem-global-operational {
+  margin-top: 9px;
+}
+.gem-global-operational-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 5px;
+}
+.gem-global-operational-grid > div {
+  padding: 6px 7px;
+  border: 1px solid rgba(71, 233, 255, 0.10);
+  border-radius: 6px;
+  background: rgba(5, 19, 28, 0.68);
+}
+.gem-global-operational-grid b {
+  display: block;
+  color: #f4fbfc;
+  font: 700 13px JetBrains Mono, monospace;
+}
+.gem-global-operational-grid span {
+  display: block;
+  margin-top: 2px;
+  color: #628087;
+  font: 700 6px JetBrains Mono, monospace;
+  letter-spacing: 0.03em;
+}
+.gem-global-mining-activity {
+  margin-top: 4px;
+  padding: 5px 7px;
+  border: 1px solid rgba(71, 233, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(4, 15, 23, 0.55);
+}
+.gem-global-mining-activity > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  min-height: 18px;
+  align-items: center;
+}
+.gem-global-mining-activity span {
+  color: #628087;
+  font: 700 6px JetBrains Mono, monospace;
+  letter-spacing: 0.05em;
+}
+.gem-global-mining-activity b {
+  color: #bfe8ed;
+  font: 700 7px JetBrains Mono, monospace;
+}
