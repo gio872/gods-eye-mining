@@ -260,6 +260,7 @@
     "./mineral/geochemistry": "./src/mineral/geochemistry.js",
     "./mineral/search": "./src/mineral/globalMineralSearch.js",
     "./mineral/earthrise": "./src/mineral/earthriseMiningDetector.js",
-    "./mineral/triage": "./src/mineral/miningOpportunity.js"
+    "./mineral/triage": "./src/mineral/miningOpportunity.js",
+    "./mineral/discovery-engine": "./src/mineral/mineralDiscoveryEngine.js"
   }
 }
