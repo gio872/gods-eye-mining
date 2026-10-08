@@ -640,7 +640,7 @@ export function createGlobalMineralIntelligence({
         evidence: earthrise.ok ? earthriseMiningEvidence(target, earthrise.detections) : null,
       }));
       for (const entry of activityTargets) {
-        if (entry.evidence?.score == null) continue;
+        if (!entry.evidence) continue;
         entry.target.miningActivityEvidence = entry.evidence;
       }
       const enrichment = await enrichTargetsWithTrueProspectivity(
@@ -673,10 +673,13 @@ export function createGlobalMineralIntelligence({
                 search.mineralKey,
               ),
             );
+      const triagedTargets = triageTargets(targets);
+      const triageSummary = summarizeTriage(triagedTargets);
       const summary = {
-        ...buildEvidenceSummary(features, targets),
+        ...buildEvidenceSummary(features, triagedTargets),
         candidateCount: candidateTargets.length,
         modelId: TRUE_PROSPECTIVITY_MODEL_ID,
+        operationalTriage: triageSummary,
       };
       const statuses = results.map((result) => ({
         source: result.source,
@@ -691,7 +694,6 @@ export function createGlobalMineralIntelligence({
       for (const feature of features.slice(0, 3000))
         addReferencePoint(dataSource, feature);
       if (search.area) addCountryBoundary(dataSource, search.area);
-      const triagedTargets = triageTargets(targets);
       for (const target of triagedTargets) addTarget(dataSource, target);
       const nextState = {
         phase: 'ready',
