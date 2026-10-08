@@ -129,6 +129,26 @@ function clearCookie(secure) {
 
 export function createGemAccountApiHandler({ db = null } = {}) {
   const database = db || openGemAccountDatabase();
+  const attempts = new Map();
+  function rateLimit(req, route) {
+    const now = Date.now();
+    const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+    const key = route + ':' + ip;
+    const prior = attempts.get(key) || [];
+    const fresh = prior.filter(timestamp => now - timestamp < 15 * 60 * 1000);
+    const limit = route === 'login' ? 8 : 12;
+    if (fresh.length >= limit) {
+      attempts.set(key, fresh);
+      throw Object.assign(new Error('Too many attempts. Wait 15 minutes and try again.'), { statusCode: 429 });
+    }
+    fresh.push(now);
+    attempts.set(key, fresh);
+    if (attempts.size > 5000) {
+      for (const [entry, timestamps] of attempts) {
+        if (!timestamps.some(timestamp => now - timestamp < 15 * 60 * 1000)) attempts.delete(entry);
+      }
+    }
+  }
   return async function gemAccountApiHandler(req, res) {
     const url = new URL(req.url || '/', 'http://gem.local');
     if (!url.pathname.startsWith('/api/gem/account')) return false;
@@ -141,6 +161,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         return send(res, 200, { user: safeUser(sessionUser(database, req)) });
       }
       if (req.method === 'POST' && url.pathname === '/api/gem/account/register') {
+        rateLimit(req, 'register');
         const body = await readJson(req);
         const email = normalizeEmail(body.email);
         const fullName = String(body.fullName || '').trim();
@@ -170,6 +191,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         return send(res, 201, { user: safeUser(user) }, { 'set-cookie': cookie(session.token, session.expires, secure) });
       }
       if (req.method === 'POST' && url.pathname === '/api/gem/account/login') {
+        rateLimit(req, 'login');
         const body = await readJson(req);
         const email = normalizeEmail(body.email);
         const password = String(body.password || '');
