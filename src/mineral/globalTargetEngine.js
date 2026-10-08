@@ -136,6 +136,16 @@ function targetTier(score) {
   return 'TIER 4';
 }
 
+function stableTargetToken(value) {
+  let hash = 2166136261;
+  for (const character of String(value)) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0').toUpperCase();
+}
+
+
 function scoreCell(bucket, neighborCount, sourceCount, weights) {
   const count = bucket.features.length;
   const density = clamp(count / 6);
@@ -282,7 +292,7 @@ export function generateGlobalTargets(
     const commodities = Array.from(commoditySet).slice(0, 6);
 
     targets.push({
-      id: 'GEM-TGT-' + String(targets.length + 1).padStart(5, '0'),
+      id: 'GEM-TGT-' + stableTargetToken(String(cellSize) + ':' + key),
       modelId: TARGET_MODEL_ID,
       latitude: center.latitude,
       longitude: center.longitude,
@@ -335,6 +345,23 @@ export function buildEvidenceSummary(features, targets) {
     evidenceState: features && features.length
       ? 'REFERENCE_DATA_ACTIVE'
       : 'NO_REFERENCE_DATA',
+    evidenceCoverage:
+      targets && targets.length
+        ? Math.round(
+            (targets.reduce(
+              (sum, target) =>
+                sum +
+                Number(
+                  target.fusion && target.fusion.coverage
+                    ? target.fusion.coverage
+                    : 0,
+                ),
+              0,
+            ) /
+              targets.length) *
+              10,
+          ) / 10
+        : 0,
   };
 }
 
