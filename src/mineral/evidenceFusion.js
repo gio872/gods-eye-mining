@@ -32,10 +32,10 @@ function numericScore(value) {
 }
 
 function normalizedWeights(weights) {
-  const merged = {
-    ...EVIDENCE_CHANNELS,
-    ...(weights || {}),
-  };
+  const merged =
+    weights == null
+      ? EVIDENCE_CHANNELS
+      : weights;
   const clean = {};
   let total = 0;
   for (const [channel, weight] of Object.entries(merged)) {
