@@ -94,7 +94,7 @@ function createPanel() {
     '</div>',
     '<div class="gem-global-intel-model">',
     '  <span>MODEL</span><b data-role="model"></b>',
-    '  <span>MODE</span><b data-role="mode">REFERENCE DATA</b>',
+    '  <span>MODE</span><b data-role="mode">TRUE MULTISOURCE</b>',
     '</div>',
     '<div data-role="source-status" class="gem-global-source-status"></div>',
     '<div data-role="evidence-status" class="gem-global-evidence-status"></div>',
@@ -337,7 +337,21 @@ function addTarget(dataSource, target) {
       tier: target.tier || '',
       score: Number(target.score || 0),
       model: target.modelId || '',
-      interpretation: target.interpretation || '',
+      referenceModel: target.referenceModelId || '',
+      coverage:
+        target.trueProspectivity && target.trueProspectivity.coverage != null
+          ? target.trueProspectivity.coverage
+          : null,
+      channels:
+        target.trueProspectivity &&
+        target.trueProspectivity.channels
+          ? JSON.stringify(target.trueProspectivity.channels)
+          : '',
+      interpretation:
+        target.trueProspectivity &&
+        target.trueProspectivity.interpretation
+          ? target.trueProspectivity.interpretation
+          : target.interpretation || '',
       commodities: (target.commodities || []).join(', '),
     },
   });
