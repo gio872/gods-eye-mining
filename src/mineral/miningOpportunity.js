@@ -25,16 +25,16 @@ export function classifyDiscoveryOpportunity(
     target?.trueProspectivity?.score ?? target?.score,
   );
   const activity = finite(target?.miningActivityEvidence?.score);
-  const detectionCount = Number(target?.miningActivityEvidence?.detectionCount || 0);
+  const detectionCount = Number(
+    target?.miningActivityEvidence?.detectionCount || 0,
+  );
   const confirmedCount = Number(
     target?.miningActivityEvidence?.confirmedCount || 0,
   );
   const onsetYears = Array.isArray(target?.miningActivityEvidence?.onsetYears)
     ? target.miningActivityEvidence.onsetYears.filter(Number.isFinite)
     : [];
-  const latestOnsetYear = onsetYears.length
-    ? Math.max(...onsetYears)
-    : null;
+  const latestOnsetYear = onsetYears.length ? Math.max(...onsetYears) : null;
 
   const activityCoverage =
     target?.miningActivityEvidence?.coverage === 100
@@ -46,11 +46,9 @@ export function classifyDiscoveryOpportunity(
           : 'partial';
 
   const recentActivity =
-    latestOnsetYear != null &&
-    latestOnsetYear >= Number(currentYear) - 2;
+    latestOnsetYear != null && latestOnsetYear >= Number(currentYear) - 2;
 
-  const activityFactor =
-    activity == null ? 0 : clamp(activity, 0, 100) / 100;
+  const activityFactor = activity == null ? 0 : clamp(activity, 0, 100) / 100;
 
   // Activity reduces the operational novelty of a discovery target, but never
   // modifies the underlying geological prospectivity score.
@@ -83,8 +81,7 @@ export function classifyDiscoveryOpportunity(
       classification = 'RECENT MINING ACTIVITY';
     else if (prospectivity >= 70 && activityCoverage !== 'covered')
       classification = 'EXPLORATION FRONTIER';
-    else if (prospectivity >= 55)
-      classification = 'PROSPECTIVITY';
+    else if (prospectivity >= 55) classification = 'PROSPECTIVITY';
   }
 
   const temporalSignal =
@@ -97,7 +94,8 @@ export function classifyDiscoveryOpportunity(
   return {
     prospectivityScore:
       prospectivity == null ? null : Math.round(prospectivity * 10) / 10,
-    miningActivityScore: activity == null ? null : Math.round(activity * 10) / 10,
+    miningActivityScore:
+      activity == null ? null : Math.round(activity * 10) / 10,
     discoveryOpportunityScore:
       discoveryOpportunityScore == null
         ? null

@@ -67,8 +67,5 @@ test('triage reorders targets by operational opportunity', () => {
   ]);
   assert.equal(targets[0].id, 'greenfield');
   assert.equal(targets[0].operationalRank, 1);
-  assert.equal(
-    summarizeTriage(targets).discovery,
-    1,
-  );
+  assert.equal(summarizeTriage(targets).discovery, 1);
 });

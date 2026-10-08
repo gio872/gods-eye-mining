@@ -14,10 +14,7 @@ import {
   earthriseMiningEvidence,
   fetchEarthriseDetections,
 } from './earthriseMiningDetector.js';
-import {
-  summarizeTriage,
-  triageTargets,
-} from './miningOpportunity.js';
+import { summarizeTriage, triageTargets } from './miningOpportunity.js';
 import {
   GLOBAL_MINERAL_SOURCES,
   queryMineralSources,
@@ -289,12 +286,9 @@ function renderTargets(panel, targets) {
         : geochemCommodity
           ? [geochemCommodity]
           : emitMinerals;
-    const activityLabel =
-      triage.classification ||
-      'MULTISOURCE PROSPECTIVITY';
+    const activityLabel = triage.classification || 'MULTISOURCE PROSPECTIVITY';
     detail.textContent =
-      activityLabel +
-      (labels.length ? ' · ' + labels.join(' · ') : '');
+      activityLabel + (labels.length ? ' · ' + labels.join(' · ') : '');
 
     button.append(dot, id, score, detail);
     host.append(button);
@@ -324,7 +318,9 @@ function renderMiningActivity(panel, miningState) {
   makeRow('CONFIRMED', Number(state.confirmedCount || 0).toLocaleString());
   makeRow(
     'NEAREST',
-    state.nearestDistanceKm == null ? '—' : state.nearestDistanceKm.toFixed(1) + ' km',
+    state.nearestDistanceKm == null
+      ? '—'
+      : state.nearestDistanceKm.toFixed(1) + ' km',
   );
   makeRow('MODEL', state.model || EARTHRISE_MINING_SOURCE.model);
 }
@@ -527,7 +523,11 @@ export function createGlobalMineralIntelligence({
     summary: buildEvidenceSummary([], []),
     statuses: [],
     providerStatuses: {},
-    miningState: { phase: 'idle', ok: false, source: EARTHRISE_MINING_SOURCE.id },
+    miningState: {
+      phase: 'idle',
+      ok: false,
+      source: EARTHRISE_MINING_SOURCE.id,
+    },
     reason: 'initial',
     updatedAt: null,
     search: {
@@ -599,7 +599,10 @@ export function createGlobalMineralIntelligence({
         maxPages: isGlobal ? globalPages : viewportPages,
       });
 
-      const miningPromise = fetchEarthriseDetections({ fetchImpl, signal }).catch((error) => ({
+      const miningPromise = fetchEarthriseDetections({
+        fetchImpl,
+        signal,
+      }).catch((error) => ({
         source: EARTHRISE_MINING_SOURCE,
         detections: [],
         ok: false,
@@ -637,7 +640,9 @@ export function createGlobalMineralIntelligence({
       const earthrise = await miningPromise;
       const activityTargets = candidateTargets.map((target) => ({
         target,
-        evidence: earthrise.ok ? earthriseMiningEvidence(target, earthrise.detections) : null,
+        evidence: earthrise.ok
+          ? earthriseMiningEvidence(target, earthrise.detections)
+          : null,
       }));
       for (const entry of activityTargets) {
         if (!entry.evidence) continue;
@@ -709,7 +714,9 @@ export function createGlobalMineralIntelligence({
           source: EARTHRISE_MINING_SOURCE.id,
           model: EARTHRISE_MINING_SOURCE.model,
           detectionCount: earthrise.detections.length,
-          confirmedCount: earthrise.detections.filter((entry) => entry.confirmed).length,
+          confirmedCount: earthrise.detections.filter(
+            (entry) => entry.confirmed,
+          ).length,
         },
         reason: reason || 'manual',
         updatedAt: new Date().toISOString(),

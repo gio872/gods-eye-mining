@@ -31,9 +31,7 @@ function pointOf(feature) {
   if (!Array.isArray(coords)) return null;
   const longitude = finite(coords[0]);
   const latitude = finite(coords[1]);
-  return longitude == null || latitude == null
-    ? null
-    : { longitude, latitude };
+  return longitude == null || latitude == null ? null : { longitude, latitude };
 }
 
 function haversineKm(a, b) {
@@ -92,8 +90,7 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
     return {
       score: null,
       coverage,
-      activity:
-        coverageState === 'covered' ? 'none_observed' : 'not_covered',
+      activity: coverageState === 'covered' ? 'none_observed' : 'not_covered',
       detectionCount: 0,
       confirmedCount: 0,
       nearestDistanceKm: null,
@@ -106,10 +103,7 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
     (sum, entry) =>
       sum +
       Math.exp(
-        -Math.pow(
-          entry.distanceKm / Math.max(0.75, radiusKm * 0.55),
-          2,
-        ),
+        -Math.pow(entry.distanceKm / Math.max(0.75, radiusKm * 0.55), 2),
       ) *
         (entry.confirmed ? 1 : 0.65) *
         (entry.confidence == null
@@ -122,19 +116,18 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
   return {
     score: Math.round(score * 10) / 10,
     coverage,
-    activity: coverageState === 'covered'
-      ? confirmed > 0
-        ? 'confirmed'
-        : 'provisional'
-      : 'not_covered',
+    activity:
+      coverageState === 'covered'
+        ? confirmed > 0
+          ? 'confirmed'
+          : 'provisional'
+        : 'not_covered',
     detectionCount: nearby.length,
     confirmedCount: confirmed,
     nearestDistanceKm: Math.round(nearby[0].distanceKm * 10) / 10,
     onsetYears: [
       ...new Set(
-        nearby
-          .map((entry) => entry.onsetYear)
-          .filter(Number.isFinite),
+        nearby.map((entry) => entry.onsetYear).filter(Number.isFinite),
       ),
     ].sort((a, b) => a - b),
     source: EARTHRISE_MINING_SOURCE.id,
@@ -149,8 +142,7 @@ export function earthriseCoverageForPoint(latitude, longitude) {
   // Published Earthrise product is the Amazon basin product. This conservative
   // envelope prevents GEM from implying global coverage; a future boundary
   // pack can replace it with exact Amazon/Andes polygons.
-  const amazonEnvelope =
-    lat >= -20 && lat <= 8 && lon >= -82 && lon <= -44;
+  const amazonEnvelope = lat >= -20 && lat <= 8 && lon >= -82 && lon <= -44;
   return amazonEnvelope ? 'covered' : 'not_covered';
 }
 
