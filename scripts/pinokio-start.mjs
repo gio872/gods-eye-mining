@@ -35,6 +35,9 @@ async function start() {
   // applyPinokioEnvironment, before Vite snapshots process.env — so the
   // dev-server endpoint knows which store this launch owns.
   process.env.GEV_LAUNCHER = 'pinokio';
+  if (process.env.GEM_EARTHENGINE_PROJECT) {
+    process.env.GEM_EARTHENGINE_GATEWAY_PORT = String(port + 1);
+  }
   console.log('[Pinokio] Local-only launch.');
 
   // Import Vite only after app-scoped blank fields have replaced any merged
