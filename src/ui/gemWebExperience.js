@@ -757,13 +757,13 @@ function buildShell() {
       <section class="gem-module-grid">
         ${MODULES.map((module) => `
           <article class="gem-module-card" data-module="${module.id}">
-            <span class="gem-module-icon">\${moduleIcon(module.id)}</span>
+            <span class="gem-module-icon">${moduleIcon(module.id)}</span>
             <div class="gem-module-copy">
-              <span class="module-eyebrow">\${esc(module.eyebrow)}</span>
-              <strong>\${esc(module.label)}</strong>
-              <p>\${esc(module.text)}</p>
+              <span class="module-eyebrow">${esc(module.eyebrow)}</span>
+              <strong>${esc(module.label)}</strong>
+              <p>${esc(module.text)}</p>
             </div>
-            <span class="gem-module-art" style="background-image:url('\${esc(module.art)}')"></span>
+            <span class="gem-module-art" style="background-image:url('${esc(module.art)}')"></span>
             <span class="module-arrow">›</span>
             <footer><span>${esc(module.meta)}</span><b>OPEN →</b></footer>
           </article>`).join('')}
