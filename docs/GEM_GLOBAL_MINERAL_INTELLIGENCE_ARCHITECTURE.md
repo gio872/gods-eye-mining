@@ -145,6 +145,20 @@ A future ingestion service can move long-running world acquisition into a server
 When these channels become available, evidenceResolver can provide target-local normalized scores to the fusion engine; the same target IDs, tiering and provenance contract remain intact.
 
 
+## True Multisource Mineral Prospectivity
+
+`src/mineral/trueProspectivity.js` is the calibrated evidence-fusion layer.
+
+Current active prospectivity channels:
+- Reference mineral occurrences: documented mineral evidence already present in public datasets.
+- Geology: GLiM v1.1 lithology sampled at each target coordinate and scored against commodity/deposit-style lithology priors.
+- Geophysics: EMAG2v3 magnetic anomaly sampled at the target and a local 3x3 neighborhood.
+- Structure: a deterministic local magnetic-contrast derivative; it is explicitly marked as derived evidence, not an independent sensor.
+
+Current fusion weights are reference 20%, geology 35%, geophysics 30% and structure 15%. Missing channels reduce evidence coverage rather than becoming zero-valued evidence.
+
+Terrain is sampled and retained as diagnostic context, but is not currently assigned prospectivity weight. Spectral evidence is reserved for actual per-pixel mineral-identification/abundance values from sensors such as EMIT; merely having an image over the target is not treated as mineral evidence.
+
 ## Operational safety
 
 Public reference layers are treated as evidence, not as ownership, reserve or economic truth. The client keeps source-specific limitations visible in the source registry and reports evidence coverage alongside target scores.
