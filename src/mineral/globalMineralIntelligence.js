@@ -514,6 +514,8 @@ export function createGlobalMineralIntelligence({
   let scanTimer = null;
   let scanPromise = null;
   let lastCameraKey = null;
+  const scanCache = new Map();
+  const SCAN_CACHE_TTL_MS = 60_000;
 
   let state = {
     phase: 'idle',
@@ -570,6 +572,32 @@ export function createGlobalMineralIntelligence({
     if (reason === 'camera' && cameraKey === lastCameraKey) return state;
 
     if (reason === 'camera') lastCameraKey = cameraKey;
+
+    const cacheKey = [
+      cameraKey,
+      reason === 'global' ? 'global' : 'viewport',
+      search.country || '',
+      search.mineralKey || '',
+    ].join('|');
+    const cached = scanCache.get(cacheKey);
+    if (cached && Date.now() - cached.cachedAt < SCAN_CACHE_TTL_MS) {
+      const cachedState = {
+        ...cached.state,
+        reason: 'cache',
+        updatedAt: new Date().toISOString(),
+      };
+      updatePanel(
+        panel,
+        cachedState.summary,
+        cachedState.statuses,
+        cachedState.targets,
+        'ready',
+        cachedState.providerStatuses,
+        cachedState.miningState,
+      );
+      publish(cachedState);
+      return cachedState;
+    }
 
     scanPromise = (async () => {
       panel.classList.add('is-busy');
@@ -742,6 +770,12 @@ export function createGlobalMineralIntelligence({
         nextState.miningState,
       );
       publish(nextState);
+      scanCache.set(cacheKey, { cachedAt: Date.now(), state: nextState });
+      // Bound the in-memory cache so long-running sessions remain lightweight.
+      if (scanCache.size > 12) {
+        const oldestKey = scanCache.keys().next().value;
+        scanCache.delete(oldestKey);
+      }
       viewer.scene && viewer.scene.requestRender
         ? viewer.scene.requestRender()
         : null;
