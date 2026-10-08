@@ -2,8 +2,10 @@ import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter.js';
 import { createGlobalMineralIntelligence } from './mineral/globalMineralIntelligence.js';
+import { installGemDecisionCenter } from './ui/gemDecisionCenter.js';
 
 installMineralIntelligenceCenter();
+installGemDecisionCenter();
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
