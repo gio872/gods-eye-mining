@@ -83,6 +83,15 @@ function injectStyles() {
       display:none!important;
     }
 
+    .gem-product-shell.gem-map-focus{display:none}
+    .gem-map-focus-back{
+      position:fixed;top:16px;left:16px;z-index:19000;
+      border:1px solid rgba(104,232,244,.28);border-radius:10px;
+      background:rgba(4,11,17,.9);backdrop-filter:blur(16px);
+      color:#68e8f4;padding:9px 12px;font:800 8px ui-monospace,monospace;
+      cursor:pointer;
+    }
+
     .gem-product-shell{
       position:fixed;
       inset:0;
@@ -615,6 +624,22 @@ function openWorkspace(module) {
   });
 }
 
+function openMapView(shell) {
+  shell.classList.add('gem-map-focus');
+  document.querySelector('.gem-workspace')?.classList.remove('is-open');
+  let back = document.querySelector('.gem-map-focus-back');
+  if (!back) {
+    back = document.createElement('button');
+    back.className = 'gem-map-focus-back';
+    back.textContent = '← BACK TO GEM';
+    document.body.append(back);
+    back.addEventListener('click', () => {
+      shell.classList.remove('gem-map-focus');
+      back.remove();
+    });
+  }
+}
+
 function buildShell() {
   const shell = document.createElement('div');
   shell.className = 'gem-product-shell';
@@ -723,6 +748,8 @@ function wireShell(shell) {
       if (event.key === 'Escape') popover.classList.remove('is-open');
     });
   });
+
+  document.addEventListener('gem:open-map', () => openMapView(shell));
 
   shell.querySelector('[data-explore]').addEventListener('click', () => {
     const query = shell.querySelector('[data-hero-search]').value.trim();
