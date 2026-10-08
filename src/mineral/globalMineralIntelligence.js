@@ -10,7 +10,6 @@ import {
 } from './globalTargetEngine.js';
 import {
   enrichTargetsWithTrueProspectivity,
-  PROSPECTIVITY_SOURCES,
   TRUE_PROSPECTIVITY_MODEL_ID,
 } from './trueProspectivity.js';
 
@@ -382,7 +381,7 @@ export function createGlobalMineralIntelligence({
           phase: state.phase,
           bbox: state.bbox,
           summary: state.summary,
-            statuses: state.statuses,
+          statuses: state.statuses,
           providerStatuses: state.providerStatuses,
           targets: state.targets,
         }),
@@ -435,7 +434,7 @@ export function createGlobalMineralIntelligence({
       });
       const enrichment = await enrichTargetsWithTrueProspectivity(
         referenceTargets,
-        { fetchImpl, signal: undefined },
+        { fetchImpl },
       );
       const targets = enrichment.targets.length
         ? enrichment.targets
