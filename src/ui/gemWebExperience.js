@@ -114,6 +114,12 @@ function injectStyles() {
       transform:scale(1.015);
       transform-origin:center;
       filter:saturate(1.12) contrast(1.04);
+      animation:gemPlanetDrift 28s ease-in-out infinite alternate;
+    }
+
+    @keyframes gemPlanetDrift{
+      from{transform:scale(1.015) translate3d(0,0,0)}
+      to{transform:scale(1.045) translate3d(-.7%,.4%,0)}
     }
 
     .gem-product-shell:before{
