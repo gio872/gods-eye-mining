@@ -885,7 +885,13 @@ export async function enrichTargetsWithTrueProspectivity(
         multisource &&
         multisource.geochemistryResult &&
         multisource.geochemistryResult.ok
-          ? geochemistryScore(target, multisource.geochemistryResult.samples)
+          ? geochemistryScore(
+              target,
+              multisource.geochemistryResult.samples,
+              target.requestedCommodity
+                ? { commodities: [target.requestedCommodity] }
+                : {},
+            )
           : null;
       const spectral =
         multisource && multisource.spectralResult
