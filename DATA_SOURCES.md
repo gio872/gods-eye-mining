@@ -9,6 +9,23 @@ How to read this:
 - **Attribution is shown in-app** and listed here. Keep it intact. The required Google/Cesium credit renders on the on-globe credit line (bottom-left, `#cesium-credits`), and every per-layer credit below is registered into the expandable **"Data attribution"** lightbox on that line (`src/data/dataCredits.js` → `viewer.creditDisplay.addStaticCredit`). Both stay visible in clean-view and recording modes.
 - **Bundled model attribution lives beside the model files.** [`public/models/README.md`](public/models/README.md) records each shipped model's creator, source, license, and modification status.
 
+
+## GEM Global Mineral Intelligence — mineral reference sources
+
+GEM's **Global Mineral Intelligence / Target Generation** layer uses public geospatial reference services as evidence inputs. The first live connectors are deliberately provenance-preserving and are **not** treated as a complete global mineral inventory.
+
+| Source | GEM use | Important limitation |
+| --- | --- | --- |
+| **USGS MRDS — Mineral Resource Data System** ([MRData FeatureServer](https://energy.usgs.gov/arcgis/rest/services/MRData/Mineral_Resource_Data_System/FeatureServer/3)) | Worldwide mineral-resource occurrences, site names, development status, commodity codes and grade text | USGS states that MRDS was intended to cover the U.S. completely; coverage in other countries is incomplete and records can reflect historical source reports. |
+| **USGS Global Distribution of Selected Critical Minerals** ([FeatureServer](https://energy.usgs.gov/arcgis/rest/services/Hosted/Global_distribution_of_selected_critical_minerals/FeatureServer/2)) | Global reference locations for selected critical minerals, with deposit type and commodity attributes | A documented reference compilation, not an exhaustive inventory and not a spatial probability model. |
+| **OneGeology** ([onegeology.org](https://onegeology.org/)) | Discovery/catalogue network for future national geological-service connectors using OGC services | Provider availability, licensing and commercial-use conditions vary by country and layer. |
+| **World Mining Data** ([official portal](https://www.bmf.gv.at/en/topics/mining/mineral-resources-policy/wmd.html)) | Production-statistics context for commodity intelligence | Production statistics are market context; they are not geologic evidence for a target. |
+| **USGS Mineral Commodity Summaries** ([official portal](https://www.usgs.gov/centers/national-minerals-information-center/mineral-commodity-summaries)) | Commodity production/resource context | Commodity statistics must not be interpreted as spatial prospectivity. |
+
+The GEM ranker currently produces a **reference-data prospectivity score** from documented mineral evidence. It must not be presented as a probability of discovery. Future geology, geophysics, geochemistry, spectral, structural, terrain and environmental evidence channels will enter the same auditable target model as separate evidence components.
+
+The software records source IDs, source names, acquisition status, target model ID and evidence components so a target can be traced back to the reference inputs used to rank it.
+
 ---
 
 ## Live sources (fetched at runtime — not stored in this repo)
