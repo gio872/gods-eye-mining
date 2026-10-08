@@ -1,7 +1,7 @@
 /**
  * GEM Web Experience
  *
- * Product shell inspired by modern marketplace/professional-network UX:
+ * Unique GEM planetary intelligence product shell:
  * fast search, entity discovery, progressive disclosure and responsive
  * navigation. It sits above the existing geospatial engine rather than
  * replacing it.
@@ -34,43 +34,24 @@ function installStyles() {
   const style = document.createElement('style');
   style.id = 'gem-web-experience-style';
   style.textContent = `
-    :root{--gem-accent:#56d7e9;--gem-ink:#eafcff;--gem-muted:#8198a1;--gem-surface:rgba(6,13,18,.88);--gem-border:rgba(143,210,220,.18)}
-    body.gem-web-product{overflow:hidden}
-    .gem-web-header{position:fixed;z-index:15000;left:0;right:0;top:0;height:68px;display:flex;align-items:center;gap:22px;padding:0 22px;background:rgba(4,10,14,.78);border-bottom:1px solid var(--gem-border);backdrop-filter:blur(20px);font-family:Inter,system-ui,sans-serif}
-    .gem-web-logo{display:flex;align-items:center;gap:10px;min-width:172px;color:var(--gem-ink);font-weight:700;letter-spacing:-.02em}
-    .gem-web-logo-mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,#75e5f2,#217c8a);color:#031015;font-weight:900}
-    .gem-web-logo small{display:block;color:var(--gem-muted);font-size:8px;letter-spacing:.16em;margin-top:2px}
-    .gem-web-search{height:40px;flex:1;max-width:620px;display:flex;align-items:center;gap:10px;padding:0 14px;border:1px solid var(--gem-border);border-radius:12px;background:rgba(255,255,255,.045);color:var(--gem-muted)}
-    .gem-web-search input{flex:1;border:0;outline:0;background:transparent;color:var(--gem-ink);font-size:13px}
-    .gem-web-search kbd{border:1px solid var(--gem-border);border-radius:5px;padding:3px 6px;font-size:9px}
-    .gem-web-nav{display:flex;align-items:center;gap:2px;margin-left:auto}
-    .gem-web-nav button,.gem-web-actions button{border:0;background:transparent;color:#9bb1b8;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:11px}
-    .gem-web-nav button:hover,.gem-web-nav button.is-active{background:rgba(86,215,233,.09);color:var(--gem-ink)}
-    .gem-web-nav button.is-active{color:var(--gem-accent)}
-    .gem-web-user{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#16252c;color:var(--gem-ink);font-size:11px;font-weight:700}
-    .gem-web-main{position:fixed;z-index:12000;top:84px;left:22px;right:22px;bottom:22px;pointer-events:none;font-family:Inter,system-ui,sans-serif}
-    .gem-web-hero{pointer-events:auto;max-width:700px}
-    .gem-web-kicker{color:var(--gem-accent);font-size:9px;font-weight:800;letter-spacing:.16em}
-    .gem-web-hero h1{margin:8px 0 4px;color:#f2fdff;font-size:29px;line-height:1.08;letter-spacing:-.04em}
-    .gem-web-hero p{margin:0;color:#91a8b0;font-size:12px}
-    .gem-web-stats{display:flex;gap:8px;margin-top:15px}
-    .gem-web-stat{min-width:118px;padding:10px 12px;border:1px solid var(--gem-border);border-radius:10px;background:var(--gem-surface);backdrop-filter:blur(12px)}
-    .gem-web-stat strong{display:block;color:var(--gem-ink);font-size:17px}.gem-web-stat span{color:var(--gem-muted);font-size:8px;text-transform:uppercase;letter-spacing:.09em}
-    .gem-web-card-row{position:absolute;left:0;right:0;bottom:0;display:flex;gap:10px;pointer-events:auto}
-    .gem-web-card{flex:1;min-width:0;max-width:330px;padding:14px;border:1px solid var(--gem-border);border-radius:13px;background:var(--gem-surface);backdrop-filter:blur(18px);box-shadow:0 18px 55px rgba(0,0,0,.25)}
-    .gem-web-card-head{display:flex;justify-content:space-between;align-items:center;color:var(--gem-muted);font-size:9px;text-transform:uppercase;letter-spacing:.1em}
-    .gem-web-card h3{margin:8px 0 3px;color:var(--gem-ink);font-size:14px}.gem-web-card p{margin:0;color:var(--gem-muted);font-size:10px;line-height:1.4}
-    .gem-web-card button{margin-top:12px;border:1px solid rgba(86,215,233,.3);background:rgba(86,215,233,.08);color:var(--gem-accent);border-radius:8px;padding:8px 11px;font-size:9px;font-weight:800;cursor:pointer}
-    .gem-web-results{position:fixed;z-index:16000;top:76px;left:50%;transform:translateX(-50%);width:min(700px,calc(100vw - 32px));display:none;border:1px solid var(--gem-border);border-radius:13px;background:rgba(5,11,15,.97);backdrop-filter:blur(20px);box-shadow:0 24px 80px rgba(0,0,0,.55);overflow:hidden}
-    .gem-web-results.is-open{display:block}.gem-web-result{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}.gem-web-result:hover{background:rgba(86,215,233,.06)}
-    .gem-web-result b{color:var(--gem-ink);font-size:12px}.gem-web-result span{display:block;color:var(--gem-muted);font-size:9px;margin-top:3px}
+    :root{--gem-cyan:#68e8f4;--gem-blue:#4f7cff;--gem-violet:#9b7cff;--gem-white:#f4fbff;--gem-dim:#7c929d;--gem-panel:rgba(5,10,17,.72);--gem-line:rgba(150,205,220,.16)}
+    body.gem-web-product{overflow:hidden;background:#02060a}
+    .gem-web-header{position:fixed;z-index:15000;top:14px;left:18px;right:18px;height:58px;display:flex;align-items:center;gap:18px;padding:0 13px 0 15px;border:1px solid var(--gem-line);border-radius:17px;background:linear-gradient(110deg,rgba(5,12,19,.92),rgba(5,10,17,.68));backdrop-filter:blur(24px);box-shadow:0 14px 50px rgba(0,0,0,.34);font-family:Inter,system-ui,sans-serif}
+    .gem-web-logo{display:flex;align-items:center;gap:10px;min-width:205px;color:var(--gem-white);letter-spacing:-.03em}.gem-web-logo-mark{position:relative;width:35px;height:35px;border-radius:11px;display:grid;place-items:center;background:#07131b;border:1px solid rgba(104,232,244,.48);color:var(--gem-cyan);font-weight:900;box-shadow:inset 0 0 22px rgba(104,232,244,.08)}.gem-web-logo-mark:after{content:"";position:absolute;inset:5px;border:1px solid rgba(155,124,255,.4);border-radius:8px;transform:rotate(45deg)}.gem-web-logo strong{display:block;font-size:15px}.gem-web-logo small{display:block;color:var(--gem-dim);font-size:7px;letter-spacing:.2em;margin-top:2px}
+    .gem-web-search{height:38px;flex:1;max-width:610px;display:flex;align-items:center;gap:9px;padding:0 12px;border:1px solid var(--gem-line);border-radius:11px;background:rgba(255,255,255,.035);color:var(--gem-dim)}.gem-web-search input{flex:1;border:0;outline:0;background:transparent;color:var(--gem-white);font-size:12px}.gem-web-search:focus-within{border-color:rgba(104,232,244,.48);box-shadow:0 0 0 3px rgba(104,232,244,.05)}.gem-web-search kbd{border:1px solid var(--gem-line);border-radius:5px;padding:3px 6px;font-size:8px}
+    .gem-web-nav{display:flex;align-items:center;gap:2px;margin-left:auto}.gem-web-nav button{border:0;background:transparent;color:#81959e;padding:8px 9px;border-radius:8px;cursor:pointer;font-size:9px;letter-spacing:.04em}.gem-web-nav button:hover{color:var(--gem-white);background:rgba(104,232,244,.05)}.gem-web-nav button.is-active{color:var(--gem-cyan);background:rgba(104,232,244,.07);box-shadow:inset 0 -1px var(--gem-cyan)}
+    .gem-web-user{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,#17243a,#0d141f);border:1px solid var(--gem-line);color:var(--gem-white);font-size:10px;font-weight:800}
+    .gem-web-main{position:fixed;z-index:12000;inset:0;padding:105px 28px 28px;pointer-events:none;font-family:Inter,system-ui,sans-serif;background:radial-gradient(ellipse at 54% 48%,rgba(38,103,125,.08),transparent 42%)}
+    .gem-web-main:before{content:"";position:absolute;inset:68px 0 0;background-image:linear-gradient(rgba(104,232,244,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(104,232,244,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(circle at center,black,transparent 70%);pointer-events:none}
+    .gem-web-hero{position:relative;pointer-events:auto;max-width:780px;margin:8vh auto 0;text-align:center}.gem-web-kicker{color:var(--gem-cyan);font-size:8px;font-weight:800;letter-spacing:.3em}.gem-web-hero h1{margin:15px 0 10px;color:var(--gem-white);font-size:clamp(36px,5vw,70px);line-height:.98;letter-spacing:-.065em;text-shadow:0 0 45px rgba(104,232,244,.09)}.gem-web-hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--gem-cyan),#fff,var(--gem-violet));background-clip:text;color:transparent}.gem-web-hero p{margin:auto;color:#849aa5;font-size:12px;line-height:1.6;max-width:590px}
+    .gem-web-stats{display:flex;justify-content:center;gap:7px;margin-top:22px}.gem-web-stat{min-width:110px;padding:10px 13px;border:1px solid var(--gem-line);border-radius:10px;background:rgba(5,11,17,.58);backdrop-filter:blur(12px)}.gem-web-stat strong{display:block;color:var(--gem-white);font-size:15px}.gem-web-stat span{color:var(--gem-dim);font-size:7px;text-transform:uppercase;letter-spacing:.14em}
+    .gem-web-card-row{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:9px;pointer-events:auto}.gem-web-card{width:min(29vw,315px);padding:15px;border:1px solid var(--gem-line);border-radius:14px;background:linear-gradient(145deg,rgba(8,16,24,.84),rgba(4,9,15,.64));backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(0,0,0,.3);transition:transform .2s,border-color .2s}.gem-web-card:hover{transform:translateY(-4px);border-color:rgba(104,232,244,.35)}.gem-web-card-head{display:flex;justify-content:space-between;color:#657b85;font-size:7px;text-transform:uppercase;letter-spacing:.15em}.gem-web-card h3{margin:9px 0 4px;color:var(--gem-white);font-size:14px}.gem-web-card p{margin:0;color:#718792;font-size:9px;line-height:1.5}.gem-web-card button{margin-top:12px;border:0;background:transparent;color:var(--gem-cyan);padding:0;font-size:8px;font-weight:800;letter-spacing:.12em;cursor:pointer}
+    .gem-web-results{position:fixed;z-index:16000;top:82px;left:50%;transform:translateX(-50%);width:min(690px,calc(100vw - 32px));display:none;border:1px solid var(--gem-line);border-radius:14px;background:rgba(4,9,15,.97);backdrop-filter:blur(24px);box-shadow:0 30px 90px rgba(0,0,0,.65);overflow:hidden}.gem-web-results.is-open{display:block}.gem-web-result{padding:12px 15px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer}.gem-web-result:hover{background:rgba(104,232,244,.05)}.gem-web-result b{color:var(--gem-white);font-size:11px}.gem-web-result span{display:block;color:var(--gem-dim);font-size:8px;margin-top:3px}
     .gem-web-mobile{display:none}
-    @media(max-width:1100px){.gem-web-nav button{padding:8px 6px}.gem-web-nav button span{display:none}.gem-web-logo{min-width:135px}}
-    @media(max-width:760px){.gem-web-header{height:60px;padding:0 10px;gap:8px}.gem-web-logo{min-width:auto}.gem-web-logo-text{display:none}.gem-web-search{order:3;position:absolute;left:10px;right:10px;top:66px;max-width:none}.gem-web-nav{display:none}.gem-web-main{top:76px;left:10px;right:10px;bottom:10px}.gem-web-hero h1{font-size:23px}.gem-web-stats{overflow:auto}.gem-web-card-row{overflow:auto;padding-bottom:2px}.gem-web-card{min-width:260px}.gem-web-mobile{display:grid;position:fixed;z-index:15001;right:10px;bottom:10px;width:46px;height:46px;border:1px solid var(--gem-border);border-radius:50%;background:rgba(5,11,15,.92);color:var(--gem-accent);place-items:center}}
+    @media(max-width:1120px){.gem-web-nav button{padding:8px 5px;font-size:8px}.gem-web-logo{min-width:165px}}@media(max-width:850px){.gem-web-nav{display:none}.gem-web-logo{min-width:auto}.gem-web-search{max-width:none}.gem-web-card{width:31vw}}@media(max-width:650px){.gem-web-header{top:8px;left:8px;right:8px;height:54px}.gem-web-logo-text{display:none}.gem-web-search{position:absolute;top:62px;left:0;right:0}.gem-web-main{padding:94px 10px 10px}.gem-web-hero{margin-top:8vh}.gem-web-hero h1{font-size:38px}.gem-web-stats{overflow:auto;justify-content:flex-start}.gem-web-card-row{justify-content:flex-start;overflow:auto;padding:0 2px 3px}.gem-web-card{min-width:260px}.gem-web-mobile{display:grid;position:fixed;z-index:15001;right:10px;bottom:10px;width:43px;height:43px;border:1px solid var(--gem-line);border-radius:50%;background:#071019;color:var(--gem-cyan);place-items:center}}
   `;
   document.head.append(style);
 }
-
 function searchResults(query) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
@@ -138,7 +119,7 @@ export function installGemWebExperience() {
   main.innerHTML=`
     <section class="gem-web-hero">
       <div class="gem-web-kicker">GLOBAL EXPLORATION & MINERAL INTELLIGENCE</div>
-      <h1>Understand the planet.<br>Find what matters.</h1>
+      <h1>Understand the planet.<br><em>Find what matters.</em></h1>
       <p>Planetary evidence, mineral systems, targets, assets, markets and capital in one operating platform.</p>
       <div class="gem-web-stats">
         <div class="gem-web-stat"><strong>GLOBAL</strong><span>Planetary coverage</span></div>
