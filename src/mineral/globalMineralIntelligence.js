@@ -371,6 +371,7 @@ export function createGlobalMineralIntelligence({
   const dataSource = new Cesium.CustomDataSource(DATA_SOURCE_NAME);
 
   let destroyed = false;
+  const scanController = new AbortController();
   let scanTimer = null;
   let scanPromise = null;
   let lastCameraKey = null;
@@ -435,6 +436,7 @@ export function createGlobalMineralIntelligence({
 
       const results = await queryMineralSources(queryBox, {
         fetchImpl,
+        signal: scanController.signal,
         sources: [
           GLOBAL_MINERAL_SOURCES.mrds,
           GLOBAL_MINERAL_SOURCES.criticalMinerals,
@@ -448,7 +450,7 @@ export function createGlobalMineralIntelligence({
       });
       const enrichment = await enrichTargetsWithTrueProspectivity(
         referenceTargets,
-        { fetchImpl },
+        { fetchImpl, signal: scanController.signal },
       );
       const targets = enrichment.targets.length
         ? enrichment.targets
@@ -605,6 +607,7 @@ export function createGlobalMineralIntelligence({
     destroyed = true;
 
     if (scanTimer) clearTimeout(scanTimer);
+    scanController.abort();
     if (viewer.camera && viewer.camera.moveEnd)
       viewer.camera.moveEnd.removeEventListener(onCameraChanged);
     document.removeEventListener('gem:run-global-analysis', onRunAnalysis);
