@@ -769,7 +769,7 @@ export function createGlobalMineralIntelligence({
         ...target,
         subsurfaceResourceEvidence: buildResourceEvidence(
           target,
-          SUBSURFACE_INDEX.records,
+          SUBSURFACE_INDEX,
           10,
         ),
       }));
