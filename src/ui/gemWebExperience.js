@@ -410,6 +410,7 @@ function injectStyles() {
     .gem-user-profile{position:absolute;right:18px;top:19px;height:56px;min-width:166px;border:1px solid rgba(74,180,214,.3);border-radius:11px;background:rgba(2,12,20,.7);display:flex;align-items:center;gap:8px;color:#dffcff;cursor:pointer;padding:0 10px}
     .gem-user-profile span:nth-child(2){display:flex;flex-direction:column;text-align:left}.gem-user-profile b{font-size:9px}.gem-user-profile small{font-size:6px;color:#7f9ca5;margin-top:3px}.gem-user-profile em{margin-left:auto;font-style:normal;color:#9cb6bf}
     .gem-cinematic-tools{position:fixed;z-index:3;left:50%;bottom:20px;transform:translateX(-50%);display:flex;padding:5px;border:1px solid rgba(53,198,245,.25);border-radius:13px;background:rgba(2,13,21,.82);backdrop-filter:blur(18px);box-shadow:0 15px 45px rgba(0,0,0,.35)}
+    .gem-tool-icon{display:grid!important;place-items:center!important;height:27px!important;margin-bottom:5px!important}.gem-tool-icon svg{width:28px;height:28px;fill:none;stroke:#b9d8e2;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(75,225,255,.22))}.gem-cinematic-tools button:hover .gem-tool-icon svg,.gem-cinematic-tools button.is-active .gem-tool-icon svg{stroke:#62e9ff;filter:drop-shadow(0 0 7px rgba(75,225,255,.55))}
     .gem-cinematic-tools button{width:92px;height:58px;border:1px solid transparent;background:rgba(255,255,255,.018);border-radius:9px;color:#a8bec6;cursor:pointer}
     .gem-cinematic-tools button:hover,.gem-cinematic-tools button.is-active{border-color:rgba(69,222,255,.45);background:rgba(33,177,221,.09);color:#62e9ff}
     .gem-cinematic-tools span{display:block;font-size:23px;margin-bottom:5px}.gem-cinematic-tools b{font-size:6px;letter-spacing:.08em}
@@ -770,11 +771,11 @@ function buildShell() {
       </section>
 
       <div class="gem-cinematic-tools">
-        <button data-tool="basemap"><span>◇</span><b>BASEMAP</b></button>
-        <button data-tool="voice"><span>♬</span><b>VOICE</b></button>
-        <button data-tool="time"><span>◷</span><b>TIME</b></button>
-        <button data-tool="measure"><span>╱</span><b>MEASURE</b></button>
-        <button data-tool="screenshot"><span>▣</span><b>SCREENSHOT</b></button>
+        <button data-tool="basemap"><span class="gem-tool-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 15l16-9 16 9-16 9z"/><path d="M8 15v17l16 9 16-9V15"/><path d="M24 24v17"/></svg></span><b>BASEMAP</b></button>
+        <button data-tool="voice"><span class="gem-tool-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="18" y="7" width="12" height="23" rx="6"/><path d="M12 23a12 12 0 0 0 24 0M24 35v7M18 42h12"/></svg></span><b>VOICE</b></button>
+        <button data-tool="time"><span class="gem-tool-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="17"/><path d="M24 14v11l7 4"/></svg></span><b>TIME</b></button>
+        <button data-tool="measure"><span class="gem-tool-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 34L34 8l7 7-26 26z"/><path d="M22 20l4 4M27 15l4 4M17 25l4 4M12 30l4 4"/></svg></span><b>MEASURE</b></button>
+        <button data-tool="screenshot"><span class="gem-tool-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="13" width="34" height="26" rx="4"/><path d="M16 13l3-5h10l3 5"/><circle cx="24" cy="26" r="7"/><circle cx="24" cy="26" r="3"/></svg></span><b>SCREENSHOT</b></button>
       </div>
 
       <div class="gem-location-card">
