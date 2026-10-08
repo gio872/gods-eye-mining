@@ -1,7 +1,7 @@
 module.exports = {
   version: '3.6',
   title: "God's Eye View",
-  description: 'A live 3D intelligence console for planet Earth.',
+  description: 'GLOBAL MINERAL INTELLIGENCE / TRUE MULTISOURCE mineral discovery engine.',
   menu: async (kernel, info) => {
     const installed = await kernel.exists(__dirname, '.installed');
     const installing = info.running('install.js');
