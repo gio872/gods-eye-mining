@@ -18,6 +18,7 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
     globalCoverage: true,
     maxViewportRecords: 1200,
     queryFields: ['gid', 'dep_id', 'site_name', 'dev_stat', 'code_list', 'url', 'grade'],
+    orderByFields: 'gid ASC',
     limitation:
       'Worldwide coverage is incomplete outside the United States; operational, ownership, production, reserve and resource fields may be historical.',
     licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
@@ -34,6 +35,7 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
     globalCoverage: true,
     maxViewportRecords: 1600,
     queryFields: ['gid', 'dep_name', 'mineral', 'dep_type', 'latitude', 'longitude', 'location'],
+    orderByFields: 'gid ASC',
     limitation:
       'Reference compilation of documented deposits/occurrences; not an exhaustive global inventory and not a deposit-probability surface.',
     licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
@@ -172,6 +174,8 @@ export async function fetchArcGISPoints(
   url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
   const fields = outFields || source.queryFields || DEFAULT_QUERY_FIELDS;
   url.searchParams.set('outFields', fields.join(','));
+  if (source.orderByFields)
+    url.searchParams.set('orderByFields', source.orderByFields);
   url.searchParams.set('returnGeometry', 'true');
   url.searchParams.set('outSR', '4326');
   url.searchParams.set('f', 'geojson');
