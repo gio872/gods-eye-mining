@@ -352,48 +352,23 @@ function injectStyles() {
       font-size:8px;font-weight:800;cursor:pointer;
     }
 
-    .gem-module-grid{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:9px;
-    }
-
+    .gem-module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .gem-module-card{
-      position:relative;
-      min-height:165px;
-      display:flex;flex-direction:column;justify-content:space-between;
-      padding:17px;
-      border:1px solid var(--gem-border);
-      border-radius:16px;
-      background:
-        linear-gradient(135deg,rgba(3,12,18,.78),rgba(5,15,22,.48)),
-        radial-gradient(circle at 100% 0%,rgba(104,232,244,.10),transparent 42%);
-      backdrop-filter:blur(10px);
-      box-shadow:inset 0 1px rgba(255,255,255,.035),0 14px 40px rgba(0,0,0,.18);
-      cursor:pointer;
-      transition:transform .2s,border-color .2s,background .2s;
+      position:relative;min-height:118px;display:grid;grid-template-columns:58px 1fr 18px;align-items:center;gap:12px;
+      padding:12px 13px;border:1px solid rgba(74,211,255,.42);border-radius:13px;
+      background:linear-gradient(105deg,rgba(2,15,25,.86),rgba(3,19,29,.58)),radial-gradient(circle at 100% 0%,rgba(28,215,255,.13),transparent 48%);
+      backdrop-filter:blur(12px);box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 35px rgba(0,0,0,.24),0 0 22px rgba(0,188,255,.035);
+      cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s
     }
-    .gem-module-card:hover{
-      transform:translateY(-3px);
-      border-color:rgba(104,232,244,.28);
-      background:
-        radial-gradient(circle at 100% 0%,rgba(104,232,244,.09),transparent 40%),
-        rgba(11,22,30,.9);
-    }
-    .gem-module-card:nth-child(3n){background:
-      radial-gradient(circle at 100% 0%,rgba(165,140,255,.07),transparent 38%),
-      rgba(8,15,22,.78)}
-    .gem-module-card .module-eyebrow{
-      color:#617983;font:800 7px ui-monospace,monospace;letter-spacing:.17em;
-    }
-    .gem-module-card .module-arrow{
-      position:absolute;right:16px;top:15px;color:#516a74;font-size:18px;
-    }
-    .gem-module-card strong{display:block;margin:13px 0 7px;font-size:15px;letter-spacing:-.025em}
-    .gem-module-card p{margin:0;color:#718892;font-size:9px;line-height:1.55}
-    .gem-module-card footer{display:flex;align-items:center;justify-content:space-between;margin-top:15px}
-    .gem-module-card footer span{color:#536b75;font:7px ui-monospace,monospace;letter-spacing:.1em}
-    .gem-module-card footer b{color:var(--gem-cyan);font-size:8px}
+    .gem-module-card:hover{transform:translateY(-2px);border-color:rgba(79,229,255,.78);box-shadow:inset 0 1px rgba(255,255,255,.08),0 14px 38px rgba(0,0,0,.3),0 0 28px rgba(0,211,255,.12)}
+    .gem-module-icon{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(71,224,255,.55);background:radial-gradient(circle,rgba(33,193,255,.18),rgba(3,14,23,.76) 68%);box-shadow:0 0 22px rgba(20,208,255,.13),inset 0 0 18px rgba(70,218,255,.07)}
+    .gem-module-icon svg{width:31px;height:31px;fill:none;stroke:#69eaff;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(75,225,255,.45))}
+    .gem-module-card .module-eyebrow{display:block;color:#68d9e9;font:800 6px ui-monospace,monospace;letter-spacing:.18em;margin-bottom:4px}
+    .gem-module-card .module-arrow{position:static;color:#72e7f7;font-size:23px;align-self:center;justify-self:end}
+    .gem-module-card strong{display:block;margin:0 0 5px;font-size:14px;letter-spacing:-.025em}
+    .gem-module-card p{margin:0;color:#a4bcc5;font-size:8px;line-height:1.45;max-width:230px}
+    .gem-module-card footer{display:none}
+    .gem-module-card:nth-child(3n){background:linear-gradient(105deg,rgba(2,15,25,.86),rgba(3,19,29,.58)),radial-gradient(circle at 100% 0%,rgba(165,140,255,.10),transparent 48%)}
 
     .gem-lower-grid{
       display:grid;grid-template-columns:1.35fr .65fr;gap:10px;margin-top:10px;
