@@ -47,7 +47,7 @@ async function start() {
       [path.join(ROOT, 'server', 'providers', 'earthengine_gateway.py')],
       {
         cwd: ROOT,
-        env: process.env,
+        env: { ...process.env, GEM_EARTHENGINE_GATEWAY_PORT: String(port + 1) },
         stdio: ['ignore', 'pipe', 'pipe'],
         windowsHide: true,
       },
