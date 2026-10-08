@@ -5,9 +5,9 @@ module.exports = {
       method: 'shell.run',
       params: {
         path: '..',
-        // Always launch the exact published GEM Mineral Discovery Engine revision.
-        // Pinokio installs this app from feature/global-mineral-intelligence.
-        message: 'git fetch origin feature/global-mineral-intelligence && git checkout feature/global-mineral-intelligence && git reset --hard origin/feature/global-mineral-intelligence && node scripts/pinokio-start.mjs',
+        // Launch the exact GEM revision installed by Pinokio. Updates are handled
+        // explicitly by Pinokio's Update action, not during every startup.
+        message: 'node scripts/pinokio-start.mjs',
         env: {
           HOST: '127.0.0.1',
           PORT: '{{port}}',
