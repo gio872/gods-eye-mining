@@ -633,7 +633,7 @@ export function createGlobalMineralIntelligence({
 
       const miningPromise = fetchEarthriseDetections({
         fetchImpl,
-        signal,
+        signal: scanController.signal,
       }).catch((error) => ({
         source: EARTHRISE_MINING_SOURCE,
         detections: [],
@@ -670,6 +670,29 @@ export function createGlobalMineralIntelligence({
         attachRequestedCommodity(target, search.mineralKey),
       );
       const earthrise = await miningPromise;
+      // FAST-FIRST: publish lightweight candidates before deep evidence finishes.
+      const fastTargets = candidateTargets
+        .slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+        .slice(0, isGlobal ? 24 : 12)
+        .map((target) => ({ ...target, provisional: true, decisionStage: 'CANDIDATE_READY' }));
+      const fastSummary = {
+        ...buildEvidenceSummary(features, fastTargets),
+        candidateCount: candidateTargets.length,
+        modelId: TARGET_MODEL_ID,
+        processingStage: 'CANDIDATE_READY',
+        investmentReadiness: 0,
+        investmentIntelligence: buildPortfolioSnapshot(fastTargets),
+      };
+      const fastState = { ...scanningState, phase: 'candidate-ready', bbox: queryBox, features, targets: fastTargets, summary: fastSummary,
+        statuses: results.map((result) => ({ source: result.source, ok: result.ok, count: result.count, durationMs: result.durationMs, error: result.error || null })),
+        reason: reason || 'manual', updatedAt: new Date().toISOString(), };
+      dataSource.entities.removeAll();
+      for (const feature of features.slice(0, 3000)) addReferencePoint(dataSource, feature);
+      if (search.area) addCountryBoundary(dataSource, search.area);
+      for (const target of fastTargets) addTarget(dataSource, target);
+      updatePanel(panel, fastSummary, fastState.statuses, fastTargets, 'scanning');
+      publish(fastState);
+      if (viewer.scene && viewer.scene.requestRender) viewer.scene.requestRender();
       const activityTargets = candidateTargets.map((target) => ({
         target,
         evidence: earthrise.ok
@@ -745,11 +768,11 @@ export function createGlobalMineralIntelligence({
       if (search.area) addCountryBoundary(dataSource, search.area);
       for (const target of triagedTargets) addTarget(dataSource, target);
       const nextState = {
-        phase: 'ready',
+        phase: 'decision-ready',
         bbox: queryBox,
         features,
         targets: triagedTargets,
-        summary,
+        summary: { ...summary, processingStage: 'DECISION_READY' },
         statuses,
         providerStatuses: enrichment.providerStatuses,
         miningState: {
