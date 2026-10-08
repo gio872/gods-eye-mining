@@ -12,17 +12,25 @@ How to read this:
 
 ## GEM Global Mineral Intelligence — mineral reference sources
 
-### True Multisource Prospectivity evidence
+### True Multisource Prospectivity / Mineral Discovery Engine
 
-The True Multisource model adds live geoscience evidence beyond mineral occurrences:
+`GEM-TRUE-MULTISOURCE-01` now fuses six active evidence channels:
 
-- Global Lithological Map (GLiM v1.1): polygonal lithology compatibility sampled at each target coordinate.
-- NOAA/NCEI EMAG2v3: numeric global magnetic anomaly samples at the target and a local 3x3 neighborhood.
-- ArcGIS World Elevation 3D: elevation sampled around each target for weak surface-expression context only.
+- **Reference — 10%:** documented mineral occurrences and critical-mineral references.
+- **Geology — 20%:** GLiM v1.1 polygonal lithology compatibility sampled at target coordinates.
+- **Geophysics — 20%:** NOAA/NCEI EMAG2v3 numeric magnetic anomaly plus local 3x3 contrast.
+- **Structure — 5%:** deterministic magnetic-contrast derivative, explicitly derived from the geophysical channel.
+- **Geochemistry — 20%:** numeric CMMI / Geoscience Australia Critical Minerals in Ores geochemistry samples, normalized into element concentrations and evaluated with local robust anomaly statistics.
+- **Spectral — 25%:** actual Sentinel-2 L2A COG surface-reflectance pixels, EnMAP L2A hyperspectral COG pixels, and EMIT L2BMIN mineral-identification/band-depth evidence when authenticated Earthdata pixel access is available.
 
-The calibrated True model currently fuses reference + geology + geophysics + structure. Structure is a deterministic local-contrast derivative of the magnetic evidence and is not represented as an independent sensor.
+Sentinel-2 and EnMAP do not contribute simply because an image overlaps a target. GEM reads local COG pixels, applies a cloud/invalid-pixel screen where available, and computes deterministic ferric-iron, SWIR/clay and surface-condition proxies.
 
-Spectral channels are intentionally not assigned prospectivity weight until GEM can consume actual per-pixel mineral identification or mineral-abundance values. EMIT L2BMIN is a 60 m mineral-identification/band-depth product with uncertainty/fit information and is therefore a suitable next spectral evidence provider once GEM's Earthdata/Harmony ingestion path is connected.
+EMIT L2BMIN is a 60 m mineral-identification/band-depth/uncertainty product. GEM discovers covering granules through NASA CMR and admits pixel-level EMIT evidence only through an authenticated host sampler; otherwise the provider state is explicitly `AUTH_REQUIRED`.
+
+The CMMI geochemistry source is deposit-proximate by design. GEM therefore labels this channel as a geochemical pathfinder/reference prior rather than an unbiased regional baseline. It must not be interpreted as assay control or proof of mineralisation at the candidate coordinate.
+
+Terrain remains diagnostic-only and does not enter the prospectivity denominator. Missing data are excluded from the fusion denominator and surfaced as evidence-coverage loss.
+
 
 
 GEM's **Global Mineral Intelligence / Target Generation** layer uses public geospatial reference services as evidence inputs. The first live connectors are deliberately provenance-preserving and are **not** treated as a complete global mineral inventory.
