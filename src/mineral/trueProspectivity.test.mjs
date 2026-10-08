@@ -124,7 +124,7 @@ const target = {
 
   assert.equal(result.modelId, TRUE_PROSPECTIVITY_MODEL_ID);
   assert.equal(result.coverage, 100);
-  assert.equal(Object.keys(result.channels).sort(), [
+  assert.deepEqual(Object.keys(result.channels).sort(), [
     'geochemistry',
     'geology',
     'geophysics',
