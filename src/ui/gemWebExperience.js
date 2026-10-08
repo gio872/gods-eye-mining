@@ -874,7 +874,7 @@ function wireShell(shell) {
   shell.querySelectorAll('[data-open-module]').forEach((button) => {
     button.addEventListener('click', () => openWorkspace(button.dataset.openModule));
   });
-  shell.querySelector('[data-all-modules]').addEventListener('click', () => {
+  shell.querySelector('[data-all-modules]')?.addEventListener('click', () => {
     shell.querySelector('.gem-module-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
