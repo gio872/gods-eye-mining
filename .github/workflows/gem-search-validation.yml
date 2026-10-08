@@ -1,4 +1,5 @@
 name: GEM search validation
+# One-shot validation for the country and commodity search.
 
 on:
   push:
