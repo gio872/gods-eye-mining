@@ -58,7 +58,7 @@ test('external ownership uses boot provenance even when store and shell values m
 
 test('the status payload reports presence without any credential material', () => {
   const env = {
-    GOOGLE_MAPS_API_KEY: 'AIzaSyFakeFakeFakeFake1234',
+    GOOGLE_MAPS_API_KEY: 'TEST_GOOGLE_MAPS_KEY_1234',
     OPENSKY_CLIENT_ID: 'client-id-abcdef',
     // Secret missing: the OpenSky pair must read as NOT set.
   };
