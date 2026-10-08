@@ -302,7 +302,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         try {
           database.prepare('INSERT INTO gem_organizations(id,legal_name,display_name,registration_number,participant_type,country,region,website,commodities_json,description,created_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)')
             .run(id,legalName,displayName,registrationNumber,participantType,country,region,website,JSON.stringify(commodities),description,user.id,now,now);
-          database.prepare('INSERT INTO gem_organization_members(organization_id,user_id,role,status,invited_by,created_at,updated_at) VALUES(?,?,? ,\\'ACTIVE\\',?,?,?)')
+          database.prepare('INSERT INTO gem_organization_members(organization_id,user_id,role,status,invited_by,created_at,updated_at) VALUES(?,?,? ,\'ACTIVE\',?,?,?)')
             .run(id,user.id,'OWNER',user.id,now,now);
           database.prepare("INSERT INTO gem_membership_events(id,user_id,event_type,status,created_at,metadata_json) VALUES(?,?,?,?,?,?)")
             .run(randomId('evt_'),user.id,'PARTICIPANT_PROFILE_CREATED','ACTIVE',now,JSON.stringify({organizationId:id,participantType}));
@@ -313,10 +313,10 @@ export function createGemAccountApiHandler({ db = null } = {}) {
       if (req.method === 'GET' && url.pathname === '/api/gem/account/organizations') {
         const user = sessionUser(database, req);
         if (!user) return send(res,401,{error:'Sign in to view participant profiles'});
-        const rows=database.prepare('SELECT o.*,m.role FROM gem_organizations o JOIN gem_organization_members m ON m.organization_id=o.id WHERE m.user_id=? AND m.status=\\'ACTIVE\\' ORDER BY o.created_at DESC').all(user.id);
+        const rows=database.prepare('SELECT o.*,m.role FROM gem_organizations o JOIN gem_organization_members m ON m.organization_id=o.id WHERE m.user_id=? AND m.status=\'ACTIVE\' ORDER BY o.created_at DESC').all(user.id);
         return send(res,200,{organizations:rows.map(row=>({...safeOrganization(row),role:row.role}))});
       }
-      const organizationMatch = url.pathname.match(/^\\/api\\/gem\\/account\\/organizations\\/([^/]+)(?:\\/(members|evidence))?$/);
+      const organizationMatch = url.pathname.match(/^\/api\/gem\/account\/organizations\/([^/]+)(?:\/(members|evidence))?$/);
       if (organizationMatch) {
         const user=sessionUser(database,req);
         if (!user) return send(res,401,{error:'Sign in to access participant profiles'});
@@ -394,13 +394,13 @@ export function createGemAccountApiHandler({ db = null } = {}) {
           try{
             database.prepare("INSERT INTO gem_participant_evidence(id,organization_id,submitted_by,evidence_type,title,document_ref,file_name,mime_type,size_bytes,checksum_sha256,notes,status,submitted_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,'SUBMITTED',?)")
               .run(id,organizationId,user.id,evidenceType,title,'kyb/'+organizationId+'/'+storageName,fileName,mimeType,bytes.length,checksum,notes,now);
-            database.prepare('UPDATE gem_organizations SET kyb_status=\\'UNDER_REVIEW\\',updated_at=? WHERE id=?').run(now,organizationId);
+            database.prepare('UPDATE gem_organizations SET kyb_status=\'UNDER_REVIEW\',updated_at=? WHERE id=?').run(now,organizationId);
           }catch(error){await unlink(filePath).catch(()=>{});throw error;}
           return send(res,201,{evidence:{id,evidenceType,title,fileName,mimeType,sizeBytes:bytes.length,checksumSha256:checksum,status:'SUBMITTED',submittedAt:now},message:'Document saved in private server-side storage and queued for review.'});
         }
         return send(res,405,{error:'Method not allowed'},{allow:'GET, POST, PATCH'});
       }
-      const memberDelete = url.pathname.match(/^\\/api\\/gem\\/account\\/organizations\\/(org_[a-f0-9]{24})\\/members\\/([^/]+)$/);
+      const memberDelete = url.pathname.match(/^\/api\/gem\/account\/organizations\/(org_[a-f0-9]{24})\/members\/([^/]+)$/);
       if(memberDelete&&req.method==='DELETE'){
         const user=sessionUser(database,req);
         if(!user)return send(res,401,{error:'Sign in to manage organization members'});
@@ -412,14 +412,14 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         database.prepare('DELETE FROM gem_organization_members WHERE organization_id=? AND user_id=?').run(memberDelete[1],targetId);
         return send(res,200,{ok:true});
       }
-      const evidenceDownload = url.pathname.match(/^\\/api\\/gem\\/account\\/organizations\\/(org_[a-f0-9]{24})\\/evidence\\/(ev_[a-f0-9]{24})\\/download$/);
+      const evidenceDownload = url.pathname.match(/^\/api\/gem\/account\/organizations\/(org_[a-f0-9]{24})\/evidence\/(ev_[a-f0-9]{24})\/download$/);
       if(evidenceDownload&&req.method==='GET'){
         const user=sessionUser(database,req);
         if(!user)return send(res,401,{error:'Sign in to download participant evidence'});
         requireOrgRole(database,user,evidenceDownload[1],['OWNER','ADMIN','ANALYST']);
         const row=database.prepare('SELECT * FROM gem_participant_evidence WHERE id=? AND organization_id=?').get(evidenceDownload[2],evidenceDownload[1]);
         if(!row)return send(res,404,{error:'Evidence not found'});
-        const match=String(row.document_ref).match(/^kyb\\/(org_[a-f0-9]{24})\\/(doc_[a-f0-9]{24}\\.(?:pdf|png|jpg))$/);
+        const match=String(row.document_ref).match(/^kyb\/(org_[a-f0-9]{24})\/(doc_[a-f0-9]{24}\.(?:pdf|png|jpg))$/);
         if(!match||match[1]!==evidenceDownload[1])return send(res,500,{error:'Private evidence storage reference is invalid'});
         const base=resolve(process.env.GEM_PRIVATE_DOCUMENTS_DIR||'.gem-data/private-documents');
         const filePath=resolve(base,match[1],match[2]);
@@ -430,7 +430,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         res.setHeader('content-disposition','attachment; filename="GEM-evidence-'+row.id+'.'+(row.mime_type==='application/pdf'?'pdf':row.mime_type==='image/png'?'png':'jpg')+'"');
         res.setHeader('cache-control','private, no-store');res.setHeader('x-content-type-options','nosniff');res.end(bytes);return;
       }
-      const reviewMatch=url.pathname.match(/^\\/api\\/gem\\/account\\/review\\/evidence\\/(ev_[a-f0-9]{24})$/);
+      const reviewMatch=url.pathname.match(/^\/api\/gem\/account\/review\/evidence\/(ev_[a-f0-9]{24})$/);
       if(reviewMatch&&req.method==='POST'){
         requireReviewSecret(req);
         const body=await readJson(req),decision=String(body.decision||'').toUpperCase();
