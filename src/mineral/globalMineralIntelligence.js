@@ -98,7 +98,7 @@ function createPanel() {
     '  <span>MODE</span><b data-role="mode">TRUE MULTISOURCE</b>',
     '</div>',
     '<div data-role="source-status" class="gem-global-source-status"></div>',
-    '<div class="gem-global-section-title gem-global-evidence-title">GEOSCIENCE EVIDENCE</div>',
+    '<div class="gem-global-section-title gem-global-evidence-title">MULTISOURCE EVIDENCE</div>',
     '<div data-role="evidence-status" class="gem-global-evidence-status"></div>',
     '<div data-role="metrics" class="gem-global-metrics">',
     '  <div><b data-metric="features">0</b><span>reference records</span></div>',
@@ -132,8 +132,10 @@ function renderEvidenceStatus(panel, providerStatuses) {
   const entries = Object.values(providerStatuses || {});
   for (const status of entries) {
     const row = document.createElement('div');
+    const available = Boolean(status.ok);
+    const discovered = Number(status.discovered || 0) > 0;
     row.className =
-      'gem-global-source-row ' + (status.ok ? 'is-ok' : 'is-error');
+      'gem-global-source-row ' + (available ? 'is-ok' : discovered ? 'is-warning' : 'is-error');
 
     const dot = document.createElement('i');
     const name = document.createElement('span');
@@ -141,7 +143,11 @@ function renderEvidenceStatus(panel, providerStatuses) {
 
     name.textContent =
       status.sourceName || status.sourceId || 'Evidence source';
-    state.textContent = status.ok ? 'READY' : 'OFF';
+    state.textContent = available
+      ? 'READY'
+      : discovered
+        ? 'FOUND'
+        : 'OFF';
 
     row.append(dot, name, state);
     host.append(row);
@@ -466,7 +472,7 @@ export function createGlobalMineralIntelligence({
         {
           fetchImpl,
           signal: scanController.signal,
-          maxGeologyTargets: isGlobal ? 384 : 256,
+          maxGeologyTargets: isGlobal ? 96 : 64,
         },
       );
       if (destroyed || scanController.signal.aborted) return state;
