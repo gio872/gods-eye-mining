@@ -4,10 +4,12 @@ import { installMineralIntelligenceCenter } from './ui/mineralIntelligenceCenter
 import { createGlobalMineralIntelligence } from './mineral/globalMineralIntelligence.js';
 import { installGemDecisionCenter } from './ui/gemDecisionCenter.js';
 import { installGemAssetIntelligenceCenter } from './ui/gemAssetIntelligenceCenter.js';
+import { installGemInvestorIntelligence } from './ui/gemInvestorIntelligence.js';
 
 installMineralIntelligenceCenter();
 installGemDecisionCenter();
 installGemAssetIntelligenceCenter();
+installGemInvestorIntelligence();
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
