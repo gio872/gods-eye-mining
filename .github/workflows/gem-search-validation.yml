@@ -1,0 +1,45 @@
+name: GEM search validation
+
+on:
+  push:
+    branches:
+      - feature/global-mineral-intelligence
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.14.0
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run GEM search tests
+        run: node --test src/mineral/globalMineralSearch.test.mjs
+
+      - name: Check GEM search syntax
+        shell: bash
+        run: |
+          node --check src/mineral/globalMineralSearch.js
+          node --check src/mineral/globalMineralIntelligence.js
+          node --check src/mineral/trueProspectivity.js
+
+      - name: Remove one-shot validator
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/gem-search-validation.yml
+          git commit -m "chore: remove one-shot GEM search validator"
+          git push
