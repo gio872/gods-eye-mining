@@ -260,3 +260,15 @@ html[data-product="GEM Mineral Intelligence Center"] .gem-global-intel-panel{
 @media(prefers-reduced-motion:reduce){
   .gem-global-intel-panel *{transition:none!important;animation:none!important}
 }
+
+.gem-global-metrics > div:last-child {
+  grid-column: 1 / -1;
+}
+.gem-global-evidence-title {
+  margin-top: 10px;
+}
+.gem-global-evidence-status {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(71, 233, 255, 0.08);
+}
