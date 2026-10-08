@@ -523,7 +523,7 @@ function openGemAccountModal() {
   document.querySelector('.gem-account-overlay')?.remove();
   const overlay = document.createElement('div');
   overlay.className = 'gem-account-overlay';
-  overlay.innerHTML = \`
+  overlay.innerHTML = `
     <section class="gem-account-dialog" role="dialog" aria-modal="true" aria-labelledby="gem-account-title">
       <button class="gem-account-close" aria-label="Close">×</button>
       <div class="gem-account-brand"><span>G</span><div><b>TERRAQUEEN GEM</b><small>SECURE PARTICIPANT ACCESS</small></div></div>
@@ -532,7 +532,7 @@ function openGemAccountModal() {
       <p class="gem-account-intro">Create a secure profile to join the mining participant network. Paid access activates only after a payment provider confirms the subscription.</p>
       <div class="gem-account-status" data-account-status aria-live="polite">Checking account session…</div>
       <div data-account-body></div>
-    </section>\`;
+    </section>`;
   document.body.append(overlay);
   const body = overlay.querySelector('[data-account-body]');
   const status = overlay.querySelector('[data-account-status]');
@@ -548,7 +548,7 @@ function openGemAccountModal() {
   if (!document.getElementById(styleId)) {
     const style = document.createElement('style');
     style.id = styleId;
-    style.textContent = \`
+    style.textContent = `
       .gem-account-overlay{position:fixed;inset:0;z-index:25000;display:grid;place-items:center;padding:18px;background:rgba(0,5,10,.78);backdrop-filter:blur(18px);color:#eefaff;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
       .gem-account-dialog{position:relative;width:min(760px,100%);max-height:calc(100vh - 36px);overflow:auto;padding:30px;border:1px solid rgba(104,232,244,.25);border-radius:22px;background:linear-gradient(145deg,rgba(9,22,32,.98),rgba(3,9,15,.98));box-shadow:0 28px 100px rgba(0,0,0,.6),0 0 70px rgba(0,190,255,.08)}
       .gem-account-close{position:absolute;right:17px;top:14px;border:1px solid rgba(145,194,207,.2);border-radius:9px;background:rgba(255,255,255,.03);color:#cde9ee;width:34px;height:34px;font-size:22px;cursor:pointer}
@@ -559,7 +559,7 @@ function openGemAccountModal() {
       .gem-account-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.gem-account-field{display:grid;gap:6px;min-width:0}.gem-account-field.full{grid-column:1/-1}.gem-account-field label{color:#8ea9b3;font-size:9px}.gem-account-field input,.gem-account-field select{width:100%;box-sizing:border-box;min-width:0;border:1px solid rgba(145,194,207,.2);border-radius:10px;padding:12px;background:#07121b;color:#eefaff;outline:none;font-size:11px}.gem-account-field input:focus,.gem-account-field select:focus{border-color:rgba(104,232,244,.55)}.gem-account-submit{grid-column:1/-1;border:0;border-radius:10px;padding:13px;background:#dffcff;color:#07121b;font-size:10px;font-weight:900;letter-spacing:.08em;cursor:pointer;margin-top:5px}.gem-account-privacy{font-size:9px;color:#718b95;line-height:1.6;margin-top:12px}.gem-account-unverified{padding:12px;margin:12px 0;border:1px solid rgba(255,187,104,.32);border-radius:12px;background:rgba(255,187,104,.05);font-size:10px;color:#ffddb2}.gem-account-unverified p{line-height:1.6}.gem-account-unverified button{border:1px solid rgba(255,187,104,.4);border-radius:8px;background:rgba(255,187,104,.08);color:#ffddb2;padding:10px;font-size:9px;font-weight:800;cursor:pointer}.gem-account-submit:disabled,.gem-account-plan button:disabled{opacity:.42;cursor:not-allowed}
       .gem-account-profile{padding:15px;border:1px solid rgba(104,232,244,.2);border-radius:13px;background:rgba(104,232,244,.035)}.gem-account-profile h3{margin:0 0 5px;font-size:17px}.gem-account-profile p{font-size:10px;color:#9bb2bc}.gem-account-pill{display:inline-block;padding:5px 8px;border-radius:99px;border:1px solid rgba(104,232,244,.24);color:#68e8f4;font:800 8px ui-monospace,monospace}.gem-account-plans{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.gem-account-plan{border:1px solid rgba(145,194,207,.18);border-radius:12px;padding:13px;background:rgba(255,255,255,.025)}.gem-account-plan b{display:block;font-size:12px}.gem-account-plan strong{display:block;margin:8px 0;color:#68e8f4;font-size:20px}.gem-account-plan p{min-height:36px;font-size:9px;line-height:1.5;color:#8da7b0}.gem-account-plan button{width:100%;border:1px solid rgba(104,232,244,.3);border-radius:8px;background:rgba(104,232,244,.07);color:#c7fbff;padding:9px 5px;font-size:8px;font-weight:800;cursor:pointer}.gem-org-list{display:grid;gap:10px;margin-top:12px}.gem-org-card{border:1px solid rgba(104,232,244,.18);border-radius:13px;padding:14px;background:rgba(255,255,255,.02);margin-top:10px}.gem-org-card-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.gem-org-card-head h3{margin:9px 0 3px}.gem-org-card-head p{margin:0}.gem-org-role{font:800 8px ui-monospace,monospace;color:#8da8b2}.gem-org-meta{font-size:9px;color:#86a4ae;margin-top:10px;text-transform:capitalize}.gem-org-details{margin-top:13px;border-top:1px solid rgba(145,194,207,.14);padding-top:10px}.gem-org-details summary{cursor:pointer;color:#68e8f4;font-size:10px;font-weight:800}.gem-org-evidence-form,.gem-org-invite-form{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.gem-org-evidence-form label,.gem-org-invite-form label{display:grid;gap:5px;color:#8ea9b3;font-size:9px}.gem-org-evidence-form input,.gem-org-evidence-form select,.gem-org-invite-form input,.gem-org-invite-form select{min-width:0;box-sizing:border-box;width:100%;padding:9px;border:1px solid rgba(145,194,207,.2);border-radius:8px;background:#07121b;color:#eefaff;font-size:10px}.gem-org-evidence-form button,.gem-org-invite-form button{grid-column:1/-1;border:1px solid rgba(104,232,244,.3);border-radius:9px;background:rgba(104,232,244,.07);color:#c7fbff;padding:10px;font-size:9px;font-weight:800;cursor:pointer}.gem-org-invite-form{padding-top:12px;border-top:1px solid rgba(145,194,207,.12)}.gem-org-evidence-list{margin-top:10px}.gem-org-evidence-list>strong{font-size:9px}.gem-org-evidence-item{display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center;border-top:1px solid rgba(145,194,207,.1);padding:9px 0;font-size:9px;color:#b6cbd2}.gem-org-evidence-item small{display:block;color:#718c96;margin-top:3px}.gem-org-evidence-item a{color:#68e8f4;font-size:8px;text-decoration:none}..gem-account-footer{display:flex;gap:9px;margin-top:14px}.gem-account-footer button{flex:1;border:1px solid rgba(145,194,207,.18);border-radius:9px;background:transparent;color:#8fa9b3;padding:10px;cursor:pointer;font-size:9px}
       @media(max-width:480px){.gem-account-dialog{padding:22px 17px}.gem-account-form,.gem-account-plans{grid-template-columns:1fr}.gem-account-field.full,.gem-account-submit{grid-column:auto}}
-    \`;
+    `;
     document.head.append(style);
   }
 
@@ -606,18 +606,18 @@ function openGemAccountModal() {
   }
 
   function renderAuth(mode = 'register') {
-    body.innerHTML = \`
-      <div class="gem-account-tabs"><button data-mode="register" class="\${mode === 'register' ? 'is-active' : ''}">CREATE ACCOUNT</button><button data-mode="login" class="\${mode === 'login' ? 'is-active' : ''}">SIGN IN</button></div>
+    body.innerHTML = `
+      <div class="gem-account-tabs"><button data-mode="register" class="${mode === 'register' ? 'is-active' : ''}">CREATE ACCOUNT</button><button data-mode="login" class="${mode === 'login' ? 'is-active' : ''}">SIGN IN</button></div>
       <form class="gem-account-form" data-account-form>
-        \${mode === 'register' ? \`
+        ${mode === 'register' ? `
           <div class="gem-account-field full"><label>Full name</label><input name="fullName" autocomplete="name" required minlength="2" maxlength="120" placeholder="Your full name"></div>
           <div class="gem-account-field"><label>Organization</label><input name="organization" autocomplete="organization" maxlength="160" placeholder="Company (optional)"></div>
-          <div class="gem-account-field"><label>Country</label><input name="country" autocomplete="country-name" maxlength="80" placeholder="Country"></div>\` : ''}
+          <div class="gem-account-field"><label>Country</label><input name="country" autocomplete="country-name" maxlength="80" placeholder="Country"></div>` : ''}
         <div class="gem-account-field full"><label>Business email</label><input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@company.com"></div>
-        <div class="gem-account-field full"><label>Password \${mode === 'register' ? '(12 characters minimum)' : ''}</label><input name="password" type="password" autocomplete="\${mode === 'register' ? 'new-password' : 'current-password'}" required minlength="\${mode === 'register' ? '12' : '1'}" maxlength="256" placeholder="••••••••••••"></div>
-        <button class="gem-account-submit" type="submit">\${mode === 'register' ? 'CREATE SECURE ACCOUNT' : 'SIGN IN TO GEM'} →</button>
+        <div class="gem-account-field full"><label>Password ${mode === 'register' ? '(12 characters minimum)' : ''}</label><input name="password" type="password" autocomplete="${mode === 'register' ? 'new-password' : 'current-password'}" required minlength="${mode === 'register' ? '12' : '1'}" maxlength="256" placeholder="••••••••••••"></div>
+        <button class="gem-account-submit" type="submit">${mode === 'register' ? 'CREATE SECURE ACCOUNT' : 'SIGN IN TO GEM'} →</button>
       </form>
-      <div class="gem-account-privacy">Passwords are stored as salted scrypt hashes, never as plain text. Use a unique password. Membership payments are not processed by this initial account module.</div>\`;
+      <div class="gem-account-privacy">Passwords are stored as salted scrypt hashes, never as plain text. Use a unique password. Membership payments are not processed by this initial account module.</div>`;
     body.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => { status.classList.remove('is-visible'); renderAuth(button.dataset.mode); }));
     if(mode==='login'){
       const forgot=document.createElement('button');forgot.type='button';forgot.className='gem-account-secondary';forgot.textContent='FORGOT PASSWORD?';
