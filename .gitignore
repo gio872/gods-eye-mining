@@ -19,3 +19,6 @@ output/
 3d-models/
 pinokio/ENVIRONMENT
 pinokio/.installed
+
+# Private GEM accounts, subscriptions, and KYB documents.
+.gem-data/
