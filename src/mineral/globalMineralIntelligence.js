@@ -33,7 +33,9 @@ const WORLD_BBOX = Object.freeze({
 });
 
 function mineralSelectLabel(key) {
-  const entry = MINERAL_SEARCH_CATALOG.find((candidate) => candidate.key === key);
+  const entry = MINERAL_SEARCH_CATALOG.find(
+    (candidate) => candidate.key === key,
+  );
   return entry ? entry.label : mineralLabel('');
 }
 
@@ -157,7 +159,10 @@ function createPanel() {
     option.textContent = entry.label;
     mineralSelect.append(option);
   }
-  panel.insertBefore(search, panel.querySelector('[data-role="source-status"]'));
+  panel.insertBefore(
+    search,
+    panel.querySelector('[data-role="source-status"]'),
+  );
   return panel;
 }
 
@@ -536,7 +541,10 @@ export function createGlobalMineralIntelligence({
             ),
           )
         : rawFeatures;
-      const features = filterMineralFeatures(countryFeatures, search.mineralKey);
+      const features = filterMineralFeatures(
+        countryFeatures,
+        search.mineralKey,
+      );
       let candidateTargets = generateProspectivityCandidates(
         features,
         queryBox,
@@ -544,7 +552,11 @@ export function createGlobalMineralIntelligence({
           maxCells: isGlobal ? 2048 : 512,
         },
       );
-      if (search.area) candidateTargets = filterTargetsToCountry(candidateTargets, search.area);
+      if (search.area)
+        candidateTargets = filterTargetsToCountry(
+          candidateTargets,
+          search.area,
+        );
       candidateTargets = candidateTargets.map((target) =>
         attachRequestedCommodity(target, search.mineralKey),
       );
@@ -569,11 +581,15 @@ export function createGlobalMineralIntelligence({
           ? enrichedTargets
               .filter((target) => target.tier !== 'EXCLUDED')
               .slice(0, isGlobal ? 64 : 32)
-          : referenceTargets
-              .map((target) => attachRequestedCommodity({
-                ...target,
-                modelId: TARGET_MODEL_ID,
-              }, search.mineralKey));
+          : referenceTargets.map((target) =>
+              attachRequestedCommodity(
+                {
+                  ...target,
+                  modelId: TARGET_MODEL_ID,
+                },
+                search.mineralKey,
+              ),
+            );
       const summary = {
         ...buildEvidenceSummary(features, targets),
         candidateCount: candidateTargets.length,
@@ -589,7 +605,8 @@ export function createGlobalMineralIntelligence({
 
       dataSource.entities.removeAll();
 
-      for (const feature of features.slice(0, 3000)) addReferencePoint(dataSource, feature);
+      for (const feature of features.slice(0, 3000))
+        addReferencePoint(dataSource, feature);
       if (search.area) addCountryBoundary(dataSource, search.area);
       for (const target of targets) addTarget(dataSource, target);
 
@@ -765,14 +782,18 @@ export function createGlobalMineralIntelligence({
       .querySelector('[data-action="clear"]')
       .addEventListener('click', clearSearch);
     searchCountry?.addEventListener('change', () => {
-      if (searchStatus) searchStatus.textContent = 'READY · ' + searchCountry.value.toUpperCase();
+      if (searchStatus)
+        searchStatus.textContent =
+          'READY · ' + searchCountry.value.toUpperCase();
     });
     searchMineral?.addEventListener('change', () => {
       if (searchStatus)
         searchStatus.textContent =
           (searchCountry.value || 'GLOBAL').toUpperCase() +
           ' · ' +
-          (mineralSelectLabel(searchMineral.value) || mineralLabel('')).toUpperCase();
+          (
+            mineralSelectLabel(searchMineral.value) || mineralLabel('')
+          ).toUpperCase();
     });
     populateCountries();
     panel
@@ -849,7 +870,11 @@ export function createGlobalMineralIntelligence({
       const values = [];
       for (const pair of ring) values.push(Number(pair[0]), Number(pair[1]));
       dataSource.entities.add({
-        id: 'gem-country-boundary-' + String(index) + '-' + String(area.id || area.name || 'country'),
+        id:
+          'gem-country-boundary-' +
+          String(index) +
+          '-' +
+          String(area.id || area.name || 'country'),
         polyline: {
           positions: Cesium.Cartesian3.fromDegreesArray(values),
           width: 2,
