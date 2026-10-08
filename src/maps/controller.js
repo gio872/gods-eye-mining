@@ -20,6 +20,7 @@ export class MapSourceController {
       onError = null,
       requestRender = () => viewer?.scene?.requestRender?.(),
       createImageryLayer = (provider) => new Cesium.ImageryLayer(provider),
+      geeDataset = 'sentinel2',
     },
   ) {
     this.viewer = viewer;
@@ -35,6 +36,7 @@ export class MapSourceController {
     this._credits = createMapCredits(viewer);
     this._abort = new AbortController();
     this._imageryProviders = new Map();
+    this._geeDataset = geeDataset;
     this._terrainProviders = new Map();
     this._tilesets = new Map();
     this._ownedTilesets = new Set();
@@ -312,13 +314,31 @@ export class MapSourceController {
     return promise;
   }
 
+  setGeeDataset(dataset) {
+    const next = String(dataset || 'sentinel2').trim();
+    if (this._geeDataset === next) return;
+    this._geeDataset = next;
+    this._imageryProviders.delete('gee-global-eo');
+    if (this._activeId === 'gee-global-eo')
+      void this.setStack('gee-global-eo');
+    else this._emitChange('ready');
+  }
+
+  getGeeDataset() {
+    return this._geeDataset;
+  }
+
   _getImageryProvider(stack, visited = new Set()) {
     if (visited.has(stack.id))
       return Promise.reject(new Error('Map source fallback cycle'));
     return this._cached(this._imageryProviders, stack.id, async () => {
       const source = this._sources.get(stack.id);
       try {
-        const provider = await source.imagery({ signal: this._abort.signal });
+        const provider = await source.imagery({
+          signal: this._abort.signal,
+          dataset: this._geeDataset,
+          fetchImpl: globalThis.fetch,
+        });
         if (this._destroyed) this._dispose(provider);
         return { provider, effectiveStackId: stack.id, fallbackMessage: null };
       } catch (error) {
