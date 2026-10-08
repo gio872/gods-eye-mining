@@ -1,3 +1,5 @@
+import * as Cesium from 'cesium';
+
 /**
  * Google Earth Engine integration for GEM.
  *
@@ -75,7 +77,7 @@ export async function createGeeImagery({
       'Google Earth Engine gateway returned no imagery URL template',
     );
 
-  return new globalThis.Cesium.UrlTemplateImageryProvider({
+  return new Cesium.UrlTemplateImageryProvider({
     url: payload.urlTemplate,
     credit: payload.attribution || GEE_CONFIG.attribution,
   });
