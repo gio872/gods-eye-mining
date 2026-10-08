@@ -973,6 +973,16 @@ export async function enrichTargetsWithTrueProspectivity(
         geology.lithology &&
         /water|ice and glaciers/i.test(String(geology.lithology));
 
+      const targetMineralSystemGraph = buildMineralSystemGraph(target, {
+        commodity: target.requestedCommodity || (target.commodities && target.commodities[0]) || null,
+        geology: geology && geology.lithology ? geology.lithology : evidence.channels.geology,
+        structure: evidence.channels.structure,
+        spectral: evidence.channels.spectral,
+        geochemistry: evidence.channels.geochemistry,
+        geophysics: evidence.channels.geophysics,
+      });
+      const targetMineralSystem = graphSupportSummary(targetMineralSystemGraph);
+
       return {
         ...target,
         modelId: TRUE_PROSPECTIVITY_MODEL_ID,
@@ -1010,8 +1020,8 @@ export async function enrichTargetsWithTrueProspectivity(
           hardExcluded: Boolean(hardExcluded),
           detailResolved: detailedIndexes.includes(index),
           providerStatuses,
-          mineralSystem,
-          mineralSystemGraph,
+          mineralSystem: targetMineralSystem,
+          mineralSystemGraph: targetMineralSystemGraph,
           explorationPlan: buildExplorationPlan({
             channels: evidence.channels,
             targetScore: hardExcluded ? 0 : evidence.score,
