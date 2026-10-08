@@ -276,6 +276,7 @@
     "./server/gem-runtime-policy": "./server/gem/gemRuntimePolicy.js",
     "./server/gem-run-metadata": "./server/gem/gemRunMetadata.js",
     "./server/gem-resource-database": "./server/gem/gemResourceDatabase.js",
+    "./server/gem-resource-api": "./server/gem/gemResourceApi.js",
     "./mineral/exploration-learning": "./src/mineral/explorationLearning.js",
     "./mineral/government-intelligence": "./src/mineral/governmentMineralIntelligence.js",
     "./mineral/security-index": "./src/mineral/mineralSecurityIndex.js",
