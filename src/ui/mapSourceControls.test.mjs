@@ -63,6 +63,12 @@ function makeElement(tagName = 'div') {
 
 function fixture() {
   const container = makeElement();
+  const parent = makeElement();
+  parent.children = [container];
+  parent.querySelector = (selector) =>
+    parent.children.find((child) => selector === '[data-gee-dataset]' && child.dataset?.geeDataset === '1') || null;
+
+  container.parentElement = parent;
   container.ownerDocument = { createElement: (tag) => makeElement(tag) };
   const statusElement = makeElement();
   const sources = [
@@ -249,4 +255,30 @@ test('completion after destruction cannot paint or notify', async () => {
   assert.equal(f.calls.length, count);
   assert.equal(f.statusElement.textContent, label);
   assert.equal(await f.controls.select('osm'), null);
+});
+
+
+test('renders Earth Engine dataset control when GEE is active', async () => {
+  const f = fixture();
+  f.controller.getStacks = () => [
+    ...f.controller.getStacks(),
+    { id: 'gee-global-eo', label: 'Google Earth Engine' },
+  ];
+  f.controller.getActiveId = () => 'gee-global-eo';
+  f.controller.getState = (status) => ({
+    activeId: 'gee-global-eo',
+    activeStack: { label: 'Google Earth Engine' },
+    status: status || 'ready',
+  });
+  f.controller.setGeeDataset = (dataset) => {
+    f.calls.push(['gee-dataset', dataset]);
+  };
+  f.controller.getGeeDataset = () => 'sentinel2';
+  f.controls.refresh();
+  const geeControl = f.container.parentElement?.children?.find?.(
+    (element) => element.dataset?.geeDataset === '1',
+  );
+  assert.ok(geeControl);
+  assert.ok(geeControl.children.length >= 4);
+  f.controls.destroy();
 });
