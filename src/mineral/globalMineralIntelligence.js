@@ -10,6 +10,11 @@ import {
   resolveMineralSearch,
 } from './globalMineralSearch.js';
 import {
+  EARTHRISE_MINING_SOURCE,
+  earthriseMiningEvidence,
+  fetchEarthriseDetections,
+} from './earthriseMiningDetector.js';
+import {
   GLOBAL_MINERAL_SOURCES,
   queryMineralSources,
 } from './globalMineralSources.js';
@@ -280,6 +285,34 @@ function renderTargets(panel, targets) {
   }
 }
 
+function renderMiningActivity(panel, miningState) {
+  const host = panel.querySelector('[data-role="mining-activity"]');
+  if (!host) return;
+  host.replaceChildren();
+  const state = miningState || {};
+  const makeRow = (label, value) => {
+    const row = document.createElement('div');
+    const l = document.createElement('span');
+    const v = document.createElement('b');
+    l.textContent = label;
+    v.textContent = value;
+    row.append(l, v);
+    host.append(row);
+  };
+  if (state.phase === 'loading') {
+    makeRow('SOURCE', 'LOADING');
+    return;
+  }
+  makeRow('SOURCE', state.ok ? 'READY' : 'OFF');
+  makeRow('DETECTIONS', Number(state.detectionCount || 0).toLocaleString());
+  makeRow('CONFIRMED', Number(state.confirmedCount || 0).toLocaleString());
+  makeRow(
+    'NEAREST',
+    state.nearestDistanceKm == null ? '—' : state.nearestDistanceKm.toFixed(1) + ' km',
+  );
+  makeRow('MODEL', state.model || EARTHRISE_MINING_SOURCE.model);
+}
+
 function updatePanel(
   panel,
   summary,
@@ -287,6 +320,7 @@ function updatePanel(
   targets,
   phase,
   providerStatuses = {},
+  miningState = {},
 ) {
   panel
     .querySelector('[data-role="status-dot"]')
@@ -300,6 +334,7 @@ function updatePanel(
 
   renderSourceStatus(panel, statuses);
   renderEvidenceStatus(panel, providerStatuses);
+  renderMiningActivity(panel, miningState);
 
   appendText(
     panel.querySelector('[data-metric="features"]'),
@@ -461,6 +496,7 @@ export function createGlobalMineralIntelligence({
     summary: buildEvidenceSummary([], []),
     statuses: [],
     providerStatuses: {},
+    miningState: { phase: 'idle', ok: false, source: EARTHRISE_MINING_SOURCE.id },
     reason: 'initial',
     updatedAt: null,
     search: {
@@ -483,6 +519,7 @@ export function createGlobalMineralIntelligence({
           summary: state.summary,
           statuses: state.statuses,
           providerStatuses: state.providerStatuses,
+          miningState: state.miningState,
           targets: state.targets,
           search: state.search,
         }),
@@ -531,6 +568,12 @@ export function createGlobalMineralIntelligence({
         maxPages: isGlobal ? globalPages : viewportPages,
       });
 
+      const miningPromise = fetchEarthriseDetections({ fetchImpl, signal }).catch((error) => ({
+        source: EARTHRISE_MINING_SOURCE,
+        detections: [],
+        ok: false,
+        error,
+      }));
       const rawFeatures = results.flatMap((result) => result.features);
       const countryFeatures = search.area
         ? rawFeatures.filter((feature) =>
@@ -560,6 +603,15 @@ export function createGlobalMineralIntelligence({
       candidateTargets = candidateTargets.map((target) =>
         attachRequestedCommodity(target, search.mineralKey),
       );
+      const earthrise = await miningPromise;
+      const activityTargets = candidateTargets.map((target) => ({
+        target,
+        evidence: earthrise.ok ? earthriseMiningEvidence(target, earthrise.detections) : null,
+      }));
+      for (const entry of activityTargets) {
+        if (entry.evidence?.score == null) continue;
+        entry.target.miningActivityEvidence = entry.evidence;
+      }
       const enrichment = await enrichTargetsWithTrueProspectivity(
         candidateTargets,
         {
@@ -618,6 +670,14 @@ export function createGlobalMineralIntelligence({
         summary,
         statuses,
         providerStatuses: enrichment.providerStatuses,
+        miningState: {
+          phase: earthrise.ok ? 'ready' : 'error',
+          ok: earthrise.ok,
+          source: EARTHRISE_MINING_SOURCE.id,
+          model: EARTHRISE_MINING_SOURCE.model,
+          detectionCount: earthrise.detections.length,
+          confirmedCount: earthrise.detections.filter((entry) => entry.confirmed).length,
+        },
         reason: reason || 'manual',
         updatedAt: new Date().toISOString(),
         search,
@@ -630,6 +690,7 @@ export function createGlobalMineralIntelligence({
         targets,
         'ready',
         enrichment.providerStatuses,
+        nextState.miningState,
       );
       publish(nextState);
       viewer.scene && viewer.scene.requestRender
