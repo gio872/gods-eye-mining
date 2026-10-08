@@ -137,9 +137,7 @@ const LITHOLOGY_PRIORS = Object.freeze({
   }),
 });
 
-const SUPPORTED_COMMODITIES = Object.freeze(
-  Object.keys(LITHOLOGY_PRIORS),
-);
+const SUPPORTED_COMMODITIES = Object.freeze(Object.keys(LITHOLOGY_PRIORS));
 
 const COMMODITY_ALIASES = Object.freeze({
   au: 'gold',
@@ -515,9 +513,7 @@ export function geologyScore(lithology, target, options = {}) {
         ? inferred
         : SUPPORTED_COMMODITIES;
 
-  const scores = Object.values(
-    geologyScoresByCommodity(lithology, requested),
-  );
+  const scores = Object.values(geologyScoresByCommodity(lithology, requested));
   if (!scores.length) return 50;
 
   return (
