@@ -39,10 +39,11 @@ const target = {
   assert.equal(result.modelId, TRUE_PROSPECTIVITY_MODEL_ID);
   assert.equal(result.mode, 'MULTIMODAL_FUSION');
   assert.ok(result.score > 70);
-  assert.ok(result.coverage > 90);
+  assert.equal(result.coverage, 100);
   assert.ok(result.confidence > 60);
   assert.deepEqual(
     Object.keys(result.channels).sort(),
-    ['geology', 'geophysics', 'structure', 'terrain'],
+    ['geology', 'geophysics', 'structure'],
   );
+  assert.equal(result.diagnostics.terrain.localReliefM, 220);
 }
