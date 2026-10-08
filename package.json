@@ -262,6 +262,8 @@
     "./mineral/earthrise": "./src/mineral/earthriseMiningDetector.js",
     "./mineral/triage": "./src/mineral/miningOpportunity.js",
     "./mineral/discovery-engine": "./src/mineral/mineralDiscoveryEngine.js",
-    "./mineral/exploration-optimizer": "./src/mineral/explorationOptimizer.js"
+    "./mineral/exploration-optimizer": "./src/mineral/explorationOptimizer.js",
+    "./mineral/mineral-system-kg": "./src/mineral/mineralSystemKnowledgeGraph.js",
+    "./mineral/hierarchical-target-engine": "./src/mineral/hierarchicalTargetEngine.js"
   }
 }
