@@ -281,7 +281,9 @@
     "./mineral/data-ingestion": "./src/mineral/globalMineralDataIngestion.js",
     "./mineral/global-knowledge-graph": "./src/mineral/globalMineralKnowledgeGraph.js",
     "./mineral/supplier-registry": "./src/mineral/globalSupplierRegistry.js",
-    "./mineral/supplier-discovery": "./src/mineral/supplierDiscoveryEngine.js"
+    "./mineral/supplier-discovery": "./src/mineral/supplierDiscoveryEngine.js",
+    "./mineral/refinery-registry": "./src/mineral/globalRefineryRegistry.js",
+    "./mineral/financial-traceability": "./src/mineral/financialTraceability.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
