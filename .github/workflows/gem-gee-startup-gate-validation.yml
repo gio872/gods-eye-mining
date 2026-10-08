@@ -1,0 +1,36 @@
+name: GEM GEE startup gate validation
+
+on:
+  push:
+    branches:
+      - feature/global-mineral-intelligence
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.14.0
+          cache: npm
+      - run: npm ci
+      - run: |
+          node --check src/app/scene.js
+          node --check src/maps/geeImagery.js
+          node --check scripts/pinokio-start.mjs
+          python -m py_compile server/providers/earthengine_gateway.py
+          node --test src/ui/mapSourceControls.test.mjs
+      - run: npm run build
+      - name: remove
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/gem-gee-startup-gate-validation.yml
+          git commit -m "chore: remove one-shot GEE startup gate validator"
+          git push
