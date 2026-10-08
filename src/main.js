@@ -5,11 +5,14 @@ import { createGlobalMineralIntelligence } from './mineral/globalMineralIntellig
 import { installGemDecisionCenter } from './ui/gemDecisionCenter.js';
 import { installGemAssetIntelligenceCenter } from './ui/gemAssetIntelligenceCenter.js';
 import { installGemInvestorIntelligence } from './ui/gemInvestorIntelligence.js';
+import { detectGemLocale, applyGemLocale } from './i18n/gemLocale.js';
 
 installMineralIntelligenceCenter();
 installGemDecisionCenter();
 installGemAssetIntelligenceCenter();
 installGemInvestorIntelligence();
+
+detectGemLocale().then(applyGemLocale).catch(() => applyGemLocale({ locale: 'en-US', language: 'en', country: null, languageName: 'English', direction: 'ltr', source: 'fallback' }));
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
