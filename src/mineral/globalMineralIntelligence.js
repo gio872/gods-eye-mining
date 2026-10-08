@@ -187,7 +187,7 @@ function renderTargets(panel, targets) {
   if (!targets.length) {
     const empty = document.createElement('div');
     empty.className = 'gem-global-empty';
-    empty.textContent = 'No reference targets in this view.';
+    empty.textContent = 'No prospectivity targets in this view.';
     host.append(empty);
     return;
   }
@@ -273,7 +273,7 @@ function updatePanel(
       ? 'Acquiring public mineral reference data…'
       : phase === 'error'
         ? 'Source acquisition failed. Review source status and retry.'
-        : 'Reference-data ranking only. Add geology, geophysics, geochemistry and spectral evidence before field decisions.';
+        : 'Discovery Engine: reference + geology + magnetics/structure + real geochemistry + Sentinel-2/EnMAP spectral evidence. EMIT L2BMIN activates at pixel level when authenticated Earthdata access is available.';
 }
 
 function addReferencePoint(dataSource, feature) {
