@@ -467,6 +467,10 @@ export function createGlobalMineralIntelligence({
     scheduleCameraScan();
   }
 
+  function onRunAnalysis() {
+    scan(currentBBox(viewer), "manual");
+  }
+
   function mount() {
     if (destroyed) return api;
     document.body.append(panel);
@@ -514,6 +518,7 @@ export function createGlobalMineralIntelligence({
 
     if (viewer.camera && viewer.camera.moveEnd)
       viewer.camera.moveEnd.addEventListener(onCameraChanged);
+    document.addEventListener("gem:run-global-analysis", onRunAnalysis);
 
     updatePanel(
       panel,
@@ -536,6 +541,7 @@ export function createGlobalMineralIntelligence({
     if (scanTimer) clearTimeout(scanTimer);
     if (viewer.camera && viewer.camera.moveEnd)
       viewer.camera.moveEnd.removeEventListener(onCameraChanged);
+    document.removeEventListener("gem:run-global-analysis", onRunAnalysis);
 
     viewer.dataSources.remove(dataSource, true);
     panel.remove();
