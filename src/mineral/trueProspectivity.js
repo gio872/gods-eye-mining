@@ -1,4 +1,4 @@
-import { fuseEvidence, EVIDENCE_CHANNELS } from './evidenceFusion.js';
+import { fuseEvidence } from './evidenceFusion.js';
 
 export const TRUE_PROSPECTIVITY_MODEL_ID = 'GEM-TRUE-MULTISOURCE-01';
 
@@ -35,11 +35,9 @@ export const PROSPECTIVITY_SOURCES = Object.freeze({
 
 export const TRUE_PROSPECTIVITY_WEIGHTS = Object.freeze({
   reference: 0.2,
-  geology: 0.3,
-  geophysics: 0.25,
-  structure: 0.1,
-  spectral: 0.1,
-  terrain: 0.05,
+  geology: 0.35,
+  geophysics: 0.3,
+  structure: 0.15,
 });
 
 const LITHOLOGY_PRIORS = Object.freeze({
@@ -466,10 +464,8 @@ export function computeTrueEvidence(
     if (magnetics.structure != null) channels.structure = magnetics.structure;
     diagnostics.magnetics = magnetics;
   }
-  if (terrain && terrain.terrain != null) {
-    channels.terrain = terrain.terrain;
+  if (terrain && terrain.terrain != null)
     diagnostics.terrain = terrain;
-  }
 
   const fusion = fuseEvidence(target.score, channels, {
     weights: TRUE_PROSPECTIVITY_WEIGHTS,
@@ -679,8 +675,4 @@ export const DEFAULT_TRUE_CHANNELS = Object.freeze([
   'geology',
   'geophysics',
   'structure',
-  'spectral',
-  'terrain',
 ]);
-
-export { EVIDENCE_CHANNELS };
