@@ -1,6 +1,16 @@
 import { fuseEvidence } from './evidenceFusion.js';
+import {
+  EARTH_OBSERVATION_SOURCES,
+  enrichSpectralEvidence,
+} from './earthObservationEvidence.js';
+import {
+  GEOCHEMISTRY_SOURCES,
+  geochemistryScore,
+  queryGeochemistry,
+} from './geochemistry.js';
 
 export const TRUE_PROSPECTIVITY_MODEL_ID = 'GEM-TRUE-MULTISOURCE-01';
+export const TRUE_PROSPECTIVITY_VERSION = '2.0.0';
 
 export const PROSPECTIVITY_SOURCES = Object.freeze({
   geology: Object.freeze({
@@ -31,13 +41,19 @@ export const PROSPECTIVITY_SOURCES = Object.freeze({
     scaleNote:
       'Global elevation source used only for weak terrain/surface-expression context.',
   }),
+  sentinel2: EARTH_OBSERVATION_SOURCES.sentinel2,
+  enmap: EARTH_OBSERVATION_SOURCES.enmap,
+  emit: EARTH_OBSERVATION_SOURCES.emit,
+  geochemistry: GEOCHEMISTRY_SOURCES.cmio,
 });
 
 export const TRUE_PROSPECTIVITY_WEIGHTS = Object.freeze({
-  reference: 0.2,
-  geology: 0.35,
-  geophysics: 0.3,
-  structure: 0.15,
+  reference: 0.1,
+  geology: 0.2,
+  geophysics: 0.2,
+  structure: 0.05,
+  geochemistry: 0.2,
+  spectral: 0.25,
 });
 
 const LITHOLOGY_PRIORS = Object.freeze({
@@ -548,7 +564,7 @@ export function rankLithologyCommodities(
 
 export function computeTrueEvidence(
   target,
-  { geology, magnetics, terrain } = {},
+  { geology, magnetics, terrain, geochemistry, spectral } = {},
 ) {
   const channels = {};
   const diagnostics = {};
@@ -564,6 +580,14 @@ export function computeTrueEvidence(
     diagnostics.magnetics = magnetics;
   }
   if (terrain && terrain.terrain != null) diagnostics.terrain = terrain;
+  if (geochemistry && geochemistry.score != null) {
+    channels.geochemistry = geochemistry.score;
+    diagnostics.geochemistry = geochemistry;
+  }
+  if (spectral && spectral.spectral != null) {
+    channels.spectral = spectral.spectral;
+    diagnostics.spectral = spectral;
+  }
 
   const fusion = fuseEvidence(target.score, channels, {
     weights: TRUE_PROSPECTIVITY_WEIGHTS,
@@ -571,6 +595,7 @@ export function computeTrueEvidence(
 
   return {
     modelId: TRUE_PROSPECTIVITY_MODEL_ID,
+    version: TRUE_PROSPECTIVITY_VERSION,
     score: fusion.score,
     confidence: fusion.confidence,
     coverage: fusion.coverage,
@@ -578,7 +603,7 @@ export function computeTrueEvidence(
     channels,
     diagnostics,
     interpretation:
-      'Multisource geological prospectivity ranking. The score is a model inference and is not a probability of discovery or a resource estimate.',
+      'Mineral Discovery Engine ranking from reference, geology, geophysics, geochemistry and surface-spectral evidence. The score is a deterministic model inference, not a calibrated probability of discovery, resource, reserve or grade estimate.',
   };
 }
 
@@ -612,7 +637,10 @@ export async function enrichTargetsWithTrueProspectivity(
     fetchImpl = globalThis.fetch,
     signal,
     concurrency = DEFAULT_CONCURRENCY,
-    maxGeologyTargets = 384,
+    maxGeologyTargets = 96,
+    geochemistryRadiusDegrees = 0.65,
+    geochemistryMaxFeatures = 64,
+    emitSampler,
   } = {},
 ) {
   if (!Array.isArray(targets) || !targets.length)
@@ -712,6 +740,26 @@ export async function enrichTargetsWithTrueProspectivity(
       queryGlmLithology(target, { fetchImpl, signal }),
     ),
   ]);
+  const multisourceResults = await mapWithConcurrency(
+    detailedTargets,
+    Math.max(1, Math.min(concurrency, 6)),
+    async (target) => {
+      const [geochemistryResult, spectralResult] = await Promise.all([
+        queryGeochemistry(target, {
+          fetchImpl,
+          signal,
+          radiusDegrees: geochemistryRadiusDegrees,
+          maxFeatures: geochemistryMaxFeatures,
+        }),
+        enrichSpectralEvidence(target, {
+          fetchImpl,
+          signal,
+          emitSampler,
+        }),
+      ]);
+      return { geochemistryResult, spectralResult };
+    },
+  );
 
   const byTargetMagnetic = new Map();
   for (let index = 0; index < magneticResult.samples.length; index += 1) {
@@ -733,6 +781,10 @@ export async function enrichTargetsWithTrueProspectivity(
   for (let index = 0; index < geologyResults.length; index += 1)
     geologyByIndex.set(detailedIndexes[index], geologyResults[index]);
 
+  const multisourceByIndex = new Map();
+  for (let index = 0; index < multisourceResults.length; index += 1)
+    multisourceByIndex.set(detailedIndexes[index], multisourceResults[index]);
+
   const providerStatuses = {
     geology: {
       ok: geologyResults.some((result) => result && result.ok),
@@ -744,6 +796,52 @@ export async function enrichTargetsWithTrueProspectivity(
       sourceId: PROSPECTIVITY_SOURCES.magnetics.id,
       sourceName: PROSPECTIVITY_SOURCES.magnetics.name,
     },
+    geochemistry: {
+      ok: multisourceResults.some(
+        (result) =>
+          result &&
+          result.geochemistryResult &&
+          result.geochemistryResult.ok &&
+          result.geochemistryResult.samples.length > 0,
+      ),
+      sourceId: GEOCHEMISTRY_SOURCES.cmio.id,
+      sourceName: GEOCHEMISTRY_SOURCES.cmio.name,
+    },
+    spectral: {
+      ok: multisourceResults.some(
+        (result) => result && result.spectralResult && result.spectralResult.spectral != null,
+      ),
+      sourceId: 'gem-spectral-composite',
+      sourceName: 'EMIT + Sentinel-2 + EnMAP spectral composite',
+    },
+    sentinel2: {
+      ok: multisourceResults.some(
+        (result) => result && result.spectralResult && result.spectralResult.sentinel2 && result.spectralResult.sentinel2.ok,
+      ),
+      sourceId: EARTH_OBSERVATION_SOURCES.sentinel2.id,
+      sourceName: EARTH_OBSERVATION_SOURCES.sentinel2.name,
+    },
+    enmap: {
+      ok: multisourceResults.some(
+        (result) => result && result.spectralResult && result.spectralResult.enmap && result.spectralResult.enmap.ok,
+      ),
+      sourceId: EARTH_OBSERVATION_SOURCES.enmap.id,
+      sourceName: EARTH_OBSERVATION_SOURCES.enmap.name,
+    },
+    emit: {
+      ok: multisourceResults.some(
+        (result) => result && result.spectralResult && result.spectralResult.emit && result.spectralResult.emit.ok,
+      ),
+      discovered: multisourceResults.filter(
+        (result) =>
+          result &&
+          result.spectralResult &&
+          result.spectralResult.emit &&
+          result.spectralResult.emit.status === 'AUTH_REQUIRED',
+      ).length,
+      sourceId: EARTH_OBSERVATION_SOURCES.emit.id,
+      sourceName: EARTH_OBSERVATION_SOURCES.emit.name,
+    },
     terrain: {
       ok: terrainResult.ok && terrainResult.samples.length > 0,
       sourceId: PROSPECTIVITY_SOURCES.terrain.id,
@@ -754,6 +852,15 @@ export async function enrichTargetsWithTrueProspectivity(
   const enrichedTargets = targets
     .map((target, index) => {
       const geology = geologyByIndex.get(index) || null;
+      const multisource = multisourceByIndex.get(index) || null;
+      const geochemistry =
+        multisource && multisource.geochemistryResult && multisource.geochemistryResult.ok
+          ? geochemistryScore(target, multisource.geochemistryResult.samples)
+          : null;
+      const spectral =
+        multisource && multisource.spectralResult
+          ? multisource.spectralResult
+          : null;
       const magnetics = detailedIndexes.includes(index)
         ? magneticScore(byTargetMagnetic.get(target.id) || [], target)
         : centerMagneticScores[index] != null
@@ -775,6 +882,8 @@ export async function enrichTargetsWithTrueProspectivity(
         geology,
         magnetics,
         terrain,
+        geochemistry,
+        spectral,
       });
 
       const hardExcluded =
@@ -807,6 +916,12 @@ export async function enrichTargetsWithTrueProspectivity(
           ...(evidence.channels.structure != null
             ? { structure: Math.round(evidence.channels.structure) }
             : {}),
+          ...(evidence.channels.geochemistry != null
+            ? { geochemistry: Math.round(evidence.channels.geochemistry) }
+            : {}),
+          ...(evidence.channels.spectral != null
+            ? { spectral: Math.round(evidence.channels.spectral) }
+            : {}),
         },
         trueProspectivity: {
           ...evidence,
@@ -833,4 +948,6 @@ export const DEFAULT_TRUE_CHANNELS = Object.freeze([
   'geology',
   'geophysics',
   'structure',
+  'geochemistry',
+  'spectral',
 ]);
