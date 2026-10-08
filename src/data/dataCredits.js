@@ -93,6 +93,25 @@ export function hideOsmCredit(viewer, owner) {
 
 export const GEM_MINERAL_INTELLIGENCE_CREDITS = [
   {
+    key: 'global-glim-lithology',
+    html:
+      'Global lithology: ' +
+      '<a href="https://services8.arcgis.com/4KhTMTZ1x0f76DSg/arcgis/rest/services/GLiM_Niveau_I/FeatureServer/1" target="_blank" rel="noopener">Global Lithological Map (GLiM v1.1)</a> · Hartmann &amp; Moosdorf',
+  },
+  {
+    key: 'emag2v3',
+    html:
+      'Global magnetic evidence: ' +
+      '<a href="https://gis.ngdc.noaa.gov/arcgis/rest/services/EMAG2v3/ImageServer" target="_blank" rel="noopener">NOAA/NCEI EMAG2v3 Earth Magnetic Anomaly Grid</a>',
+  },
+  {
+    key: 'world-elevation3d',
+    html:
+      'Terrain context: ' +
+      '<a href="https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer" target="_blank" rel="noopener">ArcGIS World Elevation 3D</a>',
+  },
+
+  {
     key: 'usgs-mrds-mineral-intelligence',
     html:
       'Mineral reference occurrences: ' +
