@@ -1,12 +1,15 @@
 module.exports = {
   version: "1.0",
   title: "Install GEM",
-  description: "Install GEM — Global Exploration & Mineral Intelligence System",
+  description: "Install GEM without Python or Earth Engine prerequisites",
   run: [
     {
       method: "shell.run",
       params: {
-        message: "node scripts/pinokio-install.mjs"
+        message: [
+          "npm ci --ignore-scripts",
+          "node -e \"console.log('[GEM] Node dependencies installed successfully.')\""
+        ]
       }
     }
   ]
