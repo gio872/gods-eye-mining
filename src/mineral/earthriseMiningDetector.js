@@ -1,11 +1,10 @@
 /**
  * Earthrise Mining Detector adapter for GEM.
  *
- * This module consumes the public Amazon Mining Watch products published by
- * Earth Genome / Earthrise and converts them into an auditable evidence layer.
- * It does not embed TensorFlow/SAM2 in the browser.
+ * Public Amazon Mining Watch products are used as an external mining-activity
+ * evidence layer. The detector is Amazon-focused; outside its published
+ * footprint the provider reports NOT_COVERED rather than "no mining".
  */
-
 export const EARTHRISE_MINING_SOURCE = Object.freeze({
   id: 'earthrise-amazon-mining-watch',
   name: 'Earthrise Amazon Mining Watch',
@@ -17,9 +16,9 @@ export const EARTHRISE_MINING_SOURCE = Object.freeze({
     'https://data.source.coop/earthgenome/amazon-mining-watch/amazon_basin_mining_scar_masks.tif',
   license: 'CC-BY-4.0',
   codeLicense: 'MIT',
-  model:
-    '48px_v4.10b-18d-20g-21a-22bc-ensemble',
+  model: '48px_v4.10b-18d-20g-21a-22bc-ensemble',
   years: Object.freeze([2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]),
+  coverageName: 'Amazon basin + Andes supplemental',
 });
 
 function finite(value) {
@@ -54,14 +53,10 @@ function normalizeDetection(feature) {
   if (!point) return null;
   const properties = feature.properties || {};
   const onsetYear = finite(
-    properties.onset_year ??
-      properties.year ??
-      properties.start_year,
+    properties.onset_year ?? properties.year ?? properties.start_year,
   );
   const confidence = finite(
-    properties.confidence ??
-      properties.prediction ??
-      properties.score,
+    properties.confidence ?? properties.prediction ?? properties.score,
   );
   return {
     ...point,
@@ -91,8 +86,8 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
   if (!nearby.length) {
     return {
       score: null,
-      coverage: 0,
-      activity: 'none',
+      coverage: 100,
+      activity: 'none_observed',
       detectionCount: 0,
       confirmedCount: 0,
       nearestDistanceKm: null,
@@ -104,9 +99,16 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
   const weighted = nearby.reduce(
     (sum, entry) =>
       sum +
-      Math.exp(-((entry.distanceKm / Math.max(0.75, radiusKm * 0.55)) ** 2)) *
+      Math.exp(
+        -(
+          entry.distanceKm /
+          Math.max(0.75, radiusKm * 0.55)
+        ) ** 2,
+      ) *
         (entry.confirmed ? 1 : 0.65) *
-        (entry.confidence == null ? 1 : Math.max(0, Math.min(1, entry.confidence))),
+        (entry.confidence == null
+          ? 1
+          : Math.max(0, Math.min(1, entry.confidence))),
     0,
   );
   const score = Math.min(100, weighted * 62);
@@ -127,6 +129,19 @@ export function earthriseMiningEvidence(target, detections, options = {}) {
     ].sort((a, b) => a - b),
     source: EARTHRISE_MINING_SOURCE.id,
   };
+}
+
+export function earthriseCoverageForPoint(latitude, longitude) {
+  const lat = finite(latitude);
+  const lon = finite(longitude);
+  if (lat == null || lon == null) return 'unknown';
+
+  // Published Earthrise product is the Amazon basin product. This conservative
+  // envelope prevents GEM from implying global coverage; a future boundary
+  // pack can replace it with exact Amazon/Andes polygons.
+  const amazonEnvelope =
+    lat >= -20 && lat <= 8 && lon >= -82 && lon <= -44;
+  return amazonEnvelope ? 'covered' : 'not_covered';
 }
 
 export async function fetchEarthriseDetections({
