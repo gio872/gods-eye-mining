@@ -173,3 +173,6 @@ GEM should distinguish three states:
 - Model inference: scores or interpretations produced by GEM.
 
 The user interface must show which state a value belongs to. GEM must never represent a derived/model value as if it were a measured mineral occurrence or a confirmed deposit.
+## Engineering status
+
+The True Multisource layer is implemented as a separable evidence pipeline so model calibration can evolve without changing the GIS presentation contract.
