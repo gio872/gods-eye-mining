@@ -8,6 +8,11 @@ import {
   generateGlobalTargets,
   TARGET_MODEL_ID,
 } from './globalTargetEngine.js';
+import {
+  enrichTargetsWithTrueProspectivity,
+  PROSPECTIVITY_SOURCES,
+  TRUE_PROSPECTIVITY_MODEL_ID,
+} from './trueProspectivity.js';
 
 const DATA_SOURCE_NAME = 'GEM Global Mineral Intelligence';
 const WORLD_BBOX = Object.freeze({
@@ -93,6 +98,7 @@ function createPanel() {
     '  <span>MODE</span><b data-role="mode">REFERENCE DATA</b>',
     '</div>',
     '<div data-role="source-status" class="gem-global-source-status"></div>',
+    '<div data-role="evidence-status" class="gem-global-evidence-status"></div>',
     '<div data-role="metrics" class="gem-global-metrics">',
     '  <div><b data-metric="features">0</b><span>reference records</span></div>',
     '  <div><b data-metric="targets">0</b><span>targets generated</span></div>',
@@ -110,8 +116,33 @@ function createPanel() {
     '</div>',
     '<div data-role="note" class="gem-global-note"></div>',
   ].join('');
-  appendText(panel.querySelector('[data-role="model"]'), TARGET_MODEL_ID);
+  appendText(
+    panel.querySelector('[data-role="model"]'),
+    TRUE_PROSPECTIVITY_MODEL_ID,
+  );
   return panel;
+}
+
+function renderEvidenceStatus(panel, providerStatuses) {
+  const host = panel.querySelector('[data-role="evidence-status"]');
+  host.replaceChildren();
+
+  const entries = Object.values(providerStatuses || {});
+  for (const status of entries) {
+    const row = document.createElement('div');
+    row.className =
+      'gem-global-source-row ' + (status.ok ? 'is-ok' : 'is-error');
+
+    const dot = document.createElement('i');
+    const name = document.createElement('span');
+    const state = document.createElement('b');
+
+    name.textContent = status.sourceName || status.sourceId || 'Evidence source';
+    state.textContent = status.ok ? 'READY' : 'OFF';
+
+    row.append(dot, name, state);
+    host.append(row);
+  }
 }
 
 function renderSourceStatus(panel, statuses) {
@@ -179,7 +210,14 @@ function renderTargets(panel, targets) {
   }
 }
 
-function updatePanel(panel, summary, statuses, targets, phase) {
+function updatePanel(
+  panel,
+  summary,
+  statuses,
+  targets,
+  phase,
+  providerStatuses = {},
+) {
   panel
     .querySelector('[data-role="status-dot"]')
     .classList.toggle('is-busy', phase === 'scanning');
@@ -191,6 +229,7 @@ function updatePanel(panel, summary, statuses, targets, phase) {
     );
 
   renderSourceStatus(panel, statuses);
+  renderEvidenceStatus(panel, providerStatuses);
 
   appendText(
     panel.querySelector('[data-metric="features"]'),
@@ -330,6 +369,7 @@ export function createGlobalMineralIntelligence({
     targets: [],
     summary: buildEvidenceSummary([], []),
     statuses: [],
+    providerStatuses: {},
     reason: 'initial',
     updatedAt: null,
   };
@@ -342,7 +382,8 @@ export function createGlobalMineralIntelligence({
           phase: state.phase,
           bbox: state.bbox,
           summary: state.summary,
-          statuses: state.statuses,
+            statuses: state.statuses,
+          providerStatuses: state.providerStatuses,
           targets: state.targets,
         }),
       }),
@@ -389,10 +430,23 @@ export function createGlobalMineralIntelligence({
       });
 
       const features = results.flatMap((result) => result.features);
-      const targets = generateGlobalTargets(features, queryBox, {
+      const referenceTargets = generateGlobalTargets(features, queryBox, {
         topN: isGlobal ? 64 : 32,
       });
-      const summary = buildEvidenceSummary(features, targets);
+      const enrichment = await enrichTargetsWithTrueProspectivity(
+        referenceTargets,
+        { fetchImpl, signal: undefined },
+      );
+      const targets = enrichment.targets.length
+        ? enrichment.targets
+        : referenceTargets.map((target) => ({
+            ...target,
+            modelId: TARGET_MODEL_ID,
+          }));
+      const summary = {
+        ...buildEvidenceSummary(features, targets),
+        modelId: TRUE_PROSPECTIVITY_MODEL_ID,
+      };
       const statuses = results.map((result) => ({
         source: result.source,
         ok: result.ok,
@@ -414,11 +468,19 @@ export function createGlobalMineralIntelligence({
         targets,
         summary,
         statuses,
+        providerStatuses: enrichment.providerStatuses,
         reason: reason || 'manual',
         updatedAt: new Date().toISOString(),
       };
 
-      updatePanel(panel, summary, statuses, targets, 'ready');
+      updatePanel(
+        panel,
+        summary,
+        statuses,
+        targets,
+        'ready',
+        enrichment.providerStatuses,
+      );
       publish(nextState);
       viewer.scene && viewer.scene.requestRender
         ? viewer.scene.requestRender()
@@ -439,6 +501,7 @@ export function createGlobalMineralIntelligence({
           nextState.statuses,
           nextState.targets,
           'error',
+          nextState.providerStatuses,
         );
         publish(nextState);
         return nextState;
@@ -510,7 +573,14 @@ export function createGlobalMineralIntelligence({
       viewer.camera.moveEnd.addEventListener(onCameraChanged);
     document.addEventListener('gem:run-global-analysis', onRunAnalysis);
 
-    updatePanel(panel, state.summary, state.statuses, state.targets, 'idle');
+    updatePanel(
+      panel,
+      state.summary,
+      state.statuses,
+      state.targets,
+      'idle',
+      state.providerStatuses,
+    );
 
     if (autoScan) scan(currentBBox(viewer), 'startup');
 
