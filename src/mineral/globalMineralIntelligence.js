@@ -98,6 +98,7 @@ function createPanel() {
     '  <span>MODE</span><b data-role="mode">TRUE MULTISOURCE</b>',
     '</div>',
     '<div data-role="source-status" class="gem-global-source-status"></div>',
+    '<div class="gem-global-section-title gem-global-evidence-title">GEOSCIENCE EVIDENCE</div>',
     '<div data-role="evidence-status" class="gem-global-evidence-status"></div>',
     '<div data-role="metrics" class="gem-global-metrics">',
     '  <div><b data-metric="features">0</b><span>reference records</span></div>',
@@ -303,18 +304,20 @@ function addReferencePoint(dataSource, feature) {
 function addTarget(dataSource, target) {
   const color = Cesium.Color.fromCssColorString(tierColor(target.tier));
 
+  const gridKm =
+    Number(target.gridCellSize || 0) * 111.32 * 0.35;
+  const referenceKm = Number(target.nearestReferenceKm || 0);
+  const zoneKm = Math.max(
+    0.9,
+    referenceKm > 0 ? Math.min(referenceKm * 0.5, gridKm || referenceKm * 0.5) : gridKm,
+  );
+
   dataSource.entities.add({
     id: 'gem-target-' + target.id,
     position: Cesium.Cartesian3.fromDegrees(target.longitude, target.latitude),
     ellipse: {
-      semiMajorAxis: Math.max(
-        900,
-        Number(target.nearestReferenceKm || 0) * 500,
-      ),
-      semiMinorAxis: Math.max(
-        650,
-        Number(target.nearestReferenceKm || 0) * 320,
-      ),
+      semiMajorAxis: zoneKm * 1000,
+      semiMinorAxis: Math.max(0.65, zoneKm * 0.72) * 1000,
       material: new Cesium.ColorMaterialProperty(color.withAlpha(0.14)),
       outline: true,
       outlineColor: color.withAlpha(0.92),
