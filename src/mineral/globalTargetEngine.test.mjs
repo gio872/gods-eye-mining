@@ -3,6 +3,7 @@ import {
   buildEvidenceSummary,
   distanceKm,
   generateGlobalTargets,
+  generateProspectivityCandidates,
   TARGET_MODEL_ID,
 } from './globalTargetEngine.js';
 
@@ -71,4 +72,33 @@ const feature = (lon, lat, sourceId, mineral, status) => ({
     { latitude: 5, longitude: -73 },
   );
   assert.equal(distance, 0);
+}
+
+
+{
+  const candidates = generateProspectivityCandidates(
+    [
+      feature(-74.95, 4.05, 'usgs-mrds', 'gold', 'Past Producer'),
+    ],
+    { west: -75, south: 4, east: -74, north: 5 },
+    { cellSize: 0.25, maxCells: 16 },
+  );
+
+  assert.ok(candidates.length > 1);
+  assert.ok(candidates.some((candidate) => candidate.referenceCount === 0));
+  assert.ok(
+    candidates.every(
+      (candidate) =>
+        candidate.id.startsWith('GEM-CAND-') &&
+        candidate.candidate === true &&
+        candidate.gridCellSize === 0.25,
+    ),
+  );
+  assert.ok(
+    candidates.some(
+      (candidate) =>
+        candidate.nearestReferenceKm == null &&
+        candidate.score === 0,
+    ),
+  );
 }
