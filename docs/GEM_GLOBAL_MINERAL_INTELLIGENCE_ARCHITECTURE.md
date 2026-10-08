@@ -144,6 +144,13 @@ A future ingestion service can move long-running world acquisition into a server
 
 When these channels become available, evidenceResolver can provide target-local normalized scores to the fusion engine; the same target IDs, tiering and provenance contract remain intact.
 
+
+## Operational safety
+
+Public reference layers are treated as evidence, not as ownership, reserve or economic truth. The client keeps source-specific limitations visible in the source registry and reports evidence coverage alongside target scores.
+
+A global scan is bounded intentionally. It is an interactive reference acquisition mechanism, not a substitute for an ETL snapshot pipeline. A production deployment should persist dated source snapshots, source metadata and model versions before using targets in exploration programs.
+
 ## Engineering principle
 
 GEM should distinguish three states:
