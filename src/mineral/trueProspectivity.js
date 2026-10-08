@@ -646,6 +646,16 @@ export function computeTrueEvidence(
     geophysics: channels.geophysics,
   });
   const mineralSystem = graphSupportSummary(mineralSystemGraph);
+  const drillDecision = selectDrillDecision(
+    { ...target, score, confidence: miningEngine.confidence },
+    {
+      geology: channels.geology,
+      geophysics: channels.geophysics,
+      geochemistry: channels.geochemistry,
+      spectral: channels.spectral,
+      structure: channels.structure != null ? { score: channels.structure } : {},
+    },
+  );
 
   return {
     modelId: TRUE_PROSPECTIVITY_MODEL_ID,
@@ -655,10 +665,12 @@ export function computeTrueEvidence(
     coverage: fusion.coverage,
     mode: fusion.mode,
     channels,
+    drillDecision,
     diagnostics: {
       ...diagnostics,
       miningEngine,
       explorationPlan,
+      drillDecision,
       mineralSystem,
       mineralSystemGraph,
     },
