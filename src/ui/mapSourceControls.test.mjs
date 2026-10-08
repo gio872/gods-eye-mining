@@ -63,6 +63,9 @@ function makeElement(tagName = 'div') {
 
 function fixture() {
   const container = makeElement();
+  const parent = makeElement();
+  parent.children = [container];
+  container.parentElement = parent;
   container.ownerDocument = { createElement: (tag) => makeElement(tag) };
   const statusElement = makeElement();
   const sources = [
