@@ -12,6 +12,19 @@ How to read this:
 
 ## GEM Global Mineral Intelligence — mineral reference sources
 
+### True Multisource Prospectivity evidence
+
+The True Multisource model adds live geoscience evidence beyond mineral occurrences:
+
+- Global Lithological Map (GLiM v1.1): polygonal lithology compatibility sampled at each target coordinate.
+- NOAA/NCEI EMAG2v3: numeric global magnetic anomaly samples at the target and a local 3x3 neighborhood.
+- ArcGIS World Elevation 3D: elevation sampled around each target for weak surface-expression context only.
+
+The calibrated True model currently fuses reference + geology + geophysics + structure. Structure is a deterministic local-contrast derivative of the magnetic evidence and is not represented as an independent sensor.
+
+Spectral channels are intentionally not assigned prospectivity weight until GEM can consume actual per-pixel mineral identification or mineral-abundance values. EMIT L2BMIN is a 60 m mineral-identification/band-depth product with uncertainty/fit information and is therefore a suitable next spectral evidence provider once GEM's Earthdata/Harmony ingestion path is connected.
+
+
 GEM's **Global Mineral Intelligence / Target Generation** layer uses public geospatial reference services as evidence inputs. The first live connectors are deliberately provenance-preserving and are **not** treated as a complete global mineral inventory.
 
 | Source | GEM use | Important limitation |
