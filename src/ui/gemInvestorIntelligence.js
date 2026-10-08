@@ -1,0 +1,48 @@
+/**
+ * GEM Investor Intelligence.
+ * Investor-facing value proposition and scenario model.
+ * Scenario figures are explicitly projections, not actual financial results or guarantees.
+ */
+const SCENARIOS={
+ CONSERVATIVE:{label:'CONSERVATIVE',users:50,monthly:299,enterprise:3,enterpriseMonthly:2499,tradeVolume:10000000,feeBps:15},
+ BASE:{label:'BASE CASE',users:150,monthly:299,enterprise:10,enterpriseMonthly:2499,tradeVolume:50000000,feeBps:20},
+ UPSIDE:{label:'UPSIDE',users:400,monthly:299,enterprise:25,enterpriseMonthly:2499,tradeVolume:200000000,feeBps:25}
+};
+function money(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);}
+function calc(s){
+ const intelligence=s.users*s.monthly;
+ const enterprise=s.enterprise*s.enterpriseMonthly;
+ const transaction=s.tradeVolume*(s.feeBps/10000);
+ return {intelligence,enterprise,transaction,annual:(intelligence+enterprise+transaction)*12};
+}
+function scenarioCard(key,s){
+ const c=calc(s);
+ return '<button class="gem-investor-scenario" data-scenario="'+key+'"><b>'+s.label+'</b><span>'+money(c.annual)+'/yr modeled revenue</span><small>'+s.users+' intelligence seats · '+s.enterprise+' enterprise accounts · '+s.feeBps+' bps modeled transaction layer</small></button>';
+}
+export function installGemInvestorIntelligence(){
+ const install=()=>{
+  if(document.querySelector('.gem-investor-center'))return;
+  const panel=document.createElement('section');panel.className='gem-investor-center';
+  panel.innerHTML=
+   '<div class="gem-investor-head"><div><span>GEM INVESTOR INTELLIGENCE</span><h2>BUILD THE OPERATING SYSTEM FOR GLOBAL MINERALS</h2><p>One platform connecting planetary intelligence, targets, assets, capital, trade, logistics and settlement.</p></div><button data-close>×</button></div>'+
+   '<div class="gem-investor-why"><div><b>01</b><strong>DATA MOAT</strong><small>Multi-source planetary evidence becomes proprietary decision infrastructure.</small></div><div><b>02</b><strong>WORKFLOW MOAT</strong><small>Exploration, assets, trade and capital converge in one operating layer.</small></div><div><b>03</b><strong>NETWORK MOAT</strong><small>More assets, counterparties and outcomes increase platform utility.</small></div></div>'+
+   '<div class="gem-investor-scenarios"><div class="gem-investor-section">MODELED BUSINESS SCENARIOS</div><div class="gem-investor-cards">'+Object.entries(SCENARIOS).map(([k,s])=>scenarioCard(k,s)).join('')+'</div><div class="gem-investor-breakdown" data-breakdown></div></div>'+
+   '<div class="gem-investor-footer"><span>PROJECTION ONLY — NOT HISTORICAL RESULTS, A VALUATION OR A GUARANTEED RETURN.</span><button data-invest>REQUEST INVESTOR BRIEF</button></div>';
+  const style=document.createElement('style');style.textContent=[
+   '.gem-investor-center{position:fixed;inset:8vh 8vw;z-index:15000;display:none;overflow:auto;padding:28px;background:linear-gradient(145deg,rgba(4,10,16,.98),rgba(8,22,28,.98));border:1px solid rgba(88,213,232,.45);border-radius:18px;box-shadow:0 30px 100px rgba(0,0,0,.65);color:#e8f7fa;font:13px/1.45 Inter,system-ui,sans-serif}.gem-investor-center.is-open{display:block}',
+   '.gem-investor-head{display:flex;justify-content:space-between;gap:20px}.gem-investor-head span,.gem-investor-section{color:#58d5e8;font:700 10px ui-monospace,monospace;letter-spacing:.16em}.gem-investor-head h2{max-width:780px;margin:8px 0;font-size:30px;line-height:1.05}.gem-investor-head p{max-width:760px;color:#9db5bc;font-size:15px}.gem-investor-head>button{height:32px;background:none;border:0;color:#9db5bc;font-size:28px;cursor:pointer}',
+   '.gem-investor-why{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}.gem-investor-why>div{padding:16px;border:1px solid rgba(130,180,190,.18);border-radius:10px;background:rgba(255,255,255,.025)}.gem-investor-why b{color:#58d5e8;font:700 11px ui-monospace,monospace}.gem-investor-why strong{display:block;margin:8px 0}.gem-investor-why small{color:#8fa7ae}',
+   '.gem-investor-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}.gem-investor-scenario{padding:18px;text-align:left;color:#dcecf0;background:rgba(255,255,255,.025);border:1px solid rgba(130,180,190,.2);border-radius:10px;cursor:pointer}.gem-investor-scenario:hover,.gem-investor-scenario.is-selected{border-color:#58d5e8;background:rgba(88,213,232,.08)}.gem-investor-scenario b,.gem-investor-scenario span,.gem-investor-scenario small{display:block}.gem-investor-scenario b{font:700 10px ui-monospace,monospace;color:#58d5e8}.gem-investor-scenario span{margin:10px 0;font-size:22px;font-weight:700}.gem-investor-scenario small{color:#829aa2}.gem-investor-breakdown{margin-top:12px;padding:14px;border-top:1px solid rgba(130,180,190,.18);color:#a9bdc2}.gem-investor-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px}.gem-investor-footer span{font-size:8px;color:#667f87}.gem-investor-footer button{padding:11px 16px;border:1px solid #58d5e8;border-radius:7px;background:#58d5e8;color:#041016;font-weight:800;cursor:pointer}@media(max-width:900px){.gem-investor-center{inset:4vh 3vw;padding:18px}.gem-investor-why,.gem-investor-cards{grid-template-columns:1fr}.gem-investor-head h2{font-size:23px}.gem-investor-footer{align-items:flex-start;flex-direction:column}}'
+  ].join('');document.head.append(style);document.body.append(panel);
+  const breakdown=(key)=>{
+   const s=SCENARIOS[key],c=calc(s);panel.querySelectorAll('.gem-investor-scenario').forEach(x=>x.classList.toggle('is-selected',x.dataset.scenario===key));
+   panel.querySelector('[data-breakdown]').innerHTML='<b>'+s.label+'</b> · modeled annual revenue: <strong>'+money(c.annual)+'</strong> · subscription: '+money((c.intelligence+c.enterprise)*12)+' · transaction layer: '+money(c.transaction*12);
+  };
+  panel.querySelectorAll('.gem-investor-scenario').forEach(b=>b.addEventListener('click',()=>breakdown(b.dataset.scenario)));
+  panel.querySelector('[data-close]').addEventListener('click',()=>panel.classList.remove('is-open'));
+  panel.querySelector('[data-invest]').addEventListener('click',()=>document.dispatchEvent(new CustomEvent('gem:investor-brief-requested')));
+  breakdown('BASE');
+  document.addEventListener('gem:open-investor',()=>panel.classList.add('is-open'));
+ };
+ if(document.body)install();else document.addEventListener('DOMContentLoaded',install,{once:true});
+}
