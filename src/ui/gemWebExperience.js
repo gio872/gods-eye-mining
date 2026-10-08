@@ -549,14 +549,14 @@ function openGemAccountModal() {
     style.id = styleId;
     style.textContent = \`
       .gem-account-overlay{position:fixed;inset:0;z-index:25000;display:grid;place-items:center;padding:18px;background:rgba(0,5,10,.78);backdrop-filter:blur(18px);color:#eefaff;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
-      .gem-account-dialog{position:relative;width:min(560px,100%);max-height:calc(100vh - 36px);overflow:auto;padding:30px;border:1px solid rgba(104,232,244,.25);border-radius:22px;background:linear-gradient(145deg,rgba(9,22,32,.98),rgba(3,9,15,.98));box-shadow:0 28px 100px rgba(0,0,0,.6),0 0 70px rgba(0,190,255,.08)}
+      .gem-account-dialog{position:relative;width:min(760px,100%);max-height:calc(100vh - 36px);overflow:auto;padding:30px;border:1px solid rgba(104,232,244,.25);border-radius:22px;background:linear-gradient(145deg,rgba(9,22,32,.98),rgba(3,9,15,.98));box-shadow:0 28px 100px rgba(0,0,0,.6),0 0 70px rgba(0,190,255,.08)}
       .gem-account-close{position:absolute;right:17px;top:14px;border:1px solid rgba(145,194,207,.2);border-radius:9px;background:rgba(255,255,255,.03);color:#cde9ee;width:34px;height:34px;font-size:22px;cursor:pointer}
       .gem-account-brand{display:flex;gap:11px;align-items:center;margin-bottom:26px}.gem-account-brand>span{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(104,232,244,.5);border-radius:12px;color:#68e8f4;font-weight:900}.gem-account-brand b{font-size:12px;letter-spacing:.04em}.gem-account-brand small{display:block;margin-top:4px;color:#73929e;font-size:7px;letter-spacing:.17em}
       .gem-account-kicker{font:800 8px ui-monospace,monospace;letter-spacing:.18em;color:#68e8f4}.gem-account-dialog h2{font-size:29px;letter-spacing:-.05em;margin:9px 0}.gem-account-intro{font-size:11px;line-height:1.65;color:#9bb2bc;margin:0 0 17px}
       .gem-account-status{display:none;padding:10px 12px;margin:12px 0;border:1px solid rgba(104,232,244,.18);border-radius:10px;background:rgba(104,232,244,.05);color:#b9f6fb;font-size:10px;line-height:1.5}.gem-account-status.is-visible{display:block}.gem-account-status.is-error{border-color:rgba(255,111,111,.3);color:#ffbcbc;background:rgba(255,80,80,.06)}
       .gem-account-tabs{display:flex;gap:7px;margin:18px 0}.gem-account-tabs button,.gem-account-secondary{flex:1;border:1px solid rgba(145,194,207,.18);border-radius:10px;background:rgba(255,255,255,.025);color:#9cb4bd;padding:11px;cursor:pointer;font-size:10px;font-weight:800}.gem-account-tabs button.is-active{border-color:rgba(104,232,244,.5);color:#68e8f4;background:rgba(104,232,244,.06)}
       .gem-account-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.gem-account-field{display:grid;gap:6px;min-width:0}.gem-account-field.full{grid-column:1/-1}.gem-account-field label{color:#8ea9b3;font-size:9px}.gem-account-field input,.gem-account-field select{width:100%;box-sizing:border-box;min-width:0;border:1px solid rgba(145,194,207,.2);border-radius:10px;padding:12px;background:#07121b;color:#eefaff;outline:none;font-size:11px}.gem-account-field input:focus,.gem-account-field select:focus{border-color:rgba(104,232,244,.55)}.gem-account-submit{grid-column:1/-1;border:0;border-radius:10px;padding:13px;background:#dffcff;color:#07121b;font-size:10px;font-weight:900;letter-spacing:.08em;cursor:pointer;margin-top:5px}.gem-account-privacy{font-size:9px;color:#718b95;line-height:1.6;margin-top:12px}
-      .gem-account-profile{padding:15px;border:1px solid rgba(104,232,244,.2);border-radius:13px;background:rgba(104,232,244,.035)}.gem-account-profile h3{margin:0 0 5px;font-size:17px}.gem-account-profile p{font-size:10px;color:#9bb2bc}.gem-account-pill{display:inline-block;padding:5px 8px;border-radius:99px;border:1px solid rgba(104,232,244,.24);color:#68e8f4;font:800 8px ui-monospace,monospace}.gem-account-plans{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.gem-account-plan{border:1px solid rgba(145,194,207,.18);border-radius:12px;padding:13px;background:rgba(255,255,255,.025)}.gem-account-plan b{display:block;font-size:12px}.gem-account-plan strong{display:block;margin:8px 0;color:#68e8f4;font-size:20px}.gem-account-plan p{min-height:36px;font-size:9px;line-height:1.5;color:#8da7b0}.gem-account-plan button{width:100%;border:1px solid rgba(104,232,244,.3);border-radius:8px;background:rgba(104,232,244,.07);color:#c7fbff;padding:9px 5px;font-size:8px;font-weight:800;cursor:pointer}.gem-account-footer{display:flex;gap:9px;margin-top:14px}.gem-account-footer button{flex:1;border:1px solid rgba(145,194,207,.18);border-radius:9px;background:transparent;color:#8fa9b3;padding:10px;cursor:pointer;font-size:9px}
+      .gem-account-profile{padding:15px;border:1px solid rgba(104,232,244,.2);border-radius:13px;background:rgba(104,232,244,.035)}.gem-account-profile h3{margin:0 0 5px;font-size:17px}.gem-account-profile p{font-size:10px;color:#9bb2bc}.gem-account-pill{display:inline-block;padding:5px 8px;border-radius:99px;border:1px solid rgba(104,232,244,.24);color:#68e8f4;font:800 8px ui-monospace,monospace}.gem-account-plans{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.gem-account-plan{border:1px solid rgba(145,194,207,.18);border-radius:12px;padding:13px;background:rgba(255,255,255,.025)}.gem-account-plan b{display:block;font-size:12px}.gem-account-plan strong{display:block;margin:8px 0;color:#68e8f4;font-size:20px}.gem-account-plan p{min-height:36px;font-size:9px;line-height:1.5;color:#8da7b0}.gem-account-plan button{width:100%;border:1px solid rgba(104,232,244,.3);border-radius:8px;background:rgba(104,232,244,.07);color:#c7fbff;padding:9px 5px;font-size:8px;font-weight:800;cursor:pointer}.gem-org-list{display:grid;gap:10px;margin-top:12px}.gem-org-card{border:1px solid rgba(104,232,244,.18);border-radius:13px;padding:14px;background:rgba(255,255,255,.02);margin-top:10px}.gem-org-card-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.gem-org-card-head h3{margin:9px 0 3px}.gem-org-card-head p{margin:0}.gem-org-role{font:800 8px ui-monospace,monospace;color:#8da8b2}.gem-org-meta{font-size:9px;color:#86a4ae;margin-top:10px;text-transform:capitalize}.gem-org-details{margin-top:13px;border-top:1px solid rgba(145,194,207,.14);padding-top:10px}.gem-org-details summary{cursor:pointer;color:#68e8f4;font-size:10px;font-weight:800}.gem-org-evidence-form,.gem-org-invite-form{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.gem-org-evidence-form label,.gem-org-invite-form label{display:grid;gap:5px;color:#8ea9b3;font-size:9px}.gem-org-evidence-form input,.gem-org-evidence-form select,.gem-org-invite-form input,.gem-org-invite-form select{min-width:0;box-sizing:border-box;width:100%;padding:9px;border:1px solid rgba(145,194,207,.2);border-radius:8px;background:#07121b;color:#eefaff;font-size:10px}.gem-org-evidence-form button,.gem-org-invite-form button{grid-column:1/-1;border:1px solid rgba(104,232,244,.3);border-radius:9px;background:rgba(104,232,244,.07);color:#c7fbff;padding:10px;font-size:9px;font-weight:800;cursor:pointer}.gem-org-invite-form{padding-top:12px;border-top:1px solid rgba(145,194,207,.12)}.gem-org-evidence-list{margin-top:10px}.gem-org-evidence-list>strong{font-size:9px}.gem-org-evidence-item{display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center;border-top:1px solid rgba(145,194,207,.1);padding:9px 0;font-size:9px;color:#b6cbd2}.gem-org-evidence-item small{display:block;color:#718c96;margin-top:3px}.gem-org-evidence-item a{color:#68e8f4;font-size:8px;text-decoration:none}..gem-account-footer{display:flex;gap:9px;margin-top:14px}.gem-account-footer button{flex:1;border:1px solid rgba(145,194,207,.18);border-radius:9px;background:transparent;color:#8fa9b3;padding:10px;cursor:pointer;font-size:9px}
       @media(max-width:480px){.gem-account-dialog{padding:22px 17px}.gem-account-form,.gem-account-plans{grid-template-columns:1fr}.gem-account-field.full,.gem-account-submit{grid-column:auto}}
     \`;
     document.head.append(style);
@@ -604,28 +604,119 @@ function openGemAccountModal() {
   async function renderMember() {
     const { user } = await request('/api/gem/account/me');
     if (!user) { renderAuth('register'); return; }
-    body.innerHTML = \`
-      <div class="gem-account-profile"><span class="gem-account-pill">\${esc(user.plan)} · \${esc(user.membershipStatus)}</span><h3>\${esc(user.fullName)}</h3><p>\${esc(user.email)}\${user.organization ? ' · ' + esc(user.organization) : ''}</p><p>Mining Participants profile access is available. Organization verification will be a separate review step.</p></div>
-      <div class="gem-account-kicker" style="margin-top:20px">VIP MEMBERSHIP</div>
-      <div class="gem-account-plans">
-        <div class="gem-account-plan"><b>TRADING</b><strong>$299<small>/mo</small></strong><p>Marketplace, verified-counterparty workflows and trade workspace.</p><button data-plan="TRADING">REQUEST TRADING ACCESS</button></div>
-        <div class="gem-account-plan"><b>ENTERPRISE</b><strong>$2,499<small>/mo</small></strong><p>Multi-user organization, API access and advanced due diligence.</p><button data-plan="ENTERPRISE">REQUEST ENTERPRISE ACCESS</button></div>
-      </div>
-      <div class="gem-account-privacy">Requests are recorded as pending. No payment is taken and no VIP entitlement is granted until a payment provider confirms the subscription.</div>
-      <div class="gem-account-footer"><button data-signout>SIGN OUT</button><button data-close>DONE</button></div>\`;
-    body.querySelectorAll('[data-plan]').forEach(button => button.addEventListener('click', async () => {
-      button.disabled = true;
+    body.innerHTML =
+      '<div class="gem-account-profile"><span class="gem-account-pill">' + esc(user.plan) + ' · ' + esc(user.membershipStatus) + '</span>' +
+      '<h3>' + esc(user.fullName) + '</h3><p>' + esc(user.email) + (user.organization ? ' · ' + esc(user.organization) : '') + '</p>' +
+      '<p>GEM account. Organization profiles are separate, tenant-scoped records. KYB verification is only granted after required evidence is reviewed.</p></div>' +
+      '<div class="gem-account-kicker" style="margin-top:20px">MINING PARTICIPANTS · CORPORATE PROFILE</div>' +
+      '<form class="gem-account-form" data-org-create style="margin-top:12px">' +
+        '<div class="gem-account-field full"><label>Legal company name</label><input name="legalName" required maxlength="180" placeholder="Registered legal name"></div>' +
+        '<div class="gem-account-field"><label>Display name</label><input name="displayName" maxlength="180" placeholder="Public-facing name"></div>' +
+        '<div class="gem-account-field"><label>Participant type</label><select name="participantType" required><option value="">Choose type</option><option value="MINER">Miner</option><option value="MINE_OPERATOR">Mine operator</option><option value="MINE">Mine / asset</option><option value="TRADER">Trader</option><option value="COMMODITY_TRADER">Commodity trader</option><option value="OFFTAKER">Off-taker / buyer</option><option value="PRODUCER">Producer</option></select></div>' +
+        '<div class="gem-account-field"><label>Country</label><input name="country" required maxlength="80" placeholder="Country of registration"></div>' +
+        '<div class="gem-account-field"><label>Company registration number</label><input name="registrationNumber" maxlength="100" placeholder="Optional at creation"></div>' +
+        '<div class="gem-account-field"><label>Region / state</label><input name="region" maxlength="100" placeholder="Region"></div>' +
+        '<div class="gem-account-field"><label>Website</label><input name="website" type="url" maxlength="240" placeholder="https://company.com"></div>' +
+        '<div class="gem-account-field"><label>Commodities (comma separated)</label><input name="commodities" maxlength="600" placeholder="Gold, copper, lithium"></div>' +
+        '<div class="gem-account-field full"><label>Company profile</label><input name="description" maxlength="2000" placeholder="Activities, operations, products and services"></div>' +
+        '<button class="gem-account-submit" type="submit">CREATE MINING PARTICIPANT PROFILE →</button></form>' +
+      '<div class="gem-account-kicker" style="margin-top:24px">YOUR ORGANIZATIONS</div>' +
+      '<div data-org-list class="gem-org-list"><div class="gem-account-privacy">Loading organization profiles…</div></div>' +
+      '<div class="gem-account-kicker" style="margin-top:24px">VIP MEMBERSHIP</div>' +
+      '<div class="gem-account-plans">' +
+        '<div class="gem-account-plan"><b>TRADING</b><strong>$299<small>/mo</small></strong><p>Marketplace, verified-counterparty workflows and trade workspace.</p><button data-plan="TRADING">REQUEST TRADING ACCESS</button></div>' +
+        '<div class="gem-account-plan"><b>ENTERPRISE</b><strong>$2,499<small>/mo</small></strong><p>Multi-user organization, API access and advanced due diligence.</p><button data-plan="ENTERPRISE">REQUEST ENTERPRISE ACCESS</button></div>' +
+      '</div><div class="gem-account-privacy">Upgrade requests remain pending. VIP access is activated only after the configured signed payment webhook confirms an active subscription. This build has no checkout provider connected yet.</div>' +
+      '<div class="gem-account-footer"><button data-signout>SIGN OUT</button><button data-close>DONE</button></div>';
+
+    body.querySelector('[data-org-create]').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form=event.currentTarget, data=Object.fromEntries(new FormData(form).entries());
+      data.commodities=String(data.commodities||'').split(/[,;\\n]/).map(x=>x.trim()).filter(Boolean);
+      if(!data.displayName) data.displayName=data.legalName;
+      const submit=form.querySelector('button[type="submit"]');
+      submit.disabled=true;submit.textContent='CREATING PROFILE…';
       try {
-        const result = await request('/api/gem/account/membership-request', { method: 'POST', body: JSON.stringify({ plan: button.dataset.plan }) });
-        showStatus(result.message || 'Membership request recorded; payment setup is not connected yet.');
-      } catch (error) { showStatus(error.message, true); }
-      finally { button.disabled = false; }
-    }));
-    body.querySelector('[data-signout]').addEventListener('click', async () => {
-      try { await request('/api/gem/account/logout', { method: 'POST', body: '{}' }); showStatus('You have signed out.'); renderAuth('login'); }
-      catch (error) { showStatus(error.message, true); }
+        const result=await request('/api/gem/account/organizations',{method:'POST',body:JSON.stringify(data)});
+        showStatus('Participant profile created. You are the organization owner. Submit the required KYB evidence to request verification.');
+        form.reset();await renderOrganizations();
+      } catch(error) { showStatus(error.message,true); }
+      finally {submit.disabled=false;submit.textContent='CREATE MINING PARTICIPANT PROFILE →';}
     });
-    body.querySelector('[data-close]').addEventListener('click', close);
+
+    async function renderOrganizations() {
+      const list=body.querySelector('[data-org-list]');
+      try {
+        const {organizations=[]}=await request('/api/gem/account/organizations');
+        if(!organizations.length){list.innerHTML='<div class="gem-account-privacy">No company profiles yet. Create the first Mining Participants profile above.</div>';return;}
+        list.innerHTML=organizations.map(org =>
+          '<article class="gem-org-card" data-org-card="' + esc(org.id) + '">' +
+            '<div class="gem-org-card-head"><div><span class="gem-account-pill">' + esc(org.kybStatus) + '</span><h3>' + esc(org.displayName) + '</h3><p>' + esc(org.legalName) + '</p></div><span class="gem-org-role">' + esc(org.role) + '</span></div>' +
+            '<div class="gem-org-meta">' + esc(org.participantType.replaceAll('_',' ')) + ' · ' + esc(org.country) + (org.registrationNumber?' · Reg. '+esc(org.registrationNumber):'') + '</div>' +
+            '<details class="gem-org-details"><summary>Submit KYB evidence</summary>' +
+              '<p class="gem-account-privacy">Files are stored privately on the GEM server. Upload only documents you are authorized to share.</p>' +
+              '<form class="gem-org-evidence-form" data-evidence-form data-org-id="' + esc(org.id) + '">' +
+                '<label>Evidence type<select name="evidenceType" required><option value="COMPANY_REGISTRATION">Company registration</option><option value="TAX_REGISTRATION">Tax registration</option><option value="OWNERSHIP_DECLARATION">Ownership declaration</option><option value="OPERATING_LICENSE">Operating licence</option><option value="PROOF_OF_ADDRESS">Proof of address</option><option value="PRODUCT_ASSAY">Product assay / analysis</option><option value="OTHER">Other</option></select></label>' +
+                '<label>Document title<input name="title" required maxlength="180" placeholder="What does this document prove?"></label>' +
+                '<label>File (PDF, PNG or JPEG; max 8 MB)<input name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" required></label>' +
+                '<label>Notes (optional)<input name="notes" maxlength="1000" placeholder="Issuing authority, date or context"></label>' +
+                '<button type="submit">UPLOAD PRIVATE EVIDENCE</button>' +
+              '</form></details>' +
+            '<form class="gem-org-invite-form" data-invite-form data-org-id="' + esc(org.id) + '">' +
+              '<label>Add existing GEM member<input name="email" type="email" required placeholder="member@company.com"></label>' +
+              '<label>Role<select name="role"><option value="ANALYST">Analyst</option><option value="TRADER">Trader</option><option value="VIEWER">Viewer</option><option value="ADMIN">Administrator</option></select></label>' +
+              '<button type="submit">ADD MEMBER</button></form>' +
+            '<div class="gem-org-evidence-list" data-evidence-list>Loading evidence…</div>' +
+          '</article>'
+        ).join('');
+        list.querySelectorAll('[data-evidence-form]').forEach(form=>form.addEventListener('submit',async event=>{
+          event.preventDefault();
+          const file=form.querySelector('[name="file"]').files[0];
+          if(!file)return;
+          if(file.size>8*1024*1024){showStatus('Maximum document size is 8 MB.',true);return;}
+          const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent='UPLOADING…';
+          try{
+            const bytes=new Uint8Array(await file.arrayBuffer());let binary='';
+            for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode(...bytes.subarray(offset,offset+0x8000));
+            const payload={evidenceType:form.evidenceType.value,title:form.title.value,fileName:file.name,mimeType:file.type,contentBase64:btoa(binary),notes:form.notes.value};
+            const result=await request('/api/gem/account/organizations/'+form.dataset.orgId+'/evidence',{method:'POST',body:JSON.stringify(payload)});
+            showStatus(result.message||'Evidence uploaded and queued for review.');form.reset();await renderOrganizations();
+          }catch(error){showStatus(error.message,true);}
+          finally{button.disabled=false;button.textContent='UPLOAD PRIVATE EVIDENCE';}
+        }));
+        list.querySelectorAll('[data-invite-form]').forEach(form=>form.addEventListener('submit',async event=>{
+          event.preventDefault();const button=form.querySelector('button');button.disabled=true;
+          try{
+            const data=Object.fromEntries(new FormData(form).entries());
+            const result=await request('/api/gem/account/organizations/'+form.dataset.orgId+'/members',{method:'POST',body:JSON.stringify(data)});
+            showStatus('Member added to the organization as '+result.member.role+'.');form.reset();
+          }catch(error){showStatus(error.message,true);}
+          finally{button.disabled=false;}
+        }));
+        for(const org of organizations){
+          const card=list.querySelector('[data-org-card="'+org.id+'"]'),evidenceList=card?.querySelector('[data-evidence-list]');
+          if(!evidenceList)continue;
+          try{
+            const {evidence=[]}=await request('/api/gem/account/organizations/'+org.id+'/evidence');
+            evidenceList.innerHTML=evidence.length?'<strong>Evidence register</strong>'+evidence.map(item=>
+              '<div class="gem-org-evidence-item"><span>'+esc(item.title)+' <small>'+esc(item.evidenceType.replaceAll('_',' '))+'</small></span><span class="gem-account-pill">'+esc(item.status)+'</span>'+(item.status==='SUBMITTED'?'<a href="/api/gem/account/organizations/'+esc(org.id)+'/evidence/'+esc(item.id)+'/download">DOWNLOAD</a>':'<a href="/api/gem/account/organizations/'+esc(org.id)+'/evidence/'+esc(item.id)+'/download">DOWNLOAD</a>')+'</div>'
+            ).join(''):'<div class="gem-account-privacy">No evidence submitted.</div>';
+          }catch(error){evidenceList.innerHTML='<div class="gem-account-privacy">Evidence register is unavailable for your role.</div>';}
+        }
+      } catch(error) { list.innerHTML='<div class="gem-account-privacy">'+esc(error.message)+'</div>'; }
+    }
+    body.querySelectorAll('[data-plan]').forEach(button=>button.addEventListener('click',async()=>{
+      button.disabled=true;
+      try{const result=await request('/api/gem/account/membership-request',{method:'POST',body:JSON.stringify({plan:button.dataset.plan})});showStatus(result.message||'Membership request recorded; payment provider checkout is not connected yet.');}
+      catch(error){showStatus(error.message,true);}
+      finally{button.disabled=false;}
+    }));
+    body.querySelector('[data-signout]').addEventListener('click',async()=>{
+      try{await request('/api/gem/account/logout',{method:'POST',body:'{}'});showStatus('You have signed out.');renderAuth('login');}
+      catch(error){showStatus(error.message,true);}
+    });
+    body.querySelector('[data-close]').addEventListener('click',close);
+    await renderOrganizations();
   }
   request('/api/gem/account/me').then(({ user }) => {
     if (user) { showStatus('You are signed in to GEM.'); renderMember(); }
