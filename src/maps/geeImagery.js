@@ -9,7 +9,7 @@ export const GEE_CONFIG = Object.freeze({
   label: 'Google Earth Engine',
   shortLabel: 'GEE EO',
   kind: 'gee-imagery',
-  endpoint: '/api/gee/map',
+  endpoint: 'http://127.0.0.1:8765/api/gee/map',
   attribution: 'Google Earth Engine / public Earth observation datasets',
   defaultDataset: 'COPERNICUS/S2_SR_HARMONIZED',
 });
@@ -67,10 +67,11 @@ export async function createGeeImagery({
 
   return new globalThis.Cesium.WebMapServiceImageryProvider({
     url: payload.urlTemplate,
-    layers: payload.layers || 'gee',
+    layers: payload.layers || '0',
     parameters: {
       transparent: true,
       format: 'image/png',
+      token: payload.token || '',
     },
     credit:
       payload.attribution || GEE_CONFIG.attribution,
