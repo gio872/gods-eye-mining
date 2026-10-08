@@ -1,4 +1,5 @@
 import { renderMapStackChips, syncMapStackChips } from '../mapStackChips.js';
+import { GEE_DATASETS } from '../maps/geeImagery.js';
 
 /**
  * Own Map Source presentation and selection without constructing map providers.
@@ -23,6 +24,28 @@ export function createMapSourceControls({
   function render(state) {
     if (destroyed || !state) return;
     syncMapStackChips(container, state.activeId);
+    let geeControl = container.parentElement?.querySelector('[data-gee-dataset]');
+    if (state.activeId === 'gee-global-eo' && container.parentElement) {
+      if (!geeControl) {
+        geeControl = container.ownerDocument.createElement('select');
+        geeControl.dataset.geeDataset = '1';
+        geeControl.className = 'map-stack-gee-dataset';
+        for (const dataset of GEE_DATASETS) {
+          const option = container.ownerDocument.createElement('option');
+          option.value = dataset.key;
+          option.textContent = dataset.label;
+          geeControl.append(option);
+        }
+        container.parentElement.append(geeControl);
+        bind(geeControl, 'change', () => {
+          controller.setGeeDataset?.(geeControl.value);
+        });
+      }
+      geeControl.value = controller.getGeeDataset?.() || 'sentinel2';
+    } else {
+      geeControl?.remove();
+    }
+
     if (statusElement) {
       const stack = state.activeStack;
       statusElement.textContent =
