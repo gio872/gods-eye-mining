@@ -196,20 +196,26 @@ function showToast(message){
 
 function runAnalysis(button){
   button.disabled=true;
-  button.textContent="RUNNING GEM ANALYSIS…";
-  const bar=document.querySelector(".gem-engine-card .gem-progress i");
-  let value=0;
-  const timer=setInterval(()=>{
-    value=Math.min(100,value+10);
-    bar.style.width=value+"%";
-    if(value===100){
-      clearInterval(timer);
-      button.disabled=false;
-      button.textContent="ANALYSIS COMPLETE";
-      setTimeout(()=>button.textContent="RUN INTELLIGENCE ANALYSIS",1500);
-      showToast("GEM intelligence analysis complete");
-    }
-  },90);
+  button.textContent="STARTING GEM ANALYSIS…";
+
+  const onState = (event) => {
+    const phase = event.detail && event.detail.phase;
+    if (phase !== "ready" && phase !== "error") return;
+    document.removeEventListener("gem:global-intelligence-state", onState);
+    button.disabled=false;
+    button.textContent=phase === "ready"
+      ? "ANALYSIS COMPLETE"
+      : "ANALYSIS FAILED";
+    setTimeout(()=>button.textContent="RUN INTELLIGENCE ANALYSIS",1800);
+    showToast(
+      phase === "ready"
+        ? "GEM global mineral intelligence analysis complete"
+        : "GEM global mineral intelligence analysis failed",
+    );
+  };
+
+  document.addEventListener("gem:global-intelligence-state", onState);
+  document.dispatchEvent(new CustomEvent("gem:run-global-analysis"));
 }
 
 function forceGemCommandCenter() {
