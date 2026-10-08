@@ -208,6 +208,7 @@ export async function fetchArcGISPoints(
     if (pageFeatures.length < pageSize) break;
   }
   return features;
+}
 
 function normalizeProperties(feature, source) {
   const properties = feature && feature.properties ? feature.properties : {};
