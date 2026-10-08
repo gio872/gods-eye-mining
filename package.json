@@ -261,6 +261,7 @@
     "./mineral/search": "./src/mineral/globalMineralSearch.js",
     "./mineral/earthrise": "./src/mineral/earthriseMiningDetector.js",
     "./mineral/triage": "./src/mineral/miningOpportunity.js",
-    "./mineral/discovery-engine": "./src/mineral/mineralDiscoveryEngine.js"
+    "./mineral/discovery-engine": "./src/mineral/mineralDiscoveryEngine.js",
+    "./mineral/exploration-optimizer": "./src/mineral/explorationOptimizer.js"
   }
 }
