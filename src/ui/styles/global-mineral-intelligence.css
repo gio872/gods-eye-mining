@@ -108,6 +108,10 @@
   background:#ff4a3d;
   box-shadow:0 0 7px rgba(255,74,61,.7);
 }
+.gem-global-source-row.is-warning i{
+  background:#f1bd5a;
+  box-shadow:0 0 7px rgba(241,189,90,.7);
+}
 .gem-global-source-row b{
   color:#c9e5e9;
   font:700 8px JetBrains Mono,monospace;
