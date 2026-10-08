@@ -32,6 +32,9 @@ function makeElement(tagName = 'div') {
       element.children.push(child);
       return child;
     },
+    append(...children) {
+      for (const child of children) element.children.push(child);
+    },
     setAttribute(name, value) {
       element.attributes[name] = String(value);
     },
@@ -260,8 +263,9 @@ test('completion after destruction cannot paint or notify', async () => {
 
 test('renders Earth Engine dataset control when GEE is active', async () => {
   const f = fixture();
+  const originalGetStacks = f.controller.getStacks;
   f.controller.getStacks = () => [
-    ...f.controller.getStacks(),
+    ...originalGetStacks(),
     { id: 'gee-global-eo', label: 'Google Earth Engine' },
   ];
   f.controller.getActiveId = () => 'gee-global-eo';
@@ -275,7 +279,7 @@ test('renders Earth Engine dataset control when GEE is active', async () => {
   };
   f.controller.getGeeDataset = () => 'sentinel2';
   f.controls.refresh();
-  const geeControl = f.container.parentElement?.children?.find?.(
+  const geeControl = f.container.parentElement.children.find?.(
     (element) => element.dataset?.geeDataset === '1',
   );
   assert.ok(geeControl);
