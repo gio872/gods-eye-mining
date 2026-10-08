@@ -272,7 +272,8 @@
     "./mineral/drill-intelligence": "./src/mineral/drillIntelligence.js",
     "./mineral/investment-intelligence": "./src/mineral/investmentIntelligence.js",
     "./server/gem-state-store": "./server/gem/gemStateStore.js",
-    "./server/gem-runtime-policy": "./server/gem/gemRuntimePolicy.js"
+    "./server/gem-runtime-policy": "./server/gem/gemRuntimePolicy.js",
+    "./server/gem-run-metadata": "./server/gem/gemRunMetadata.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
