@@ -26,3 +26,21 @@
 @import './src/ui/styles/mineral-intelligence.css';
 
 @import './src/ui/styles/global-mineral-intelligence.css';
+
+
+.map-stack-gee-dataset {
+  margin-left: 6px;
+  min-width: 170px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(71, 233, 255, 0.22);
+  border-radius: 6px;
+  background: rgba(5, 22, 30, 0.9);
+  color: #bfe8ed;
+  font: 700 8px JetBrains Mono, monospace;
+  letter-spacing: 0.04em;
+  outline: none;
+}
+.map-stack-gee-dataset:focus {
+  border-color: rgba(71, 233, 255, 0.6);
+}
