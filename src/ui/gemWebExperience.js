@@ -21,6 +21,8 @@ const MODULES = [
   { id: 'security', label: 'Mineral Security', eyebrow: 'STRATEGY', text: 'Country exposure, supply concentration, refining risk and resilience.', meta: 'NATIONAL INTELLIGENCE', action: 'security' },
   { id: 'investor', label: 'Investor Room', eyebrow: 'CAPITAL', text: 'Business model, scenarios, capital path and public-markets readiness.', meta: 'INVESTOR INTELLIGENCE', action: 'investor' },
   { id: 'reports', label: 'Reports', eyebrow: 'DELIVER', text: 'Turn intelligence into decision-ready reports, evidence packages and investor briefs.', meta: 'DECISION OUTPUT', action: 'reports' },
+  { id: 'supply', label: 'Supply Chain', eyebrow: 'CONNECT', text: 'Trace extraction, processing, refining, manufacturing and strategic dependencies.', meta: 'GLOBAL VALUE CHAIN', action: 'supply' },
+  { id: 'operations', label: 'Operations', eyebrow: 'OPERATE', text: 'Plan, monitor and manage exploration, projects, logistics and physical assets.', meta: 'OPERATING LAYER', action: 'operations' },
 ];
 
 const SEARCH_INDEX = [
@@ -582,6 +584,16 @@ function workspaceContent(module) {
       ['MARKETS', 'Public Markets', 'Cap table, equity rounds and IPO-readiness framework.', 'OPEN PUBLIC MARKETS', 'gem:open-investor', {}],
       ['MOAT', 'GEM Network Effects', 'Data, workflow and network advantages across the platform.', 'OPEN INVESTOR INTELLIGENCE', 'gem:open-investor', {}],
     ],
+    supply: [
+      ['NETWORK', 'Supply Chain Graph', 'Trace extraction, concentration, smelting, refining and manufacturing.', 'OPEN SUPPLY CHAIN', 'gem:web-section', { section: 'supply' }],
+      ['REFINING', 'Refinery Intelligence', 'Map processing concentration, facilities and strategic bottlenecks.', 'OPEN REFINERIES', 'gem:web-section', { section: 'supply' }],
+      ['SECURITY', 'Critical Dependencies', 'Connect commodities, countries, companies and strategic exposure.', 'OPEN DEPENDENCIES', 'gem:web-section', { section: 'supply' }],
+    ],
+    operations: [
+      ['PROJECTS', 'Project Operations', 'Move from intelligence to exploration, development and execution.', 'OPEN OPERATIONS', 'gem:web-section', { section: 'operations' }],
+      ['LOGISTICS', 'Secure Logistics', 'Track high-value cargo, custody, vaulting and delivery workflows.', 'OPEN LOGISTICS', 'gem:web-section', { section: 'logistics' }],
+      ['ASSETS', 'Physical Asset Layer', 'Connect assets, digital twins, custody, trade and settlement.', 'OPEN ASSETS', 'gem:open-asset-registry', {}],
+    ],
   };
   return cards[module] || cards.intelligence;
 }
@@ -671,7 +683,7 @@ function buildShell() {
     <header class="gem-product-header">
       <div class="gem-product-brand" data-home>
         <span class="gem-product-mark">G</span>
-        <div><strong>GEM</strong><small>GLOBAL EXPLORATION & MINERAL INTELLIGENCE</small></div>
+        <div><strong>TERRAQUEEN <b>GEM</b></strong><small>GLOBAL EXPLORATION · AI TARGETING · MINERAL INTELLIGENCE</small></div>
       </div>
 
       <label class="gem-universal-search">
@@ -682,9 +694,11 @@ function buildShell() {
 
       <div class="gem-product-header-actions">
         <button data-nav="explore">EXPLORE</button>
+        <button data-nav="analyze">ANALYZE</button>
         <button data-nav="targets">TARGETS</button>
-        <button data-nav="markets">MARKETS</button>
-        <button data-nav="investor">INVESTOR</button>
+        <button data-nav="layers">LAYERS</button>
+        <button data-nav="ai">AI</button>
+        <button data-nav="reports">REPORTS</button>
         <button class="gem-language" data-language>GLOBAL</button>
         <button class="gem-product-profile" data-profile><span class="gem-avatar">G</span><span>Gio</span></button>
       </div>
@@ -804,9 +818,11 @@ function wireShell(shell) {
     button.addEventListener('click', () => {
       const nav = button.dataset.nav;
       if (nav === 'explore') openWorkspace('resources');
+      else if (nav === 'analyze') openWorkspace('intelligence');
       else if (nav === 'targets') openWorkspace('targets');
-      else if (nav === 'markets') openWorkspace('markets');
-      else if (nav === 'investor') openWorkspace('investor');
+      else if (nav === 'layers') openWorkspace('map');
+      else if (nav === 'ai') openWorkspace('intelligence');
+      else if (nav === 'reports') openWorkspace('reports');
     });
   });
 
