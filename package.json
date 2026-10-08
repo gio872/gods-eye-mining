@@ -296,7 +296,8 @@
     "./mineral/compliance-gateway": "./src/mineral/complianceGateway.js",
     "./mineral/secure-logistics": "./src/mineral/secureLogistics.js",
     "./mineral/vault-custody": "./src/mineral/vaultCustody.js",
-    "./mineral/asset-passport": "./src/mineral/assetPassport.js"
+    "./mineral/asset-passport": "./src/mineral/assetPassport.js",
+    "./mineral/asset-digital-twin": "./src/mineral/assetDigitalTwin.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
