@@ -132,8 +132,16 @@ function utmProject(longitude, latitude, epsg) {
   return [east, north];
 }
 
-function transformForAsset(asset) {
-  const transform = Array.isArray(asset && asset['proj:transform']) ? asset['proj:transform'] : null;
+function transformForAsset(item, asset) {
+  const transform =
+    (asset && Array.isArray(asset['proj:transform'])
+      ? asset['proj:transform']
+      : null) ||
+    (item &&
+    item.properties &&
+    Array.isArray(item.properties['proj:transform'])
+      ? item.properties['proj:transform']
+      : null);
   if (!transform || transform.length < 6) return null;
   return {
     scaleX: Number(transform[0]),
@@ -158,7 +166,7 @@ async function openCog(href) {
 
 async function readCogSamples(item, asset, target, { radiusMeters = DEFAULT_RADIUS_METERS, samples = [0] } = {}) {
   if (!asset || !asset.href) throw new Error('COG asset is unavailable');
-  const transform = transformForAsset(asset);
+  const transform = transformForAsset(item, asset);
   const epsg = assetEpsg(item, asset);
   if (!transform || !epsg) throw new Error('Projected STAC transform is unavailable');
   const projected = utmProject(finite(target.longitude), finite(target.latitude), epsg);
