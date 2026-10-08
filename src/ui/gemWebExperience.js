@@ -52,6 +52,70 @@ function installStyles() {
   `;
   document.head.append(style);
 }
+function openExplore() {
+  document.querySelector('.gem-explore-overlay')?.remove();
+  const overlay=node('section','gem-explore-overlay');
+  overlay.innerHTML=`
+    <div class="gem-explore-backdrop"></div>
+    <div class="gem-explore-panel">
+      <div class="gem-explore-top"><div><span>GEM DISCOVERY FABRIC</span><h2>Explore the mineral planet</h2><p>Navigate from commodity to country, resource, target, company and asset without leaving the intelligence layer.</p></div><button data-close>×</button></div>
+      <div class="gem-explore-command">
+        <span>⌕</span><input data-explore-query placeholder="Search gold, copper, Colombia, target, company..." autocomplete="off">
+        <div class="gem-explore-filters"><button class="is-active" data-filter="all">ALL</button><button data-filter="commodity">COMMODITIES</button><button data-filter="country">COUNTRIES</button><button data-filter="target">TARGETS</button><button data-filter="asset">ASSETS</button><button data-filter="company">COMPANIES</button></div>
+      </div>
+      <div class="gem-explore-grid">
+        <article class="gem-discovery-card gem-discovery-feature"><span>PLANETARY ATLAS</span><strong>Global Resource Atlas</strong><p>Minerals · metals · petroleum · gas · depth · evidence</p><button data-action="resource">OPEN ATLAS →</button></article>
+        <article class="gem-discovery-card"><span>MINERAL SYSTEMS</span><strong>Target Intelligence</strong><p>Evidence convergence and next-best exploration actions.</p><button data-action="target">DISCOVER TARGETS →</button></article>
+        <article class="gem-discovery-card"><span>NETWORK</span><strong>Mining Participants</strong><p>Miners · operators · traders · producers · off-takers.</p><button data-action="company">OPEN NETWORK →</button></article>
+        <article class="gem-discovery-card"><span>PHYSICAL WORLD</span><strong>Asset Intelligence</strong><p>Digital twins, custody, trade, finance and settlement links.</p><button data-action="asset">OPEN ASSETS →</button></article>
+        <article class="gem-discovery-card"><span>MARKET</span><strong>Commodity Intelligence</strong><p>Supply, processing, demand, capital and strategic exposure.</p><button data-action="market">OPEN MARKETS →</button></article>
+        <article class="gem-discovery-card"><span>COUNTRY</span><strong>Mineral Security</strong><p>Geology, production, trade, refining and strategic dependency.</p><button data-action="country">COUNTRY INTELLIGENCE →</button></article>
+      </div>
+      <div class="gem-explore-results" data-explore-results><div class="gem-explore-empty">Begin with a mineral, location, company or GEM target.</div></div>
+    </div>`;
+  document.body.append(overlay);
+  const query=overlay.querySelector('[data-explore-query]');
+  const results=overlay.querySelector('[data-explore-results]');
+  const render=()=>{
+    const q=query.value.trim().toLowerCase();
+    if(!q){results.innerHTML='<div class="gem-explore-empty">Begin with a mineral, location, company or GEM target.</div>';return;}
+    const data=[
+      ['GOLD','COMMODITY','Global mineral intelligence · supply · targets'],
+      ['COPPER','COMMODITY','Geology · geochemistry · supply chain'],
+      ['LITHIUM','COMMODITY','Critical mineral · projects · capital'],
+      ['COLOMBIA','COUNTRY','National mineral security · geology · projects'],
+      ['BOLIVIA','COUNTRY','Strategic minerals · tungsten · lithium'],
+      ['GEM TARGETS','TARGET','Global prospectivity · evidence · decision'],
+      ['RESOURCE ATLAS','RESOURCE','Depth-resolved global resource data'],
+      ['MINING PARTICIPANTS','COMPANY','Miners · operators · traders · off-takers'],
+      ['ASSET REGISTRY','ASSET','Physical assets · digital twins · custody']
+    ].filter(x=>(x[0]+' '+x[1]+' '+x[2]).toLowerCase().includes(q));
+    results.innerHTML=data.length?data.map(x=>'<button class="gem-explore-result"><b>'+x[0]+'</b><span>'+x[1]+' · '+x[2]+'</span><i>›</i></button>').join(''):'<div class="gem-explore-empty">No indexed entity matches this query yet.</div>';
+    results.querySelectorAll('button').forEach((b,i)=>b.addEventListener('click',()=>{const x=data[i];emit('gem:web-search',{query:query.value,name:x[0],type:x[1]});}));
+  };
+  query.addEventListener('input',render);
+  overlay.querySelector('[data-close]').addEventListener('click',()=>overlay.remove());
+  overlay.querySelector('.gem-explore-backdrop').addEventListener('click',()=>overlay.remove());
+  overlay.querySelectorAll('.gem-explore-filters button').forEach(b=>b.addEventListener('click',()=>{overlay.querySelectorAll('.gem-explore-filters button').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');}));
+  overlay.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>{
+    const a=b.dataset.action;
+    if(a==='target')emit('gem:open-targets');
+    if(a==='asset')emit('gem:open-asset-registry');
+    if(a==='market')emit('gem:open-asset-exchange');
+    if(a==='resource')emit('gem:web-section',{section:'resources'});
+    if(a==='company')emit('gem:web-section',{section:'companies'});
+    if(a==='country')emit('gem:web-section',{section:'country'});
+  }));
+  requestAnimationFrame(()=>query.focus());
+}
+
+function installExploreStyles() {
+  if(document.getElementById('gem-explore-style'))return;
+  const style=document.createElement('style');style.id='gem-explore-style';style.textContent=`
+    .gem-explore-overlay{position:fixed;inset:0;z-index:17000;font-family:Inter,system-ui,sans-serif;color:#eefaff}.gem-explore-backdrop{position:absolute;inset:0;background:rgba(1,5,9,.72);backdrop-filter:blur(16px)}.gem-explore-panel{position:absolute;inset:8vh 7vw;background:linear-gradient(145deg,rgba(7,15,24,.97),rgba(3,8,14,.96));border:1px solid rgba(104,232,244,.18);border-radius:24px;box-shadow:0 40px 140px rgba(0,0,0,.7);padding:34px;overflow:auto}.gem-explore-top{display:flex;justify-content:space-between;gap:20px}.gem-explore-top>div>span{color:#68e8f4;font:800 8px ui-monospace,monospace;letter-spacing:.25em}.gem-explore-top h2{font-size:32px;letter-spacing:-.04em;margin:8px 0}.gem-explore-top p{color:#7d949e;font-size:11px;max-width:650px}.gem-explore-top>button{width:38px;height:38px;border:1px solid rgba(150,205,220,.16);border-radius:50%;background:transparent;color:#9bb0b8;font-size:23px;cursor:pointer}.gem-explore-command{margin:25px 0 16px;padding:13px;border:1px solid rgba(104,232,244,.18);border-radius:14px;background:rgba(255,255,255,.025)}.gem-explore-command>span{color:#68e8f4}.gem-explore-command input{width:calc(100% - 30px);border:0;outline:0;background:transparent;color:#eefaff;font-size:14px}.gem-explore-filters{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.gem-explore-filters button{border:1px solid rgba(150,205,220,.13);border-radius:999px;background:transparent;color:#738a94;padding:6px 9px;font-size:7px;letter-spacing:.12em;cursor:pointer}.gem-explore-filters button.is-active,.gem-explore-filters button:hover{color:#68e8f4;border-color:rgba(104,232,244,.35);background:rgba(104,232,244,.05)}.gem-explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.gem-discovery-card{min-height:125px;padding:17px;border:1px solid rgba(150,205,220,.12);border-radius:15px;background:rgba(255,255,255,.025);transition:.2s}.gem-discovery-card:hover{transform:translateY(-3px);border-color:rgba(104,232,244,.3);background:rgba(104,232,244,.035)}.gem-discovery-card span{color:#647c86;font:700 7px ui-monospace,monospace;letter-spacing:.16em}.gem-discovery-card strong{display:block;margin-top:9px;font-size:14px}.gem-discovery-card p{color:#728a94;font-size:9px;line-height:1.5;max-width:280px}.gem-discovery-card button{border:0;background:none;color:#68e8f4;font-size:8px;font-weight:800;letter-spacing:.1em;cursor:pointer}.gem-discovery-feature{background:radial-gradient(circle at 80% 20%,rgba(104,232,244,.1),transparent 40%),rgba(255,255,255,.025)}.gem-explore-results{margin-top:13px;border-top:1px solid rgba(150,205,220,.09)}.gem-explore-result{width:100%;display:flex;align-items:center;gap:12px;padding:12px 4px;border:0;border-bottom:1px solid rgba(150,205,220,.08);background:transparent;color:#eafaff;text-align:left;cursor:pointer}.gem-explore-result:hover{background:rgba(104,232,244,.04)}.gem-explore-result b{min-width:125px}.gem-explore-result span{flex:1;color:#718993;font-size:9px}.gem-explore-result i{color:#68e8f4;font-style:normal;font-size:18px}.gem-explore-empty{padding:25px 4px;color:#647b85;font-size:10px}@media(max-width:800px){.gem-explore-panel{inset:4vh 3vw;padding:20px}.gem-explore-grid{grid-template-columns:1fr 1fr}.gem-explore-top h2{font-size:25px}}@media(max-width:520px){.gem-explore-grid{grid-template-columns:1fr}.gem-explore-panel{border-radius:17px}}
+  `;document.head.append(style);
+}
+
 function searchResults(query) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
@@ -89,6 +153,7 @@ function installSearch() {
 export function installGemWebExperience() {
   if (document.querySelector('.gem-web-header')) return;
   installStyles();
+  installExploreStyles();
   document.body.classList.add('gem-web-product');
 
   const header = node('header','gem-web-header');
@@ -110,6 +175,7 @@ export function installGemWebExperience() {
       if(id==='assets') emit('gem:open-asset-registry');
       if(id==='markets') emit('gem:open-asset-exchange');
       if(id==='investor') emit('gem:open-investor');
+      if(id==='explore') openExplore();
     });
     nav.append(button);
   });
@@ -144,7 +210,7 @@ export function installGemWebExperience() {
 
   main.querySelectorAll('[data-open]').forEach(button=>button.addEventListener('click',()=>{
     const action=button.dataset.open;
-    if(action==='resources') emit('gem:web-section',{section:'explore'});
+    if(action==='resources') openExplore();
     if(action==='targets') emit('gem:open-targets');
     if(action==='assets') emit('gem:open-asset-registry');
   }));
