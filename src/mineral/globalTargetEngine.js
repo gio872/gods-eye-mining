@@ -139,6 +139,177 @@ function autoCellSize(bbox) {
   return 0.05;
 }
 
+function adaptiveGridCellSize(bbox, maxCells = 512) {
+  const spanLon = Math.max(0.001, Math.abs(bbox.east - bbox.west));
+  const spanLat = Math.max(0.001, Math.abs(bbox.north - bbox.south));
+  let cellSize = Math.sqrt((spanLon * spanLat) / Math.max(16, maxCells));
+  cellSize = Math.max(0.05, cellSize);
+
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const columns = Math.ceil(spanLon / cellSize);
+    const rows = Math.ceil(spanLat / cellSize);
+    if (columns * rows <= maxCells) break;
+    cellSize *= 1.12;
+  }
+
+  return cellSize;
+}
+
+function iterateGrid(bbox, cellSize) {
+  const cells = [];
+  const columns = Math.max(1, Math.ceil((bbox.east - bbox.west) / cellSize));
+  const rows = Math.max(1, Math.ceil((bbox.north - bbox.south) / cellSize));
+
+  for (let row = 0; row < rows; row += 1) {
+    const latitude = Math.min(
+      bbox.north,
+      bbox.south + (row + 0.5) * cellSize,
+    );
+    for (let column = 0; column < columns; column += 1) {
+      const longitude = Math.min(
+        bbox.east,
+        bbox.west + (column + 0.5) * cellSize,
+      );
+      cells.push({
+        key: String(column) + ':' + String(row),
+        latitude,
+        longitude,
+      });
+    }
+  }
+
+  return cells;
+}
+
+function referenceCellEvidence(features, center, cellSize) {
+  const radiusKm = Math.max(10, cellSize * 111.32 * 1.8);
+  const sigmaKm = Math.max(8, radiusKm * 0.55);
+  let kernel = 0;
+  const sources = new Set();
+  const nearby = [];
+
+  for (const feature of features) {
+    const coordinates =
+      feature && feature.geometry && feature.geometry.coordinates;
+    if (!Array.isArray(coordinates)) continue;
+
+    const point = {
+      longitude: Number(coordinates[0]),
+      latitude: Number(coordinates[1]),
+    };
+    if (!Number.isFinite(point.longitude) || !Number.isFinite(point.latitude))
+      continue;
+
+    const distance = distanceKm(center, point);
+    if (distance > radiusKm) continue;
+
+    kernel += Math.exp(-((distance / sigmaKm) ** 2));
+    const sourceId =
+      feature.properties && feature.properties.sourceId
+        ? feature.properties.sourceId
+        : 'unknown';
+    sources.add(sourceId);
+    nearby.push({ feature, distance });
+  }
+
+  const density = 1 - Math.exp(-kernel / 2.5);
+  const sourceConvergence = Math.min(1, sources.size / 2);
+  const score = Math.round(
+    clamp(
+      (density * 0.72 + sourceConvergence * 0.28),
+    ) * 1000,
+  ) / 10;
+
+  nearby.sort((a, b) => a.distance - b.distance);
+  const commoditySet = new Set();
+  for (const item of nearby.slice(0, 32)) {
+    for (const token of uniqueCommodityTokens(item.feature))
+      commoditySet.add(token);
+  }
+
+  return {
+    score,
+    referenceCount: nearby.length,
+    sourceCount: sources.size,
+    nearestReferenceKm: nearby.length
+      ? Math.round(nearby[0].distance * 10) / 10
+      : null,
+    nearestReference:
+      nearby.length &&
+      nearby[0].feature &&
+      nearby[0].feature.properties
+        ? nearby[0].feature.properties.name || null
+        : null,
+    commodities: Array.from(commoditySet).slice(0, 6),
+  };
+}
+
+export function generateProspectivityCandidates(
+  features,
+  bbox,
+  {
+    cellSize = adaptiveGridCellSize(bbox),
+    maxCells = 512,
+  } = {},
+) {
+  if (!Array.isArray(features))
+    throw new TypeError('features must be an array');
+  if (!bbox || typeof bbox !== 'object')
+    throw new TypeError('bbox is required');
+
+  let resolvedCellSize = Number(cellSize);
+  if (!Number.isFinite(resolvedCellSize) || resolvedCellSize <= 0)
+    resolvedCellSize = adaptiveGridCellSize(bbox, maxCells);
+
+  const grid = iterateGrid(bbox, resolvedCellSize);
+
+  return grid.map((cell) => {
+    const reference = referenceCellEvidence(
+      features,
+      { latitude: cell.latitude, longitude: cell.longitude },
+      resolvedCellSize,
+    );
+    const id =
+      'GEM-CAND-' +
+      stableTargetToken(
+        String(resolvedCellSize) +
+          ':' +
+          cell.key +
+          ':' +
+          bbox.west +
+          ':' +
+          bbox.south,
+      );
+
+    return {
+      id,
+      modelId: TARGET_MODEL_ID,
+      latitude: cell.latitude,
+      longitude: cell.longitude,
+      score: reference.score,
+      tier: targetTier(reference.score),
+      evidence: {
+        occurrenceDensity: Math.round(reference.score),
+        commodityDiversity: 0,
+        criticalMineralEvidence: 0,
+        developmentEvidence: 0,
+        multisourceConvergence: Math.round(
+          Math.min(1, reference.sourceCount / 2) * 100,
+        ),
+      },
+      sourceCount: reference.sourceCount,
+      referenceCount: reference.referenceCount,
+      commodities: reference.commodities,
+      nearestReferenceKm: reference.nearestReferenceKm,
+      nearestReference: reference.nearestReference,
+      candidate: true,
+      gridCellSize: resolvedCellSize,
+      interpretation:
+        'Spatial candidate generated independently of known occurrences. Public occurrences are one evidence channel, not a requirement for a candidate.',
+    };
+  });
+}
+
 function targetTier(score) {
   if (score >= 85) return 'TIER 1';
   if (score >= 70) return 'TIER 2';
