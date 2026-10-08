@@ -25,7 +25,7 @@ application
     if (viewer) {
       globalMineralIntelligence = createGlobalMineralIntelligence({
         viewer,
-        autoScan: true,
+        autoScan: false,
         viewportPages: 1,
         globalPages: 6,
         emitSampler:
