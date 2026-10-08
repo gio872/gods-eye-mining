@@ -257,6 +257,7 @@
     "./mineral/sources": "./src/mineral/globalMineralSources.js",
     "./mineral/evidence": "./src/mineral/evidenceFusion.js",
     "./mineral/earth-observation": "./src/mineral/earthObservationEvidence.js",
-    "./mineral/geochemistry": "./src/mineral/geochemistry.js"
+    "./mineral/geochemistry": "./src/mineral/geochemistry.js",
+    "./mineral/search": "./src/mineral/globalMineralSearch.js"
   }
 }
