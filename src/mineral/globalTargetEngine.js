@@ -511,9 +511,12 @@ export function buildEvidenceSummary(features, targets) {
               (sum, target) =>
                 sum +
                 Number(
-                  target.fusion && target.fusion.coverage
-                    ? target.fusion.coverage
-                    : 0,
+                  target.trueProspectivity &&
+                  target.trueProspectivity.coverage != null
+                    ? target.trueProspectivity.coverage
+                    : target.fusion && target.fusion.coverage != null
+                      ? target.fusion.coverage
+                      : 0,
                 ),
               0,
             ) /
