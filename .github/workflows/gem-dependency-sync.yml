@@ -1,9 +1,8 @@
 name: GEM dependency sync
 
 on:
-  push:
-    branches:
-      - feature/global-mineral-intelligence
+  pull_request:
+    types: [opened, synchronize]
 
 permissions:
   contents: write
