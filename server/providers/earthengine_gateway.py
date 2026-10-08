@@ -9,6 +9,7 @@ with the Earth Engine CLI or application-default credentials on the host.
 import json
 import os
 import traceback
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
@@ -41,13 +42,24 @@ def initialize_ee():
     project = os.environ.get("GEM_EARTHENGINE_PROJECT", "").strip()
     if not project:
         raise RuntimeError("GEM_EARTHENGINE_PROJECT is required")
-    ee.Initialize(project=project)
+    service_account = os.environ.get('GEM_EARTHENGINE_SERVICE_ACCOUNT', '').strip()
+    private_key = os.environ.get('GEM_EARTHENGINE_PRIVATE_KEY', '').strip()
+    if service_account and private_key:
+        credentials = ee.ServiceAccountCredentials(service_account, key_data=private_key)
+        ee.Initialize(credentials=credentials, project=project)
+    else:
+        ee.Initialize(project=project)
     _initialized = True
 
 
 def resolve_dataset(value):
     text = str(value or "").strip()
-    return DATASETS.get(text.lower(), text or DATASETS["sentinel2"])
+    dataset = DATASETS.get(text.lower(), text)
+    if not dataset:
+        return DATASETS['sentinel2']
+    if dataset not in DATASETS.values():
+        raise ValueError('Unsupported Earth Engine dataset')
+    return dataset
 
 
 def collection(dataset, payload):
@@ -55,7 +67,7 @@ def collection(dataset, payload):
     if payload.get("startDate"):
         image_collection = image_collection.filterDate(
             payload["startDate"],
-            payload.get("endDate") or payload["startDate"],
+            payload.get("endDate") or (datetime.fromisoformat(str(payload["startDate"]).replace('Z', '+00:00')) + timedelta(days=1)).isoformat(),
         )
     if payload.get("region"):
         image_collection = image_collection.filterBounds(
