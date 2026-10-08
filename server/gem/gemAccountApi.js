@@ -239,6 +239,26 @@ function requireReviewSecret(req) {
   if(actual.length!==expected.length||!timingSafeEqual(actual,expected)) throw Object.assign(new Error('Review authorization failed'),{statusCode:401});
 }
 function validOrganizationId(id) { return /^org_[a-f0-9]{24}$/.test(String(id)); }
+
+function getMembershipEntitlements(db,user) {
+  const now=new Date().toISOString();
+  const active=db.prepare("SELECT plan FROM gem_subscriptions WHERE user_id=? AND status='ACTIVE' AND (current_period_end IS NULL OR current_period_end>?)").all(user.id,now);
+  const plans=[...new Set(active.map(row=>row.plan))];
+  const rank={INTELLIGENCE:0,TRADING:1,ENTERPRISE:2};
+  let plan='INTELLIGENCE';
+  for(const candidate of plans) if((rank[candidate]??0)>(rank[plan]??0)) plan=candidate;
+  // A paid plan in the user row alone is never enough: it needs an active subscription record.
+  const caps={
+    intelligence:true, miningParticipants:true, participantKybSubmission:true,
+    marketplace:plan==='TRADING'||plan==='ENTERPRISE',
+    verifiedCounterpartyWorkflows:plan==='TRADING'||plan==='ENTERPRISE',
+    multiUserOrganization:plan==='ENTERPRISE',
+    privateApi:plan==='ENTERPRISE',
+    advancedDueDiligence:plan==='ENTERPRISE',
+    capitalMatching:plan==='ENTERPRISE',
+  };
+  return {plan,capabilities:caps,subscriptionStatus:plan==='INTELLIGENCE'?'FREE': 'ACTIVE'};
+}
 function safePaymentEvent(event) {
   if(!event||typeof event!=='object'||typeof event.id!=='string'||typeof event.type!=='string') throw Object.assign(new Error('Webhook event must include id and type'),{statusCode:400});
   const object=event.data?.object||event.data||{};
@@ -279,7 +299,13 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         return send(res, 200, { plans: Object.entries(PLANS).map(([id, value]) => ({ id, ...value })) });
       }
       if (req.method === 'GET' && url.pathname === '/api/gem/account/me') {
-        return send(res, 200, { user: safeUser(sessionUser(database, req)) });
+        const row=sessionUser(database,req);
+        return send(res,200,{user:row?{...safeUser(row),...getMembershipEntitlements(database,row)}:null});
+      }
+      if (req.method === 'GET' && url.pathname === '/api/gem/account/entitlements') {
+        const row=sessionUser(database,req);
+        if(!row)return send(res,401,{error:'Sign in to inspect GEM membership entitlements'});
+        return send(res,200,{user:safeUser(row),...getMembershipEntitlements(database,row)});
       }
 
       if (req.method === 'POST' && url.pathname === '/api/gem/account/organizations') {
@@ -325,8 +351,11 @@ export function createGemAccountApiHandler({ db = null } = {}) {
         if (!subresource && req.method==='GET') {
           requireOrgRole(database,user,organizationId);
           const org=database.prepare('SELECT * FROM gem_organizations WHERE id=?').get(organizationId);
-          const members=database.prepare('SELECT u.id,u.email,u.full_name,m.role,m.status,m.created_at FROM gem_organization_members m JOIN gem_users u ON u.id=m.user_id WHERE m.organization_id=? ORDER BY m.created_at').all(organizationId);
-          const evidence=database.prepare('SELECT * FROM gem_participant_evidence WHERE organization_id=? ORDER BY submitted_at DESC').all(organizationId);
+          const membership=organizationRole(database,user.id,organizationId);
+          const canManageMembers=['OWNER','ADMIN'].includes(membership?.role);
+          const canViewEvidence=['OWNER','ADMIN','ANALYST'].includes(membership?.role);
+          const members=canManageMembers?database.prepare('SELECT u.id,u.email,u.full_name,m.role,m.status,m.created_at FROM gem_organization_members m JOIN gem_users u ON u.id=m.user_id WHERE m.organization_id=? ORDER BY m.created_at').all(organizationId):[];
+          const evidence=canViewEvidence?database.prepare('SELECT * FROM gem_participant_evidence WHERE organization_id=? ORDER BY submitted_at DESC').all(organizationId):[];
           return send(res,200,{organization:safeOrganization(org),members:members.map(m=>({userId:m.id,email:m.email,fullName:m.full_name,role:m.role,status:m.status,joinedAt:m.created_at})),evidence:evidence.map(safeEvidence)});
         }
         if (!subresource && req.method==='PATCH') {
@@ -464,6 +493,7 @@ export function createGemAccountApiHandler({ db = null } = {}) {
             .run(event.provider,event.id,event.type,now,payloadHash);
           if(!inserted.changes){database.exec('COMMIT');return send(res,200,{received:true,duplicate:true});}
           let existing=database.prepare('SELECT * FROM gem_subscriptions WHERE provider=? AND provider_subscription_id=?').get(event.provider,event.subscriptionId);
+          if(['subscription.cancelled','subscription.payment_failed'].includes(event.type)&&!existing) throw Object.assign(new Error('Cannot change membership for an unknown subscription'),{statusCode:404});
           const userId=event.userId||existing?.user_id;
           if(!userId)throw Object.assign(new Error('Subscription event does not identify a GEM account'),{statusCode:400});
           const user=database.prepare('SELECT id,plan FROM gem_users WHERE id=?').get(userId);
