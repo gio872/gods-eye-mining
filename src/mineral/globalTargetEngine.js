@@ -1,3 +1,4 @@
+import { fuseEvidence } from './evidenceFusion.js';
 /**
  * GEM Global Target Engine.
  *
@@ -175,6 +176,8 @@ export function generateGlobalTargets(
     cellSize = autoCellSize(bbox),
     topN = 32,
     weights = DEFAULT_WEIGHTS,
+    evidenceWeights,
+    evidenceResolver,
   } = {},
 ) {
   if (!Array.isArray(features))
@@ -247,6 +250,17 @@ export function generateGlobalTargets(
       bucket.sources.size,
       weights,
     );
+    const rawChannels =
+      typeof evidenceResolver === 'function'
+        ? evidenceResolver({
+            center,
+            features: bucket.features,
+            referenceComponents: scored.components,
+          })
+        : {};
+    const fusion = fuseEvidence(scored.score, rawChannels, {
+      weights: evidenceWeights,
+    });
 
     let nearest = null;
     for (const feature of bucket.features) {
@@ -272,9 +286,10 @@ export function generateGlobalTargets(
       modelId: TARGET_MODEL_ID,
       latitude: center.latitude,
       longitude: center.longitude,
-      score: scored.score,
-      tier: targetTier(scored.score),
+      score: fusion.score,
+      tier: targetTier(fusion.score),
       evidence: scored.components,
+      fusion,
       sourceCount: bucket.sources.size,
       referenceCount: bucket.features.length,
       commodities: commodities,
