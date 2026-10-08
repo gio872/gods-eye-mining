@@ -293,7 +293,8 @@
     "./mineral/payment-orchestration": "./src/mineral/paymentOrchestration.js",
     "./mineral/financial-hub": "./src/mineral/financialHub.js",
     "./mineral/financial-provider-adapters": "./src/mineral/financialProviderAdapters.js",
-    "./mineral/compliance-gateway": "./src/mineral/complianceGateway.js"
+    "./mineral/compliance-gateway": "./src/mineral/complianceGateway.js",
+    "./mineral/secure-logistics": "./src/mineral/secureLogistics.js"
   },
   "productName": "GEM Mineral Intelligence System"
 }
