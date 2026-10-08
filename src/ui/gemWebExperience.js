@@ -126,27 +126,21 @@ function injectStyles() {
 
     .gem-product-shell:after{
       content:"";
-      position:fixed;
-      inset:0;
-      z-index:0;
-      pointer-events:none;
+      position:fixed;inset:0;z-index:0;pointer-events:none;
       background:
-        radial-gradient(circle at 50% 40%,rgba(104,232,244,.10),transparent 34%),
-        linear-gradient(180deg,rgba(1,5,8,.34) 0%,rgba(1,5,8,.05) 35%,rgba(1,5,8,.58) 100%),
-        url("https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg") center 56% / cover no-repeat;
-      transform:scale(1.015);
-      transform-origin:center;
-      filter:saturate(1.14) contrast(1.08) brightness(.9);
-      animation:gemPlanetDrift 32s ease-in-out infinite alternate;
+        radial-gradient(ellipse at 50% 57%,rgba(14,194,255,.18),transparent 30%),
+        radial-gradient(ellipse at 17% 52%,rgba(0,217,255,.13),transparent 24%),
+        radial-gradient(ellipse at 84% 53%,rgba(117,76,255,.12),transparent 25%),
+        linear-gradient(180deg,rgba(0,5,11,.12) 0%,rgba(0,8,15,.02) 34%,rgba(0,4,9,.56) 100%),
+        url("https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg") center 50% / cover no-repeat;
+      transform:scale(1.035);
+      filter:saturate(1.24) contrast(1.12) brightness(.76);
+      animation:gemPlanetDrift 40s ease-in-out infinite alternate;
+      box-shadow:inset 0 0 240px rgba(0,0,0,.52);
     }
-
     @keyframes gemPlanetDrift{
-      from{transform:scale(1.015) translate3d(0,0,0)}
-      to{transform:scale(1.04) translate3d(-.35%,.18%,0)}
-    }
-
-    .gem-product-shell:after{
-      box-shadow:inset 0 0 180px rgba(0,0,0,.34);
+      from{transform:scale(1.035) translate3d(0,0,0)}
+      to{transform:scale(1.065) translate3d(-.4%,.12%,0)}
     }
 
     .gem-product-shell:before{
