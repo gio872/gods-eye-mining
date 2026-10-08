@@ -3,7 +3,7 @@
  * Resolves country geometry from the bundled Natural Earth admin-0 pack and
  * normalizes commodity/metal names into the prospectivity engine's taxonomy.
  */
-import { findAdminArea, polygonsContain } from '../data/adminBoundaries.js';
+import { findAdminArea, listCountries, polygonsContain } from '../data/adminBoundaries.js';
 
 export const MINERAL_SEARCH_CATALOG = Object.freeze([
   { key: '', label: 'ALL MINERALS / METALS', aliases: [] },
@@ -47,6 +47,10 @@ function normalizeSearchText(value) {
     .replace(/\p{M}/gu, '')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
+}
+
+export async function listMineralSearchCountries() {
+  return listCountries();
 }
 
 export function normalizeMineralKey(value) {
