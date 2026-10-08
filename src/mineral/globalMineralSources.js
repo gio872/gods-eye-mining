@@ -13,11 +13,11 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
     type: 'occurrence',
     format: 'ArcGIS FeatureServer / GeoJSON',
     endpoint:
-      'https://energy.usgs.gov/arcgis/rest/services/Hosted/Mineral_Resource_Data_System/FeatureServer/0/query',
+      'https://energy.usgs.gov/arcgis/rest/services/MRData/Mineral_Resource_Data_System/FeatureServer/3/query',
     attribution: 'U.S. Geological Survey (USGS) — MRDS',
     globalCoverage: true,
     maxViewportRecords: 1200,
-    queryFields: ['objectid_1', 'dep_id', 'site_name', 'dev_stat', 'code_list', 'grade'],
+    queryFields: ['gid', 'dep_id', 'site_name', 'dev_stat', 'code_list', 'url', 'grade'],
     limitation:
       'Worldwide coverage is incomplete outside the United States; operational, ownership, production, reserve and resource fields may be historical.',
     licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
@@ -33,7 +33,7 @@ export const GLOBAL_MINERAL_SOURCES = Object.freeze({
       'U.S. Geological Survey (USGS) — Global Distribution of Selected Critical Minerals',
     globalCoverage: true,
     maxViewportRecords: 1600,
-    queryFields: ['mineral', 'dep_type', 'latitude', 'longitude', 'location'],
+    queryFields: ['gid', 'dep_name', 'mineral', 'dep_type', 'latitude', 'longitude', 'location'],
     limitation:
       'Reference compilation of documented deposits/occurrences; not an exhaustive global inventory and not a deposit-probability surface.',
     licenseHint: 'USGS data/public-data terms apply; preserve source attribution.',
@@ -238,6 +238,7 @@ function normalizeProperties(feature, source) {
     grade: properties.grade || null,
     location: properties.location || null,
     url: properties.url || null,
+    recordId: properties.dep_id || properties.gid || null,
     raw: properties,
   };
 }
