@@ -77,13 +77,30 @@ function haversineKm(a, b) {
   return 6371.0088 * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 }
 
+function keyMatchesAlias(rawKey, alias) {
+  const raw = String(rawKey || '').trim().toLowerCase();
+  if (!raw) return false;
+
+  if (new RegExp('(^|[^a-z])' + alias + '([^a-z]|$)').test(raw)) return true;
+
+  const normalized = normalizeKey(rawKey);
+  return (
+    normalized === alias ||
+    ['ppm', 'ppb', 'pct', 'percent'].some(
+      (unit) => normalized === alias + unit,
+    )
+  );
+}
+
 function extractElementMap(properties) {
   const result = {};
   for (const [rawKey, rawValue] of Object.entries(properties || {})) {
-    const normalized = normalizeKey(rawKey);
-    if (!normalized) continue;
+    if (!normalizeKey(rawKey)) continue;
     for (const [element, aliases] of Object.entries(ELEMENT_ALIASES)) {
-      if (result[element] == null && aliases.some((alias) => normalized === alias || normalized.startsWith(alias))) {
+      if (
+        result[element] == null &&
+        aliases.some((alias) => keyMatchesAlias(rawKey, alias))
+      ) {
         const value = normalizeConcentration(rawKey, rawValue);
         if (value != null) result[element] = value;
       }
