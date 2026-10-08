@@ -35,6 +35,7 @@ import {
 } from './investmentIntelligence.js';
 import { summarizeGemCapabilities } from './gemCapabilityMatrix.js';
 import { createScanTelemetry } from './gemScanTelemetry.js';
+import { GEM_RUNTIME_POLICY } from '../../server/gem/gemRuntimePolicy.js';
 
 const DATA_SOURCE_NAME = 'GEM Global Mineral Intelligence';
 const WORLD_BBOX = Object.freeze({
@@ -672,7 +673,7 @@ export function createGlobalMineralIntelligence({
         features,
         queryBox,
         {
-          maxCells: isGlobal ? 2048 : 512,
+          maxCells: isGlobal ? GEM_RUNTIME_POLICY.performance.globalCandidateCap : GEM_RUNTIME_POLICY.performance.localCandidateCap,
         },
       );
       if (search.area)
