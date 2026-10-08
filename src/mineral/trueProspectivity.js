@@ -57,6 +57,16 @@ export const TRUE_PROSPECTIVITY_WEIGHTS = Object.freeze({
 });
 
 const LITHOLOGY_PRIORS = Object.freeze({
+  silver: Object.freeze({
+    'metamorphic rocks': 88,
+    metamorphics: 88,
+    'intermediate volcanic rocks': 84,
+    'basic volcanic rocks': 78,
+    'intermediate plutonic rocks': 74,
+    'acid plutonic rocks': 70,
+    'mixed sedimentary rocks': 72,
+    'siliciclastic sedimentary rocks': 64,
+  }),
   gold: Object.freeze({
     'metamorphic rocks': 95,
     metamorphics: 95,
@@ -156,6 +166,9 @@ const LITHOLOGY_PRIORS = Object.freeze({
 const SUPPORTED_COMMODITIES = Object.freeze(Object.keys(LITHOLOGY_PRIORS));
 
 const COMMODITY_ALIASES = Object.freeze({
+  ag: 'silver',
+  silver: 'silver',
+  plata: 'silver',
   au: 'gold',
   gold: 'gold',
   copper: 'copper',
