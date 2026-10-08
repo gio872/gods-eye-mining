@@ -14,15 +14,15 @@ const MODULES = [
   { id: 'map', label: 'Planet Map', eyebrow: 'ORIENT', text: 'Navigate the living planetary surface and move from geography into intelligence.', meta: 'GLOBAL SURFACE', action: 'map', art: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg' },
   { id: 'resources', label: 'Resource Atlas', eyebrow: 'EXPLORE', text: 'Minerals, metals, petroleum and gas with location, depth, evidence and provenance.', meta: '4D DATA FABRIC', action: 'resources', art: 'https://img-mm.manoramaonline.com/content/dam/mm/mo/archive/technology/science/images/2026/2/1/rare-earth-mineral.jpg?h=583&w=1120' },
   { id: 'targets', label: 'Target Intelligence', eyebrow: 'DISCOVER', text: 'Find, rank and explain exploration targets from converging planetary evidence.', meta: 'AI + EVIDENCE', action: 'targets', art: 'https://content.geovalevektor.com/images/mineral-exploration/1765722830595-Mineral-exploration.png' },
-  { id: 'assets', label: 'Asset Intelligence', eyebrow: 'OPERATE', text: 'Track physical assets, digital twins, custody, trade and settlement.', meta: 'DIGITAL TWIN', action: 'assets', art: 'https://dela.ru/medianew/img/2-8958794.jpg' },
+  { id: 'assets', label: 'Asset Intelligence', eyebrow: 'OPERATE', text: 'Track physical assets, digital twins, custody, trade and settlement.', meta: 'DIGITAL TWIN', action: 'assets', requiresPlan: 'TRADING', art: 'https://dela.ru/medianew/img/2-8958794.jpg' },
   { id: 'companies', label: 'Mining Participants', eyebrow: 'NETWORK', text: 'Register miners, mine operators, producers, traders and verified counterparties.', meta: 'NETWORK GRAPH', action: 'companies', art: 'https://www.laizquierdadiario.com/IMG/arton24564.jpg' },
-  { id: 'markets', label: 'Markets', eyebrow: 'TRADE', text: 'Commodity discovery, RFQ, matching, exchange and trade operations.', meta: 'COMMODITY LAYER', action: 'markets', art: 'https://mdb.ad-hoc-news.de/bilder/bild-2385448_800_600.jpg' },
+  { id: 'markets', label: 'Markets', eyebrow: 'TRADE', text: 'Commodity discovery, RFQ, matching, exchange and trade operations.', meta: 'COMMODITY LAYER', action: 'markets', requiresPlan: 'TRADING', art: 'https://mdb.ad-hoc-news.de/bilder/bild-2385448_800_600.jpg' },
   { id: 'intelligence', label: 'Mineral Intelligence', eyebrow: 'UNDERSTAND', text: 'Geology, geophysics, geochemistry, hyperspectral and mineral systems.', meta: 'PLANETARY EVIDENCE', action: 'intelligence', art: 'https://images.squarespace-cdn.com/content/v1/66a30c0625c3d256b1b3d2e2/785c5c07-a40a-4c22-87b5-f5b7e044480f/Mieral%2BMap-3D.jpg' },
   { id: 'security', label: 'Mineral Security', eyebrow: 'STRATEGY', text: 'Country exposure, supply concentration, refining risk and resilience.', meta: 'NATIONAL INTELLIGENCE', action: 'security', art: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg' },
-  { id: 'investor', label: 'Investor Room', eyebrow: 'CAPITAL', text: 'Business model, scenarios, capital path and public-markets readiness.', meta: 'INVESTOR INTELLIGENCE', action: 'investor', art: 'https://start-up.ro/img/articles/3/0/7/30782/cover-30782-src.jpg' },
+  { id: 'investor', label: 'Investor Room', eyebrow: 'CAPITAL', text: 'Business model, scenarios, capital path and public-markets readiness.', meta: 'INVESTOR INTELLIGENCE', action: 'investor', requiresPlan: 'ENTERPRISE', art: 'https://start-up.ro/img/articles/3/0/7/30782/cover-30782-src.jpg' },
   { id: 'reports', label: 'Reports', eyebrow: 'DELIVER', text: 'Turn intelligence into decision-ready reports, evidence packages and investor briefs.', meta: 'DECISION OUTPUT', action: 'reports', art: 'https://assets.zyrosite.com/cdn-cgi/image/format%3Dauto%2Cw%3D1024%2Ch%3D896%2Cfit%3Dcrop%2Ctrim%3D0%3B0%3B257.50884086444006%3B0/5CR3CTlG2YYPc05o/1770819080873-rLFgdCUELR2RqbGF.png' },
   { id: 'supply', label: 'Supply Chain', eyebrow: 'CONNECT', text: 'Trace extraction, processing, refining, manufacturing and strategic dependencies.', meta: 'GLOBAL VALUE CHAIN', action: 'supply', art: 'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=800&q=80' },
-  { id: 'operations', label: 'Operations', eyebrow: 'OPERATE', text: 'Plan, monitor and manage exploration, projects, logistics and physical assets.', meta: 'OPERATING LAYER', action: 'operations', art: 'https://assets.cmcmarkets.com/images/1656941142_OilGas-1404562174_1200px.jpg' },
+  { id: 'operations', label: 'Operations', eyebrow: 'OPERATE', text: 'Plan, monitor and manage exploration, projects, logistics and physical assets.', meta: 'OPERATING LAYER', action: 'operations', requiresPlan: 'ENTERPRISE', art: 'https://assets.cmcmarkets.com/images/1656941142_OilGas-1404562174_1200px.jpg' },
 ];
 
 const SEARCH_INDEX = [
@@ -360,7 +360,7 @@ function injectStyles() {
     .gem-module-card .module-eyebrow{display:block;color:#68d9e9;font:800 5.5px ui-monospace,monospace;letter-spacing:.18em;margin-bottom:4px}
     .gem-module-art{position:absolute;right:0;top:0;bottom:0;width:86px;background-size:cover;background-position:center;opacity:.86;filter:saturate(1.18) contrast(1.06);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.62) 18%,#000 46%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.62) 18%,#000 46%);z-index:1}.gem-module-art:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,15,23,.88),transparent 55%,rgba(0,0,0,.08)),linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,8,15,.28))}
     .gem-module-card .module-arrow{position:relative;z-index:3;color:#72e7f7;font-size:23px;align-self:center;justify-self:end}.gem-module-card footer{display:none}
-    .gem-module-card:hover{transform:translateY(-2px);border-color:rgba(79,229,255,.78);box-shadow:inset 0 1px rgba(255,255,255,.08),0 14px 38px rgba(0,0,0,.3),0 0 28px rgba(0,211,255,.12)}
+    .gem-plan-lock{position:absolute;right:30px;top:7px;z-index:5;padding:4px 6px;border:1px solid rgba(255,198,111,.4);border-radius:6px;background:rgba(5,13,20,.88);color:#ffd18a;font:800 6px ui-monospace,monospace;letter-spacing:.05em}.gem-module-card.is-plan-locked .gem-module-icon{opacity:.78}.gem-module-card.is-plan-locked .module-arrow{color:#ffd18a}.gem-module-card:hover{transform:translateY(-2px);border-color:rgba(79,229,255,.78);box-shadow:inset 0 1px rgba(255,255,255,.08),0 14px 38px rgba(0,0,0,.3),0 0 28px rgba(0,211,255,.12)}
     .gem-module-icon{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(71,224,255,.55);background:radial-gradient(circle,rgba(33,193,255,.18),rgba(3,14,23,.76) 68%);box-shadow:0 0 22px rgba(20,208,255,.13),inset 0 0 18px rgba(70,218,255,.07)}
     .gem-module-icon svg{width:31px;height:31px;fill:none;stroke:#69eaff;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(75,225,255,.45))}
     .gem-module-card .module-eyebrow{display:block;color:#68d9e9;font:800 6px ui-monospace,monospace;letter-spacing:.18em;margin-bottom:4px}
@@ -519,7 +519,7 @@ function injectStyles() {
 }
 
 
-function openGemAccountModal() {
+function openGemAccountModal(notice = '') {
   document.querySelector('.gem-account-overlay')?.remove();
   const overlay = document.createElement('div');
   overlay.className = 'gem-account-overlay';
@@ -770,10 +770,11 @@ function openGemAccountModal() {
     await renderOrganizations();
   }
   request('/api/gem/account/me').then(({ user }) => {
-    if (user) { showStatus('You are signed in to GEM.'); renderMember(); }
-    else { status.classList.remove('is-visible'); renderAuth('register'); }
+    if (user) { showStatus(notice || 'You are signed in to GEM.'); renderMember(); }
+    else { status.classList.remove('is-visible'); if(notice) showStatus(notice); renderAuth('register'); }
+    syncPlanLocks(document.querySelector('.gem-product-shell'));
   }).catch(() => {
-    showStatus('Account service is not available yet. Start GEM with the updated server files and try again.', true);
+    showStatus(notice || 'Account service is not available yet. Start GEM with the updated server files and try again.', true);
     renderAuth('register');
   });
 }
@@ -900,7 +901,49 @@ function workspaceContent(module) {
   return cards[module] || cards.intelligence;
 }
 
+const GEM_PLAN_RANK = Object.freeze({ INTELLIGENCE: 0, TRADING: 1, ENTERPRISE: 2 });
+
+async function syncPlanLocks(shell) {
+  if (!shell) return;
+  let activePlan = 'INTELLIGENCE';
+  try {
+    const response = await fetch('/api/gem/account/entitlements', { credentials: 'same-origin' });
+    if (response.ok) activePlan = (await response.json()).plan || 'INTELLIGENCE';
+  } catch {}
+  const currentRank = GEM_PLAN_RANK[activePlan] ?? 0;
+  shell.querySelectorAll('[data-plan-requires]').forEach(badge => {
+    const required = badge.dataset.planRequires || 'TRADING';
+    const locked = currentRank < (GEM_PLAN_RANK[required] ?? 99);
+    badge.hidden = !locked;
+    badge.closest('[data-module]')?.classList.toggle('is-plan-locked', locked);
+  });
+}
+
 function openWorkspace(module) {
+  const meta = MODULES.find(item => item.id === module);
+  const requiredPlan = meta?.requiresPlan;
+  if (!requiredPlan) return openWorkspaceUnlocked(module);
+  fetch('/api/gem/account/entitlements', { credentials: 'same-origin' })
+    .then(async response => {
+      if (!response.ok) {
+        openGemAccountModal('Sign in or create a GEM account to access this workspace.');
+        return null;
+      }
+      return response.json();
+    })
+    .then(entitlements => {
+      if (!entitlements) return;
+      const currentRank = GEM_PLAN_RANK[entitlements.plan] ?? 0;
+      if (currentRank < (GEM_PLAN_RANK[requiredPlan] ?? 99)) {
+        openGemAccountModal(requiredPlan + ' membership is required for ' + meta.label + '. Your request remains pending until a payment provider confirms an active subscription.');
+        return;
+      }
+      openWorkspaceUnlocked(module);
+    })
+    .catch(() => openGemAccountModal('GEM could not validate the current membership. Sign in again or try later.'));
+}
+
+function openWorkspaceUnlocked(module) {
   let workspace = document.querySelector('.gem-workspace');
   if (!workspace) {
     workspace = document.createElement('section');
@@ -1027,6 +1070,7 @@ function buildShell() {
               <p>${esc(module.text)}</p>
             </div>
             <span class="gem-module-art" style="background-image:url('${esc(module.art)}')"></span>
+            ${module.requiresPlan ? `<span class="gem-plan-lock" data-plan-requires="${esc(module.requiresPlan)}">LOCKED · ${esc(module.requiresPlan)}</span>` : ''}
             <span class="module-arrow">›</span>
             <footer><span>${esc(module.meta)}</span><b>OPEN →</b></footer>
           </article>`).join('')}
@@ -1163,6 +1207,7 @@ export function installGemWebExperience() {
   document.body.classList.add('gem-web-product');
   const shell = buildShell();
   wireShell(shell);
+  syncPlanLocks(shell);
 
   // Keep the automatic locale experience, but present it through the product header.
   document.addEventListener('gem:locale-ready', (event) => {
