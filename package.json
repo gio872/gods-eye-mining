@@ -93,6 +93,9 @@
     "./server/providers/terrain": {
       "node": "./server/providers/terrain.js"
     },
+    "./server/providers/earthengine": {
+      "node": "./server/providers/earthengine.js"
+    },
     "./sources/terrain": "./src/data/terrainHeightsProxy.js",
     "./server/providers/traffic": {
       "node": "./server/providers/traffic.js"
