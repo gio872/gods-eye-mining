@@ -388,6 +388,7 @@ export function createGlobalMineralIntelligence({
           GLOBAL_MINERAL_SOURCES.mrds,
           GLOBAL_MINERAL_SOURCES.criticalMinerals,
         ],
+        maxPages: isGlobal ? globalPages : viewportPages,
       });
 
       const features = results.flatMap((result) => result.features);
