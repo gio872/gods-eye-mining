@@ -33,7 +33,7 @@ application
     }
   })
   .catch((error) => {
-    console.error("God's Eye View initialization failed:", error);
+    console.error('GEM initialization failed:', error);
     const loaderStatus = document.querySelector(
       '#loading-screen .loader-status',
     );
