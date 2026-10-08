@@ -185,8 +185,10 @@ function injectStyles() {
       transform:rotate(45deg);
     }
 
-    .gem-product-brand strong{font-size:14px;letter-spacing:.02em}
-    .gem-product-brand small{display:block;color:#627b86;font-size:6px;letter-spacing:.19em;margin-top:2px}
+    .gem-product-brand strong{font-size:14px;letter-spacing:.025em;color:#f1f8fa}
+    .gem-product-brand strong b{color:#68e8f4;font-weight:850}
+    .gem-product-brand small{display:block;color:#6e8992;font-size:6px;letter-spacing:.16em;margin-top:2px}
+    .gem-product-brand:after{content:"";position:absolute;left:30px;top:59px;width:250px;height:1px;background:linear-gradient(90deg,rgba(104,232,244,.34),transparent)}
 
     .gem-universal-search{
       height:42px;
@@ -273,8 +275,20 @@ function injectStyles() {
     }
 
     .gem-product-hero p{
-      max-width:630px;margin:0 auto;color:var(--gem-muted);
+      max-width:630px;margin:0 auto;color:#b0c4ca;
       font-size:13px;line-height:1.7;
+      text-shadow:0 2px 16px rgba(0,0,0,.75);
+    }
+    .gem-product-hero{position:relative}
+    .gem-product-hero:after{
+      content:"";
+      position:absolute;
+      width:720px;height:280px;
+      left:50%;top:70px;transform:translateX(-50%);
+      border-radius:50%;
+      border:1px solid rgba(104,232,244,.10);
+      box-shadow:0 0 80px rgba(104,232,244,.07),inset 0 0 80px rgba(104,232,244,.035);
+      pointer-events:none;
     }
 
     .gem-hero-search{
@@ -338,8 +352,10 @@ function injectStyles() {
       border:1px solid var(--gem-border);
       border-radius:16px;
       background:
-        radial-gradient(circle at 100% 0%,rgba(104,232,244,.05),transparent 38%),
-        rgba(8,15,22,.78);
+        linear-gradient(135deg,rgba(3,12,18,.78),rgba(5,15,22,.48)),
+        radial-gradient(circle at 100% 0%,rgba(104,232,244,.10),transparent 42%);
+      backdrop-filter:blur(10px);
+      box-shadow:inset 0 1px rgba(255,255,255,.035),0 14px 40px rgba(0,0,0,.18);
       cursor:pointer;
       transition:transform .2s,border-color .2s,background .2s;
     }
@@ -865,6 +881,7 @@ function openWorkspaceFromQuery(query) {
 
 export function installGemWebExperience() {
   if (document.querySelector('.gem-product-shell')) return;
+  document.title = 'TerraQueen GEM — Mineral Intelligence System';
   injectStyles();
   document.body.classList.add('gem-web-product');
   const shell = buildShell();
