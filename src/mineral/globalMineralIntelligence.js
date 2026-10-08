@@ -479,6 +479,7 @@ export function createGlobalMineralIntelligence({
           statuses: state.statuses,
           providerStatuses: state.providerStatuses,
           targets: state.targets,
+          search: state.search,
         }),
       }),
     );
@@ -780,7 +781,20 @@ export function createGlobalMineralIntelligence({
 
     panel
       .querySelector('[data-action="world"]')
-      .addEventListener('click', () => scan(WORLD_BBOX, 'global'));
+      .addEventListener('click', async () => {
+        const globalSearch = {
+          ...state.search,
+          country: '',
+          countryName: 'GLOBAL',
+          area: null,
+          bbox: WORLD_BBOX,
+          active: Boolean(state.search?.mineralKey),
+        };
+        searchCountry.value = '';
+        updateSearchStatus(globalSearch);
+        state = { ...state, search: globalSearch };
+        await scan(WORLD_BBOX, 'global', globalSearch);
+      });
 
     panel
       .querySelector('[data-role="targets"]')
