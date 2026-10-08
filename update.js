@@ -6,7 +6,6 @@ module.exports = {
     {
       method: "shell.run",
       params: {
-        path: "app",
         message: [
           "git fetch origin",
           "git checkout feature/global-mineral-intelligence",
