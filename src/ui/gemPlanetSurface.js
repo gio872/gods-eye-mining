@@ -579,7 +579,14 @@ export function installGemPlanetSurface() {
       disposePanelRuntime();
       for (const remove of handlers.splice(0)) remove();
       panel?.remove();
-      if (runtime?.viewer && !runtime.viewer.isDestroyed() && gridSourceAdded) removeCoordinateGrid(runtime.viewer);
+      if (runtime?.viewer && !runtime.viewer.isDestroyed()) {
+        for (const entity of [...measurePins, ...measureLines]) runtime.viewer.entities.remove(entity);
+        measurePins = [];
+        measureLines = [];
+        measureLine = null;
+        if (gridSourceAdded) removeCoordinateGrid(runtime.viewer);
+      }
+      gridSourceAdded = false;
       panel = null;
     },
   };
