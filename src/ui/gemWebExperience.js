@@ -982,7 +982,7 @@ function openWorkspaceUnlocked(module) {
   workspace.querySelector('[data-back]').addEventListener('click', () => workspace.classList.remove('is-open'));
   workspace.querySelector('[data-map]').addEventListener('click', () => {
     workspace.classList.remove('is-open');
-    document.querySelector('.gem-product-shell')?.classList.add('is-map-mode');
+    emit('gem:open-map');
   });
   workspace.querySelector('[data-live]').addEventListener('click', () => {
     const live = module === 'map' ? 'gem:open-map'
@@ -1005,6 +1005,37 @@ function openWorkspaceUnlocked(module) {
       emit(button.dataset.event, detail);
     });
   });
+
+  // The Planet workspace search is a navigation action, not a local card filter.
+  if (module === 'map') {
+    const input = workspace.querySelector('[data-workspace-search]');
+    const command = workspace.querySelector('.gem-workspace-command');
+    input.placeholder = 'Enter a country, region, city or coordinates…';
+    input.setAttribute('aria-label', 'Find a country or location on the global map');
+    const locateButton = document.createElement('button');
+    locateButton.type = 'button';
+    locateButton.dataset.planetLocate = 'true';
+    locateButton.textContent = 'LOCATE ON GLOBE →';
+    locateButton.title = 'Open the global surface and fly to this location';
+    command.append(locateButton);
+
+    const locateQuery = () => {
+      const query = input.value.trim();
+      if (!query) {
+        input.focus();
+        return;
+      }
+      workspace.classList.remove('is-open');
+      emit('gem:open-map');
+      emit('gem:planet-surface-search', { query });
+    };
+    locateButton.addEventListener('click', locateQuery);
+    input.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' || event.isComposing) return;
+      event.preventDefault();
+      locateQuery();
+    });
+  }
 }
 
 function openMapView(shell) {
