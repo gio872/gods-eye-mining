@@ -1039,17 +1039,28 @@ function openWorkspaceUnlocked(module) {
 }
 
 function openMapView(shell) {
+  if (!shell) return;
+  // Focus the existing Cesium viewer; do not instantiate a second map.
+  document.body.classList.add('gem-planet-surface-open');
   shell.classList.add('gem-map-focus');
   document.querySelector('.gem-workspace')?.classList.remove('is-open');
   let back = document.querySelector('.gem-map-focus-back');
   if (!back) {
     back = document.createElement('button');
     back.className = 'gem-map-focus-back';
+    back.type = 'button';
     back.textContent = '← BACK TO GEM';
-    document.body.append(back);
     back.addEventListener('click', () => emit('gem:close-planet-surface'));
+    document.body.append(back);
   }
   emit('gem:open-planet-surface');
+  // Switching from a full-screen HTML shell to a WebGL canvas needs a resize
+  // pass in Chromium/P​​inokio before Cesium can paint the full viewport.
+  requestAnimationFrame(() => {
+    window.dispatchEvent(new Event('resize'));
+    const canvas = document.querySelector('#cesiumContainer canvas');
+    if (canvas) canvas.style.setProperty('visibility', 'visible', 'important');
+  });
 }
 
 function buildShell() {
@@ -1147,9 +1158,11 @@ function wireShell(shell) {
 
   document.addEventListener('gem:open-map', () => openMapView(shell));
   document.addEventListener('gem:close-planet-surface', () => {
+    document.body.classList.remove('gem-planet-surface-open');
     shell.classList.remove('gem-map-focus');
     document.querySelector('.gem-map-focus-back')?.remove();
     document.querySelector('.gem-workspace')?.classList.remove('is-open');
+    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
   });
   document.addEventListener('gem:open-participants', () => openGemAccountModal());
 
@@ -1185,7 +1198,7 @@ function wireShell(shell) {
     card.addEventListener('click', () => {
       // The Planet Map card opens the actual Cesium globe immediately;
       // its interactive controls live in the focused Planet Surface module.
-      if (card.dataset.module === 'map') emit('gem:open-map');
+      if (card.dataset.module === 'map') openMapView(shell);
       else openWorkspace(card.dataset.module);
     });
   });
