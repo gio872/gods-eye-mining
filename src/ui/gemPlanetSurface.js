@@ -2,7 +2,6 @@ import * as Cesium from 'cesium';
 import { GEE_DATASETS } from '../maps/geeImagery.js';
 
 const GRID_ID = 'gem-planetary-surface-grid';
-const EARTH_RADIUS_M = 6371008.8;
 
 export function formatPlanetaryCoordinate(latitude, longitude) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return '—';
@@ -209,14 +208,31 @@ export function installGemPlanetSurface() {
   let measureStart = null;
   let measureLine = null;
   let measurePins = [];
+  let measureLines = [];
   let renderedAltitude = null;
   let activeSearchController = null;
   let gridSourceAdded = false;
   const handlers = [];
-  const bind = (element, type, listener) => {
-    element?.addEventListener(type, listener);
-    handlers.push(() => element?.removeEventListener(type, listener));
+  let panelHandlers = [];
+  const bind = (element, type, listener, scope = 'panel') => {
+    if (!element || typeof listener !== 'function') return;
+    element.addEventListener(type, listener);
+    const remove = () => element.removeEventListener(type, listener);
+    (scope === 'persistent' ? handlers : panelHandlers).push(remove);
   };
+  function removePanelHandlers() {
+    for (const remove of panelHandlers.splice(0)) remove();
+  }
+  function disposePanelRuntime() {
+    closeMeasure();
+    screenHandler?.destroy();
+    screenHandler = null;
+    controllerUnsubscribe?.();
+    controllerUnsubscribe = null;
+    if (postRenderListener) postRenderListener();
+    postRenderListener = null;
+    removePanelHandlers();
+  }
 
   function status(message, tone = 'normal') {
     if (!panel) return;
@@ -274,14 +290,6 @@ export function installGemPlanetSurface() {
     measureMode = false;
     measureStart = null;
     panel?.querySelector('[data-measure]')?.classList.remove('is-active');
-    if (runtime?.viewer && !runtime.viewer.isDestroyed() && measureLine) {
-      runtime.viewer.entities.remove(measureLine);
-      measureLine = null;
-    }
-    if (runtime?.viewer && !runtime.viewer.isDestroyed()) {
-      for (const pin of measurePins) runtime.viewer.entities.remove(pin);
-      measurePins = [];
-    }
     const output = panel?.querySelector('[data-measure-status]');
     if (output) output.textContent = 'Distance measurement is off.';
   }
@@ -289,8 +297,10 @@ export function installGemPlanetSurface() {
   function clearMeasureResults() {
     closeMeasure();
     if (runtime?.viewer && !runtime.viewer.isDestroyed()) {
-      for (const pin of measurePins) runtime.viewer.entities.remove(pin);
+      for (const entity of [...measurePins, ...measureLines]) runtime.viewer.entities.remove(entity);
       measurePins = [];
+      measureLines = [];
+      measureLine = null;
     }
     const output = panel?.querySelector('[data-measure-status]');
     if (output) output.textContent = 'Measurement cleared.';
@@ -389,7 +399,6 @@ export function installGemPlanetSurface() {
         status('COORDINATE GRID DISABLED', 'normal');
       }
     });
-    bind(panel.querySelectorAll('[data-region]'), 'click', null);
     panel.querySelectorAll('[data-region]').forEach((button) => bind(button, 'click', () => {
       const regions = {
         world: [0, 15, 24500000],
@@ -463,6 +472,7 @@ export function installGemPlanetSurface() {
           clampToGround: false,
         },
       });
+      measureLines.push(measureLine);
       panel.querySelector('[data-measure-status]').textContent = 'SURFACE DISTANCE · ' + formatPlanetaryDistance(distance);
       status('MEASURED · ' + formatPlanetaryDistance(distance), 'success');
       measureStart = null;
@@ -524,15 +534,21 @@ export function installGemPlanetSurface() {
     });
   }
 
-  function closeSurface() {
+  function closeSurface(notify = true) {
     activeSearchController?.abort();
     activeSearchController = null;
-    closeMeasure();
+    disposePanelRuntime();
+    if (runtime?.viewer && !runtime.viewer.isDestroyed()) {
+      for (const entity of [...measurePins, ...measureLines]) runtime.viewer.entities.remove(entity);
+      measurePins = [];
+      measureLines = [];
+      measureLine = null;
+      if (gridSourceAdded) removeCoordinateGrid(runtime.viewer);
+    }
+    gridSourceAdded = false;
     panel?.remove();
     panel = null;
-    if (gridSourceAdded && runtime?.viewer && !runtime.viewer.isDestroyed()) removeCoordinateGrid(runtime.viewer);
-    gridSourceAdded = false;
-    document.dispatchEvent(new CustomEvent('gem:close-planet-surface'));
+    if (notify) document.dispatchEvent(new CustomEvent('gem:close-planet-surface'));
   }
 
   function attachRuntime(detail) {
@@ -540,6 +556,7 @@ export function installGemPlanetSurface() {
     runtime = detail;
     if (panel && !screenHandler) {
       // The panel was opened before Cesium finished initializing.
+      removePanelHandlers();
       wirePanel();
       if (!initialFlightDone) {
         globalCamera(runtime.viewer, 2.4);
@@ -563,11 +580,8 @@ export function installGemPlanetSurface() {
       if (destroyed) return;
       destroyed = true;
       activeSearchController?.abort();
-      closeMeasure();
+      disposePanelRuntime();
       for (const remove of handlers.splice(0)) remove();
-      screenHandler?.destroy();
-      controllerUnsubscribe?.();
-      if (postRenderListener) postRenderListener();
       panel?.remove();
       if (runtime?.viewer && !runtime.viewer.isDestroyed() && gridSourceAdded) removeCoordinateGrid(runtime.viewer);
       panel = null;
