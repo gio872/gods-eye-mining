@@ -426,20 +426,30 @@ export function installGemPlanetSurface() {
   function startInitialGlobalView() {
     if (initialFlightDone || !panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return initialGlobalViewPromise;
     initialFlightDone = true;
+    return startGlobalViewFlight(2.4, 'GLOBAL SURFACE INITIALIZATION FAILED');
+  }
+
+  function startGlobalViewFlight(duration = 1.8, errorLabel = 'GLOBAL SURFACE INITIALIZATION FAILED') {
+    if (initialGlobalViewPromise) return initialGlobalViewPromise;
     initialGlobalViewPromise = ensureGlobalSurfaceSource().then(() => {
       if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
       if (pendingPlanetSearch) {
         launchPendingSearch();
         return;
       }
-      globalCamera(runtime.viewer, 2.4);
+      globalCamera(runtime.viewer, duration);
       fillBasemaps();
     }).catch((error) => {
-      if (panel) status('GLOBAL SURFACE INITIALIZATION FAILED · ' + String(error?.message || error), 'error');
+      if (panel) status(errorLabel + ' · ' + String(error?.message || error), 'error');
     }).finally(() => {
       initialGlobalViewPromise = null;
     });
     return initialGlobalViewPromise;
+  }
+
+  function startReopenedGlobalView() {
+    if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
+    void startGlobalViewFlight(1.6, 'GLOBAL SURFACE RELOAD FAILED');
   }
 
   async function runSearch(query) {
@@ -636,6 +646,7 @@ export function installGemPlanetSurface() {
 
   function openSurface() {
     if (destroyed) return;
+    const wasOpen = Boolean(panel);
     if (!runtime?.viewer || runtime.viewer.isDestroyed()) {
       if (!panel) {
         installStyles();
@@ -655,7 +666,10 @@ export function installGemPlanetSurface() {
     }
     panel.classList.remove('is-minimized');
     fillBasemaps();
-    startInitialGlobalView();
+    if (!wasOpen) {
+      if (!initialFlightDone) startInitialGlobalView();
+      else startReopenedGlobalView();
+    }
     updateAltitudeReadout();
   }
 
@@ -698,7 +712,7 @@ export function installGemPlanetSurface() {
     if (panel) {
       fillBasemaps();
       if (!initialFlightDone) startInitialGlobalView();
-      else if (!initialGlobalViewPromise) launchPendingSearch();
+      else if (!initialGlobalViewPromise) startReopenedGlobalView();
     }
   }
 
