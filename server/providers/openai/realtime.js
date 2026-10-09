@@ -12,7 +12,7 @@ import {
   OPENAI_REALTIME_CONTEXT_RETENTION_DEFAULT,
 } from './constants.js';
 import { realtimeInstructions } from './instructions.js';
-import { GEV_REALTIME_TOOLS } from './tools.js';
+import { GEM_REALTIME_TOOLS } from './tools.js';
 
 function createRealtimeTokenHandler({
   annotationGuidance,
@@ -113,7 +113,7 @@ function createRealtimeTokenHandler({
           output: { voice },
         },
         instructions: realtimeInstructions(annotationGuidance),
-        tools: GEV_REALTIME_TOOLS,
+        tools: GEM_REALTIME_TOOLS,
         tool_choice: 'auto',
       },
     };

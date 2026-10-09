@@ -91,7 +91,60 @@ export function hideOsmCredit(viewer, owner) {
   return true;
 }
 
+export const GEM_MINERAL_INTELLIGENCE_CREDITS = [
+  {
+    key: 'global-glim-lithology',
+    html:
+      'Global lithology: ' +
+      '<a href="https://services8.arcgis.com/4KhTMTZ1x0f76DSg/arcgis/rest/services/GLiM_Niveau_I/FeatureServer/1" target="_blank" rel="noopener">Global Lithological Map (GLiM v1.1)</a> · Hartmann &amp; Moosdorf',
+  },
+  {
+    key: 'emag2v3',
+    html:
+      'Global magnetic evidence: ' +
+      '<a href="https://gis.ngdc.noaa.gov/arcgis/rest/services/EMAG2v3/ImageServer" target="_blank" rel="noopener">NOAA/NCEI EMAG2v3 Earth Magnetic Anomaly Grid</a>',
+  },
+  {
+    key: 'world-elevation3d',
+    html:
+      'Terrain context: ' +
+      '<a href="https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer" target="_blank" rel="noopener">ArcGIS World Elevation 3D</a>',
+  },
+
+  {
+    key: 'sentinel-2-l2a-earth-search',
+    html: 'Spectral alteration evidence: <a href="https://earth-search.aws.element84.com/v1/" target="_blank" rel="noopener">Element84 Earth Search Sentinel-2 L2A</a> COG assets',
+  },
+  {
+    key: 'enmap-l2a-dlr',
+    html: 'Hyperspectral alteration evidence: <a href="https://geoservice.dlr.de/web/datasets/enmap" target="_blank" rel="noopener">DLR EOC Geoservice EnMAP HSI L2A</a>',
+  },
+  {
+    key: 'emit-l2bmin-earthdata',
+    html: 'Mineral identification evidence: <a href="https://lpdaac.usgs.gov/products/emitl2bminv001/" target="_blank" rel="noopener">NASA EMIT L2BMIN</a> · Earthdata Login is required for protected pixel granules',
+  },
+  {
+    key: 'cmio-geochemistry-global',
+    html: 'Real geochemistry: <a href="https://services.ga.gov.au/gis/critical-minerals/gwc/demo" target="_blank" rel="noopener">Critical Minerals in Ores (CMMI / Geoscience Australia)</a>',
+  },
+  {
+    key: 'usgs-mrds-mineral-intelligence',
+    html:
+      'Mineral reference occurrences: ' +
+      '<a href="https://energy.usgs.gov/arcgis/rest/services/MRData/Mineral_Resource_Data_System/FeatureServer/3" target="_blank" rel="noopener">USGS Mineral Resource Data System (MRDS)</a> ' +
+      '(worldwide reference data; coverage outside the U.S. is incomplete)',
+  },
+  {
+    key: 'usgs-critical-minerals-intelligence',
+    html:
+      'Critical mineral reference locations: ' +
+      '<a href="https://energy.usgs.gov/arcgis/rest/services/Hosted/Global_distribution_of_selected_critical_minerals/FeatureServer/2" target="_blank" rel="noopener">USGS Global Distribution of Selected Critical Minerals</a>',
+  },
+];
+
 export const DATA_CREDITS = [
+  ...GEM_MINERAL_INTELLIGENCE_CREDITS,
+
   // ── Live sources ────────────────────────────────────────────────
   {
     key: 'opensky',

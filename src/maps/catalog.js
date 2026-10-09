@@ -24,6 +24,13 @@ export const MAP_STACKS = [
     requiresIon: true,
   },
   {
+    id: 'gee-global-eo',
+    label: 'Google Earth Engine',
+    shortLabel: 'GEE',
+    kind: 'gee-imagery',
+    requiresIon: false,
+  },
+  {
     id: 'esri-imagery',
     label: 'Esri Satellite',
     shortLabel: 'SAT',

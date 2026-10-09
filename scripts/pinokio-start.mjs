@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { applyPinokioEnvironment } from './pinokio-environment.mjs';
 import { isDirectInvocation } from './pinokio-install.mjs';
 import { validatePinokioSharing } from './pinokio-preflight.mjs';
+import { spawn } from 'node:child_process';
 
 const MODULE_PATH = fileURLToPath(import.meta.url);
 const ROOT = realpathSync(path.resolve(path.dirname(MODULE_PATH), '..'));
@@ -34,10 +35,60 @@ async function start() {
   // applyPinokioEnvironment, before Vite snapshots process.env — so the
   // dev-server endpoint knows which store this launch owns.
   process.env.GEV_LAUNCHER = 'pinokio';
+  if (process.env.GEM_EARTHENGINE_PROJECT) {
+    process.env.GEM_EARTHENGINE_GATEWAY_PORT = String(port + 1);
+  }
   console.log('[Pinokio] Local-only launch.');
 
   // Import Vite only after app-scoped blank fields have replaced any merged
   // Pinokio-global values. Vite snapshots process.env during configuration.
+  let geeProcess = null;
+  if (process.env.GEM_EARTHENGINE_PROJECT) {
+    const python = process.platform === 'win32' ? 'python' : 'python3';
+    geeProcess = spawn(
+      python,
+      [path.join(ROOT, 'server', 'providers', 'earthengine_gateway.py')],
+      {
+        cwd: ROOT,
+        env: { ...process.env, GEM_EARTHENGINE_GATEWAY_PORT: String(port + 1) },
+        stdio: ['ignore', 'pipe', 'pipe'],
+        windowsHide: true,
+      },
+    );
+    let geeReady = false;
+    const geeReadyPromise = new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(false), 4000);
+      geeProcess.stdout?.on('data', (chunk) => {
+        const text = String(chunk);
+        process.stdout.write('[GEE] ' + text);
+        if (!geeReady && text.includes('gateway listening')) {
+          geeReady = true;
+          clearTimeout(timeout);
+          resolve(true);
+        }
+      });
+      geeProcess.stderr?.on('data', (chunk) =>
+        process.stderr.write('[GEE] ' + String(chunk)),
+      );
+      geeProcess.on('error', (error) => {
+        console.warn('[GEE] Gateway unavailable:', error.message);
+        clearTimeout(timeout);
+        resolve(false);
+      });
+      geeProcess.on('exit', (code) => {
+        if (!geeReady) resolve(false);
+        if (code !== null && code !== 0)
+          console.warn('[GEE] Gateway exited with code', code);
+      });
+    });
+    const gatewayReady = await geeReadyPromise;
+    console.log(
+      gatewayReady
+        ? '[GEE] Gateway ready.'
+        : '[GEE] Gateway did not become ready; GEM will use fallback imagery until available.',
+    );
+  }
+
   const { createServer } = await loadViteFromCanonicalRoot();
   const server = await createServer({
     root: ROOT,
@@ -54,6 +105,7 @@ async function start() {
   for (const signal of ['SIGINT', 'SIGTERM']) {
     process.once(signal, async () => {
       await server.close();
+      if (geeProcess && !geeProcess.killed) geeProcess.kill();
       process.exit(0);
     });
   }

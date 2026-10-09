@@ -5,9 +5,9 @@ module.exports = {
       method: 'shell.run',
       params: {
         path: '..',
-        // Always launch the exact published main revision. This prevents Pinokio
-        // from silently serving an older local checkout after an update.
-        message: 'git fetch origin main && git reset --hard origin/main && node scripts/pinokio-start.mjs',
+        // Launch the exact GEM revision installed by Pinokio. Updates are handled
+        // explicitly by Pinokio's Update action, not during every startup.
+        message: 'node scripts/pinokio-start.mjs',
         env: {
           HOST: '127.0.0.1',
           PORT: '{{port}}',
@@ -21,6 +21,7 @@ module.exports = {
           OPENSKY_CLIENT_ID: '{{env.OPENSKY_CLIENT_ID || ""}}',
           OPENSKY_CLIENT_SECRET: '{{env.OPENSKY_CLIENT_SECRET || ""}}',
           LL2_API_TOKEN: '{{env.LL2_API_TOKEN || ""}}',
+          GEM_EARTHENGINE_PROJECT: '{{env.GEM_EARTHENGINE_PROJECT || ""}}',
           PINOKIO_SHARE_CLOUDFLARE: '{{env.PINOKIO_SHARE_CLOUDFLARE || "false"}}',
           PINOKIO_SHARE_LOCAL: '{{env.PINOKIO_SHARE_LOCAL || "false"}}',
           PINOKIO_SHARE_VAR: '{{env.PINOKIO_SHARE_VAR || "__gev_sharing_disabled__"}}',

@@ -1,4 +1,5 @@
 import { createApplicationOperations } from './operations.js';
+import { isEarthEngineReady } from '../maps/geeReadiness.js';
 import * as Cesium from 'cesium';
 import {
   createApplicationViewer,
@@ -14,6 +15,7 @@ import {
   governorRequestRender,
 } from '../renderGovernor.js';
 import { describeError } from './errors.js';
+
 
 /** Construct the application globe using the caller's local configuration. */
 export async function createApplicationScene({
@@ -58,14 +60,20 @@ export async function createApplicationScene({
   defer(installTrackpadPinchZoom(viewer));
   registerDataCredits(viewer, credits);
   configureCreditKeyboardAccess(document);
-  loaderStatus.textContent =
-    googleApiKey || cesiumToken
-      ? 'Loading Google 3D Tiles...'
-      : 'Loading the keyless globe...';
-  const photoreal = await loadPhotorealisticTileset(Cesium, {
-    googleApiKey,
-    cesiumToken,
-  });
+  const geeReady = await isEarthEngineReady(signal);
+  let photoreal = { tileset: null, route: null, errors: [] };
+  if (geeReady) {
+    loaderStatus.textContent = 'Google Earth Engine ready — loading global EO...';
+  } else {
+    loaderStatus.textContent =
+      googleApiKey || cesiumToken
+        ? 'Loading Google 3D Tiles...'
+        : 'Loading the keyless globe...';
+    photoreal = await loadPhotorealisticTileset(Cesium, {
+      googleApiKey,
+      cesiumToken,
+    });
+  }
   const tileset = photoreal.tileset;
   // A provider can finish after cancellation; retain ownership of its result.
   defer(() => {
@@ -100,7 +108,8 @@ export async function createApplicationScene({
     ...mapOptions,
     googleTileset: tileset,
     cesiumToken,
-    initialStack: tileset ? 'photoreal' : 'esri-imagery',
+    geeAvailable: geeReady,
+    initialStack: geeReady ? 'gee-global-eo' : photoreal.tileset ? 'photoreal' : 'esri-imagery',
     // Task 5 (height-datum fix): rebroadcast stack changes as a window
     // CustomEvent so data layers (CCTV per-regime ground resolution) can
     // react without coupling MapStackController to layer modules. Fires on
@@ -114,7 +123,7 @@ export async function createApplicationScene({
     onError: (message) => console.warn('[MapStack]', message),
   });
   defer(() => mapStackController.destroy());
-  await mapStackController.setStack(tileset ? 'photoreal' : 'esri-imagery', {
+  await mapStackController.setStack(geeReady ? 'gee-global-eo' : photoreal.tileset ? 'photoreal' : 'esri-imagery', {
     silent: true,
   });
 

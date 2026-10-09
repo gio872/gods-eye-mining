@@ -42,6 +42,9 @@ export function createStandaloneApplication({
         cesiumToken,
         loaderStatus,
       });
+      // Share the already-configured keyless/geospatial search instance with
+      // focused product workspaces; do not construct a second geocoder stack.
+      scene.placeSearch = placeSearch;
       catalog = createStandaloneCatalog({
         nepalBoundaryResolver: (signal) =>
           scene.operations.annotationResolver.resolveRegionRingForQuery(

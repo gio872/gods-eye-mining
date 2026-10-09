@@ -1,0 +1,35 @@
+name: GEM Security Audit
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect accidental private material
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden='(BEGIN (RSA|EC|OPENSSH|PRIVATE) KEY|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AIza[0-9A-Za-z_-]{20,}|GOOGLE_APPLICATION_CREDENTIALS|private_key)'
+          if git grep -nE "$forbidden" -- ':!SECURITY-ARCHITECTURE.md'; then
+            echo "Potential secret material detected."
+            exit 1
+          fi
+      - name: Check environment files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find . -type f \( -name '.env' -o -name '.env.*' \) ! -name '.env.example' -print | grep -q .; then
+            echo "Unexpected environment file detected."
+            exit 1
+          fi
+      - name: Dependency audit
+        run: npm audit --audit-level=high

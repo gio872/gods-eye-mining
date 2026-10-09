@@ -368,6 +368,27 @@ const loadCountries = createRetryableLoader(async () => {
   return { index };
 });
 
+/**
+ * List all bundled Natural Earth admin-0 countries for selector UIs.
+ * The list is lazy-loaded and sorted deterministically by English label.
+ * @returns {Promise<Array<{name:string, localName:string, iso:string|null, iso2:string|null}>>}
+ */
+export async function listCountries() {
+  const pack = await loadBundledJson(
+    PACKS.countries.url,
+    PACKS.countries.importJson,
+  );
+  return (pack.features || [])
+    .map((feature) => ({
+      name: feature.name,
+      localName: feature.name,
+      iso: feature.iso || null,
+      iso2: feature.iso2 || null,
+    }))
+    .filter((entry) => entry.name)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 async function countryCandidates(parsed) {
   if (!['any', 'country'].includes(parsed.kind)) return [];
   const { index } = await loadCountries();

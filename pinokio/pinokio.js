@@ -1,7 +1,7 @@
 module.exports = {
   version: '3.6',
   title: "God's Eye View",
-  description: 'A live 3D intelligence console for planet Earth.',
+  description: 'GLOBAL MINERAL INTELLIGENCE / TRUE MULTISOURCE mineral discovery engine.',
   menu: async (kernel, info) => {
     const installed = await kernel.exists(__dirname, '.installed');
     const installing = info.running('install.js');
@@ -23,7 +23,7 @@ module.exports = {
       const local = info.local('start.js');
       if (local?.url) {
         return [
-          { default: true, icon: 'fa-solid fa-earth-americas', text: 'Open God\'s Eye View', href: local.url },
+          { default: true, icon: 'fa-solid fa-earth-americas', text: 'Open GEM Mineral Discovery Engine', href: local.url },
           { icon: 'fa-solid fa-terminal', text: 'Server', href: 'start.js' },
         ];
       }
@@ -31,7 +31,9 @@ module.exports = {
     }
 
     return [
-      { default: true, icon: 'fa-solid fa-power-off', text: 'Start', href: 'start.js' },
+      { default: true, icon: 'fa-solid fa-power-off', text: 'Start GEM', href: 'start.js' },
+      { icon: 'fa-solid fa-satellite-dish', text: 'Configure Earth Engine', href: 'gee-auth.js' },
+      { icon: 'fa-solid fa-satellite-dish', text: 'Configure Google Earth Engine', href: 'gee.js' },
       { icon: 'fa-solid fa-arrows-rotate', text: 'Update', href: 'update.js' },
       { icon: 'fa-solid fa-broom', text: 'Repair installation', href: 'reset.js' },
     ];

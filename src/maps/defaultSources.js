@@ -7,6 +7,7 @@ import {
   createIonImagery,
   ESRI_ATTRIBUTION_HTML,
 } from './imagery.js';
+import { createGeeImagery, GEE_CONFIG } from './geeImagery.js';
 import { createWorldTerrain, createKeylessTerrain } from './terrain.js';
 
 /** Select sources and setup guidance without putting provider branches in the controller. */
@@ -14,6 +15,7 @@ export function createDefaultMapSources({
   googleTileset = null,
   cesiumToken = '',
   googleApiKey = '',
+  geeAvailable = false,
 } = {}) {
   const ionToken = String(cesiumToken || '').trim();
   const hasIon = Boolean(ionToken);
@@ -25,14 +27,21 @@ export function createDefaultMapSources({
       : createKeylessTerrain,
   };
   return {
-    defaultId: googleTileset ? 'photoreal' : 'esri-imagery',
+    defaultId: googleTileset
+      ? 'photoreal'
+      : geeAvailable
+        ? 'gee-global-eo'
+        : 'esri-imagery',
     unknownId: 'photoreal',
     recoveryId: googleTileset ? 'photoreal' : null,
     state: { hasCesiumIonToken: hasIon },
     sources: MAP_STACKS.map((descriptor) => {
       const common = {
         descriptor,
-        available: !descriptor.requiresIon || hasIon,
+        available:
+          descriptor.id === 'gee-global-eo'
+            ? Boolean(geeAvailable)
+            : !descriptor.requiresIon || hasIon,
         unavailableReason: descriptor.requiresIon
           ? keySetupRequirement('cesium-ion')
           : null,
@@ -45,15 +54,30 @@ export function createDefaultMapSources({
           tileset: googleTileset,
         };
       const imagery =
-        descriptor.kind === 'ion'
-          ? () => createIonImagery(descriptor.style, ionToken)
-          : descriptor.id === 'osm'
-            ? createOsmImagery
-            : createEsriImagery;
+        descriptor.kind === 'gee-imagery'
+          ? (request = {}) =>
+              createGeeImagery({
+                fetchImpl: request.fetchImpl || globalThis.fetch,
+                signal: request.signal,
+                dataset: request.dataset || 'sentinel2',
+              })
+          : descriptor.kind === 'ion'
+            ? () => createIonImagery(descriptor.style, ionToken)
+            : descriptor.id === 'osm'
+              ? createOsmImagery
+              : createEsriImagery;
       return {
         ...common,
         imagery,
         terrain,
+        ...(descriptor.id === 'gee-global-eo'
+          ? {
+              credit: GEE_CONFIG.attribution,
+              unavailableReason: geeAvailable
+                ? null
+                : 'GEE AUTH REQUIRED — configure Earth Engine project and authenticate locally',
+            }
+          : {}),
         ...(descriptor.id === 'esri-imagery'
           ? {
               credit: ESRI_ATTRIBUTION_HTML,
