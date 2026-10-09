@@ -985,7 +985,8 @@ function openWorkspaceUnlocked(module) {
     document.querySelector('.gem-product-shell')?.classList.add('is-map-mode');
   });
   workspace.querySelector('[data-live]').addEventListener('click', () => {
-    const live = module === 'targets' ? 'gem:open-targets'
+    const live = module === 'map' ? 'gem:open-map'
+      : module === 'targets' ? 'gem:open-targets'
       : module === 'assets' ? 'gem:open-asset-registry'
       : module === 'markets' ? 'gem:open-asset-exchange'
       : module === 'investor' ? 'gem:open-investor'
