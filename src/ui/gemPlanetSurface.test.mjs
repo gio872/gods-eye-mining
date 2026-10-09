@@ -4,6 +4,7 @@ import {
   formatPlanetaryCoordinate,
   formatPlanetaryDistance,
   getAvailablePlanetaryStacks,
+  normalizePlanetarySearchQuery,
 } from './gemPlanetSurface.js';
 
 test('planetary cursor coordinates use signed hemispheres', () => {
@@ -31,4 +32,11 @@ test('basemap list reflects provider availability and restrictions', () => {
     { id: 'bing-aerial', label: 'Bing Aerial', available: false, unavailableReason: 'Cesium Ion token required', requiresIon: true },
   ]);
   assert.deepEqual(getAvailablePlanetaryStacks(null), []);
+});
+
+test('planetary search trims and bounds country, place and coordinate queries', () => {
+  assert.equal(normalizePlanetarySearchQuery('  Colombia  '), 'Colombia');
+  assert.equal(normalizePlanetarySearchQuery('4.6231, -72.1885'), '4.6231, -72.1885');
+  assert.equal(normalizePlanetarySearchQuery('   '), '');
+  assert.equal(normalizePlanetarySearchQuery('x'.repeat(260)).length, 240);
 });
