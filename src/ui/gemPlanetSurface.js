@@ -566,13 +566,9 @@ export function installGemPlanetSurface() {
     if (panel) fillBasemaps();
   }
 
-  bind(document, 'gem:open-planet-surface', openSurface);
-  bind(document, 'gem:planet-surface-ready', (event) => attachRuntime(event.detail));
-  bind(document, 'gem:close-planet-surface', () => {
-    closeMeasure();
-    panel?.remove();
-    panel = null;
-  });
+  bind(document, 'gem:open-planet-surface', openSurface, 'persistent');
+  bind(document, 'gem:planet-surface-ready', (event) => attachRuntime(event.detail), 'persistent');
+  bind(document, 'gem:close-planet-surface', () => closeSurface(false), 'persistent');
 
   return {
     open: openSurface,
