@@ -1,5 +1,6 @@
 import { createApplicationOperations } from './operations.js';
 import { isEarthEngineReady } from '../maps/geeReadiness.js';
+import { activateInitialMapStack } from '../maps/initialStack.js';
 import * as Cesium from 'cesium';
 import {
   createApplicationViewer,
@@ -53,6 +54,8 @@ export async function createApplicationScene({
     container: 'cesiumContainer',
     creditContainer,
   });
+  // Keep the ellipsoid visible while remote basemap readiness is being resolved.
+  viewer.scene.globe.show = true;
   defer(() => {
     uninstallRenderGovernor(viewer);
     if (!viewer.isDestroyed()) viewer.destroy();
@@ -123,9 +126,21 @@ export async function createApplicationScene({
     onError: (message) => console.warn('[MapStack]', message),
   });
   defer(() => mapStackController.destroy());
-  await mapStackController.setStack(geeReady ? 'gee-global-eo' : photoreal.tileset ? 'photoreal' : 'esri-imagery', {
-    silent: true,
-  });
+  const requestedInitialStack = geeReady
+    ? 'gee-global-eo'
+    : photoreal.tileset
+      ? 'photoreal'
+      : 'esri-imagery';
+  const initialActivation = await activateInitialMapStack(
+    mapStackController,
+    requestedInitialStack,
+  );
+  if (initialActivation.usedFallback) {
+    console.warn(
+      '[Init] Earth Engine responded healthy but map imagery did not activate; using Esri satellite imagery.',
+      initialActivation.reason,
+    );
+  }
 
   signal.throwIfAborted();
   return { viewer, tileset, mapStackController, operations };
