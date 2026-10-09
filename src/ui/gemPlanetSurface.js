@@ -217,6 +217,41 @@ function installStyles() {
     .gps-readouts{display:grid;gap:8px;margin-top:17px;padding:12px;border:1px solid rgba(145,194,207,.13);border-radius:10px;background:rgba(0,0,0,.16)}.gps-readouts div{display:flex;align-items:center;justify-content:space-between;gap:10px}.gps-readouts small{color:#5f7c86;font:800 7px ui-monospace,monospace}.gps-readouts b{color:#a9c4cc;font:700 8px ui-monospace,monospace;text-align:right}.gps-trust-note{margin:12px 2px 2px;color:#536f79;font-size:8px;line-height:1.55}
     .gem-planet-surface.is-minimized{width:250px;bottom:auto}.gem-planet-surface.is-minimized .gps-body{display:none}.gem-planet-surface.is-minimized .gps-head{border-bottom:0}
     .gem-map-measure-label{padding:5px 7px;border:1px solid rgba(104,232,244,.4);border-radius:6px;background:rgba(3,10,15,.9);color:#68e8f4;font:800 10px ui-monospace,monospace}
+    /* Focused surface mode explicitly reveals the existing Cesium canvas and
+       suppresses competing full-screen command overlays. Some legacy GEM panels
+       have intentionally high z-index values, so scope this override to map mode. */
+    body.gem-planet-surface-open .gem-product-shell,
+    body.gem-planet-surface-open .gem-workspace,
+    body.gem-planet-surface-open .gem-command-header,
+    body.gem-planet-surface-open .gem-map-hud,
+    body.gem-planet-surface-open .gem-sources-panel,
+    body.gem-planet-surface-open .gem-target-panel,
+    body.gem-planet-surface-open .gem-bottom-intelligence,
+    body.gem-planet-surface-open .gem-module-dock,
+    body.gem-planet-surface-open .gem-global-intel-panel,
+    body.gem-planet-surface-open .gem-decision-center,
+    body.gem-planet-surface-open .gem-launch-panel,
+    body.gem-planet-surface-open .gem-command-center-force,
+    body.gem-planet-surface-open #loading-screen,
+    body.gem-planet-surface-open #first-run-launcher {
+      display:none!important;visibility:hidden!important;pointer-events:none!important;
+    }
+    body.gem-planet-surface-open #cesiumContainer {
+      display:block!important;visibility:visible!important;opacity:1!important;
+      position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;
+      z-index:1!important;pointer-events:auto!important;
+    }
+    body.gem-planet-surface-open #cesiumContainer .cesium-viewer,
+    body.gem-planet-surface-open #cesiumContainer .cesium-widget,
+    body.gem-planet-surface-open #cesiumContainer canvas {
+      visibility:visible!important;opacity:1!important;
+    }
+    body.gem-planet-surface-open .gem-planet-surface {
+      z-index:2147483008!important;
+    }
+    body.gem-planet-surface-open .gem-map-focus-back {
+      z-index:2147483009!important;
+    }
     @media(max-width:600px){.gem-planet-surface{left:8px;top:70px;bottom:8px;width:min(350px,calc(100vw - 16px));max-height:calc(100dvh - 78px)}.gem-planet-surface.is-minimized{bottom:auto}.gps-brand small{font-size:6px}}
   `;
   document.head.append(style);
@@ -679,8 +714,20 @@ export function installGemPlanetSurface() {
     panel.querySelector('[data-grid]').checked = Boolean(viewer.dataSources.getByName(GRID_ID)[0]);
   }
 
+  function resizeViewer() {
+    const viewer = runtime?.viewer;
+    if (!viewer || viewer.isDestroyed()) return;
+    requestAnimationFrame(() => {
+      if (!runtime?.viewer || runtime.viewer.isDestroyed()) return;
+      runtime.viewer.resize?.();
+      runtime.viewer.scene.requestRender?.();
+      window.dispatchEvent(new Event('resize'));
+    });
+  }
+
   function openSurface() {
     if (destroyed) return;
+    document.body.classList.add('gem-planet-surface-open');
     const wasOpen = Boolean(panel);
     if (!runtime?.viewer || runtime.viewer.isDestroyed()) {
       if (!panel) {
@@ -701,6 +748,7 @@ export function installGemPlanetSurface() {
     }
     panel.classList.remove('is-minimized');
     fillBasemaps();
+    resizeViewer();
     if (!wasOpen) {
       if (!initialFlightDone) startInitialGlobalView();
       else startReopenedGlobalView();
@@ -719,6 +767,7 @@ export function installGemPlanetSurface() {
   }
 
   function closeSurface(notify = true) {
+    document.body.classList.remove('gem-planet-surface-open');
     activeSearchController?.abort();
     activeSearchController = null;
     pendingPlanetSearch = null;
@@ -739,6 +788,10 @@ export function installGemPlanetSurface() {
   function attachRuntime(detail) {
     if (!detail?.viewer || detail.viewer.isDestroyed()) return;
     runtime = detail;
+    if (panel) {
+      document.body.classList.add('gem-planet-surface-open');
+      resizeViewer();
+    }
     if (panel && !screenHandler) {
       // The panel was opened before Cesium finished initializing.
       removePanelHandlers();
