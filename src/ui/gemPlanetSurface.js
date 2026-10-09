@@ -33,6 +33,16 @@ export function getAvailablePlanetaryStacks(controller) {
   }));
 }
 
+/** Return configured world-imagery sources in a reliable global-view order. */
+export function getGlobalSurfaceStackCandidates(controller) {
+  if (!controller || typeof controller.getStacks !== 'function') return [];
+  const stacks = controller.getStacks();
+  const preferred = ['esri-imagery', 'osm', 'gee-global-eo', 'bing-aerial', 'bing-labels'];
+  return preferred
+    .map((id) => stacks.find((stack) => stack.id === id))
+    .filter((stack) => stack && stack.available !== false && stack.kind !== 'photoreal');
+}
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -229,6 +239,7 @@ export function installGemPlanetSurface() {
   let activeSearchController = null;
   let pendingPlanetSearch = null;
   let gridSourceAdded = false;
+  let globalSourcePromise = null;
   const handlers = [];
   let panelHandlers = [];
   const bind = (element, type, listener, scope = 'panel') => {
@@ -352,6 +363,81 @@ export function installGemPlanetSurface() {
       altitude >= 1000000 ? (altitude / 1000000).toFixed(2) + ' Mm' : altitude >= 1000 ? (altitude / 1000).toFixed(1) + ' km' : Math.round(altitude) + ' m';
   }
 
+
+  function ensureGlobalSurfaceSource() {
+    if (globalSourcePromise) return globalSourcePromise;
+    const viewer = runtime?.viewer;
+    if (!viewer || viewer.isDestroyed()) return Promise.resolve(false);
+    const controller = runtime.mapStackController;
+    const activeStack = controller?.getActiveStack?.();
+    const needsGlobalGlobe = viewer.scene.globe.show === false ||
+      activeStack?.id === 'photoreal' || activeStack?.kind === 'photoreal';
+    if (!needsGlobalGlobe) return Promise.resolve(true);
+
+    globalSourcePromise = (async () => {
+      const candidates = getGlobalSurfaceStackCandidates(controller);
+      const failures = [];
+      for (const candidate of candidates) {
+        if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return false;
+        status('LOADING GLOBAL CESIUM SURFACE · ' + candidate.label.toUpperCase(), 'loading');
+        try {
+          await controller.setStack(candidate.id);
+          const settled = controller.getActiveStack?.();
+          if (settled && settled.kind !== 'photoreal' && viewer.scene.globe.show !== false) {
+            viewer.scene.requestRender?.();
+            fillBasemaps();
+            status('GLOBAL CESIUM SURFACE READY · ' + (settled.label || settled.id).toUpperCase(), 'success');
+            return true;
+          }
+          failures.push(settled?.lastError || (candidate.label + ' did not activate a global globe'));
+        } catch (error) {
+          failures.push(String(error?.message || error));
+        }
+      }
+
+      // Keep the actual Cesium ellipsoid visible even when every imagery
+      // provider fails. Never leave the operator looking at a hidden globe.
+      if (!viewer.isDestroyed()) {
+        viewer.scene.globe.show = true;
+        viewer.scene.requestRender?.();
+      }
+      fillBasemaps();
+      status(
+        failures.length
+          ? 'GLOBAL GLOBE VISIBLE · IMAGERY LIMITED · ' + failures[failures.length - 1]
+          : 'GLOBAL CESIUM ELLIPSOID VISIBLE · NO IMAGERY SOURCE AVAILABLE',
+        'error',
+      );
+      return true;
+    })().finally(() => {
+      globalSourcePromise = null;
+    });
+    return globalSourcePromise;
+  }
+
+  async function focusGlobalSurface(duration = 1.8) {
+    const ready = await ensureGlobalSurfaceSource();
+    if (!ready || !panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
+    globalCamera(runtime.viewer, duration);
+    fillBasemaps();
+  }
+
+  function startInitialGlobalView() {
+    if (initialFlightDone || !panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
+    initialFlightDone = true;
+    void ensureGlobalSurfaceSource().then(() => {
+      if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
+      if (pendingPlanetSearch) {
+        launchPendingSearch();
+        return;
+      }
+      globalCamera(runtime.viewer, 2.4);
+      fillBasemaps();
+    }).catch((error) => {
+      if (panel) status('GLOBAL SURFACE INITIALIZATION FAILED · ' + String(error?.message || error), 'error');
+    });
+  }
+
   async function runSearch(query) {
     const value = String(query || '').trim();
     if (!value || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
@@ -360,6 +446,8 @@ export function installGemPlanetSurface() {
     const request = activeSearchController;
     status('SEARCHING · ' + value, 'loading');
     try {
+      await ensureGlobalSurfaceSource();
+      if (request.signal.aborted || !panel) return;
       const result = await runtime.operations?.searchAndFlyTo?.(runtime.viewer, value, {
         placeSearch: runtime.placeSearch,
         duration: 2.4,
@@ -384,7 +472,7 @@ export function installGemPlanetSurface() {
     pendingPlanetSearch = null;
     const input = panel.querySelector('[name="query"]');
     if (input) input.value = query;
-    void runSearch(query);
+    void ensureGlobalSurfaceSource().then(() => runSearch(query));
   }
 
   function requestPlanetSearch(query) {
@@ -449,14 +537,18 @@ export function installGemPlanetSurface() {
         dubai: [55.27, 25.2, 350000],
       };
       const [longitude, latitude, altitude] = regions[button.dataset.region] || regions.world;
-      if (button.dataset.region === 'world') globalCamera(runtime.viewer);
-      else regionCamera(runtime.viewer, longitude, latitude, altitude);
+      if (button.dataset.region === 'world') {
+        void focusGlobalSurface();
+      } else regionCamera(runtime.viewer, longitude, latitude, altitude);
       status('FLY TO · ' + button.textContent.toUpperCase(), 'success');
     }));
     panel.querySelectorAll('[data-camera]').forEach((button) => bind(button, 'click', () => {
       const viewer = runtime.viewer;
       const action = button.dataset.camera;
-      if (action === 'global') globalCamera(viewer);
+      if (action === 'global') {
+        void focusGlobalSurface();
+        return;
+      }
       if (action === 'zoom-in') viewer.camera.zoomIn(clamp(viewer.camera.positionCartographic.height * 0.28, 100, 2500000));
       if (action === 'zoom-out') viewer.camera.zoomOut(clamp(viewer.camera.positionCartographic.height * 0.35, 100, 10000000));
       if (action === 'north') viewer.camera.setView({ orientation: { heading: 0, pitch: viewer.camera.pitch, roll: 0 } });
@@ -557,10 +649,7 @@ export function installGemPlanetSurface() {
     }
     panel.classList.remove('is-minimized');
     fillBasemaps();
-    if (!initialFlightDone) {
-      globalCamera(runtime.viewer, 2.4);
-      initialFlightDone = true;
-    }
+    startInitialGlobalView();
     updateAltitudeReadout();
   }
 
@@ -599,12 +688,9 @@ export function installGemPlanetSurface() {
       // The panel was opened before Cesium finished initializing.
       removePanelHandlers();
       wirePanel();
-      if (!initialFlightDone) {
-        globalCamera(runtime.viewer, 2.4);
-        initialFlightDone = true;
-      }
     }
     if (panel) fillBasemaps();
+    if (panel) startInitialGlobalView();
     launchPendingSearch();
   }
 
