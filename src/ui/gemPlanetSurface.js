@@ -314,6 +314,12 @@ export function installGemPlanetSurface() {
   function pickSurface(position) {
     if (!runtime?.viewer || runtime.viewer.isDestroyed()) return null;
     const { viewer } = runtime;
+    // Prefer the visible depth-buffer surface (terrain or 3D tiles) when the
+    // current renderer supports it; then fall back to the globe and ellipsoid.
+    if (viewer.scene.pickPositionSupported) {
+      const visibleSurface = viewer.scene.pickPosition(position);
+      if (visibleSurface) return visibleSurface;
+    }
     const ray = viewer.camera.getPickRay(position);
     const terrainPoint = ray ? viewer.scene.globe.pick(ray, viewer.scene) : null;
     return terrainPoint || viewer.camera.pickEllipsoid(position, viewer.scene.globe.ellipsoid);
@@ -321,7 +327,7 @@ export function installGemPlanetSurface() {
 
   function updateCoordinateReadout(position) {
     if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
-    const point = runtime.viewer.camera.pickEllipsoid(position, runtime.viewer.scene.globe.ellipsoid);
+    const point = pickSurface(position);
     if (!point) return;
     const cartographic = Cesium.Cartographic.fromCartesian(point);
     panel.querySelector('[data-coordinates]').textContent = formatPlanetaryCoordinate(
