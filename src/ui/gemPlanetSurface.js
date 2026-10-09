@@ -37,7 +37,8 @@ export function getAvailablePlanetaryStacks(controller) {
 export function getGlobalSurfaceStackCandidates(controller) {
   if (!controller || typeof controller.getStacks !== 'function') return [];
   const stacks = controller.getStacks();
-  const preferred = ['esri-imagery', 'osm', 'gee-global-eo', 'bing-aerial', 'bing-labels'];
+  // Satellite imagery is the default world surface; OSM remains the final fallback.
+  const preferred = ['esri-imagery', 'bing-aerial', 'gee-global-eo', 'bing-labels', 'osm'];
   return preferred
     .map((id) => stacks.find((stack) => stack.id === id))
     .filter((stack) => stack && stack.available !== false && stack.kind !== 'photoreal');
@@ -365,7 +366,7 @@ export function installGemPlanetSurface() {
   }
 
 
-  function ensureGlobalSurfaceSource() {
+  function ensureGlobalSurfaceSource({ preferSatellite = false } = {}) {
     if (globalSourcePromise) return globalSourcePromise;
     const viewer = runtime?.viewer;
     if (!viewer || viewer.isDestroyed()) return Promise.resolve(false);
@@ -373,14 +374,31 @@ export function installGemPlanetSurface() {
     const activeStack = controller?.getActiveStack?.();
     const needsGlobalGlobe = viewer.scene.globe.show === false ||
       activeStack?.id === 'photoreal' || activeStack?.kind === 'photoreal';
-    if (!needsGlobalGlobe) return Promise.resolve(true);
+    // Opening Planet / Global Surface deliberately returns to the best
+    // configured satellite/global imagery source, even if the last session
+    // was left on a street basemap. Once open, manual basemap selection is respected.
+    if (!needsGlobalGlobe && !preferSatellite) return Promise.resolve(true);
 
     globalSourcePromise = (async () => {
       const candidates = getGlobalSurfaceStackCandidates(controller);
       const failures = [];
       for (const candidate of candidates) {
         if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return false;
-        status('LOADING GLOBAL CESIUM SURFACE · ' + candidate.label.toUpperCase(), 'loading');
+        const liveStack = controller.getActiveStack?.();
+        if (
+          liveStack?.id === candidate.id &&
+          viewer.scene.globe.show !== false &&
+          liveStack.kind !== 'photoreal'
+        ) {
+          fillBasemaps();
+          status('GLOBAL SATELLITE SURFACE READY · ' + (liveStack.label || liveStack.id).toUpperCase(), 'success');
+          return true;
+        }
+        status(
+          (candidate.id === 'osm' ? 'LOADING GLOBAL MAP FALLBACK · ' : 'LOADING GLOBAL SATELLITE SURFACE · ') +
+            candidate.label.toUpperCase(),
+          'loading',
+        );
         try {
           await controller.setStack(candidate.id);
           const settled = controller.getActiveStack?.();
@@ -417,7 +435,7 @@ export function installGemPlanetSurface() {
   }
 
   async function focusGlobalSurface(duration = 1.8) {
-    const ready = await ensureGlobalSurfaceSource();
+    const ready = await ensureGlobalSurfaceSource({ preferSatellite: true });
     if (!ready || !panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
     globalCamera(runtime.viewer, duration);
     fillBasemaps();
@@ -431,7 +449,7 @@ export function installGemPlanetSurface() {
 
   function startGlobalViewFlight(duration = 1.8, errorLabel = 'GLOBAL SURFACE INITIALIZATION FAILED') {
     if (initialGlobalViewPromise) return initialGlobalViewPromise;
-    initialGlobalViewPromise = ensureGlobalSurfaceSource().then(() => {
+    initialGlobalViewPromise = ensureGlobalSurfaceSource({ preferSatellite: true }).then(() => {
       if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
       if (pendingPlanetSearch) {
         launchPendingSearch();
