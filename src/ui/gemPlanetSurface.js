@@ -406,7 +406,12 @@ export function installGemPlanetSurface() {
         try {
           await controller.setStack(candidate.id);
           const settled = controller.getActiveStack?.();
-          if (settled && settled.kind !== 'photoreal' && viewer.scene.globe.show !== false) {
+          if (
+            settled &&
+            settled.id === candidate.id &&
+            settled.kind !== 'photoreal' &&
+            viewer.scene.globe.show !== false
+          ) {
             viewer.scene.requestRender?.();
             fillBasemaps();
             status(
@@ -416,7 +421,11 @@ export function installGemPlanetSurface() {
             );
             return true;
           }
-          failures.push(settled?.lastError || (candidate.label + ' did not activate a global globe'));
+          failures.push(
+            settled?.id && settled.id !== candidate.id
+              ? candidate.label + ' redirected to ' + (settled.label || settled.id)
+              : settled?.lastError || (candidate.label + ' did not activate a global globe'),
+          );
         } catch (error) {
           failures.push(String(error?.message || error));
         }
