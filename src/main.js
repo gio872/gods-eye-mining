@@ -6,6 +6,7 @@ import { installGemDecisionCenter } from './ui/gemDecisionCenter.js';
 import { installGemAssetIntelligenceCenter } from './ui/gemAssetIntelligenceCenter.js';
 import { installGemInvestorIntelligence } from './ui/gemInvestorIntelligence.js';
 import { installGemWebExperience } from './ui/gemWebExperience.js';
+import { installGemPlanetSurface } from './ui/gemPlanetSurface.js';
 import { detectGemLocale, applyGemLocale, getGemSupportedLanguages } from './i18n/gemLocale.js';
 
 installMineralIntelligenceCenter();
@@ -13,6 +14,7 @@ installGemDecisionCenter();
 installGemAssetIntelligenceCenter();
 installGemInvestorIntelligence();
 installGemWebExperience();
+installGemPlanetSurface();
 
 globalThis.GEM_SUPPORTED_LANGUAGES = getGemSupportedLanguages();
 detectGemLocale().then(applyGemLocale).catch(() => applyGemLocale({ locale: 'en-US', language: 'en', country: null, languageName: 'English', direction: 'ltr', source: 'fallback' }));
@@ -29,7 +31,16 @@ application
   .start()
   .then(() => {
     installMineralIntelligenceCenter();
-    const { viewer } = application.getComponents().scene || {};
+    const scene = application.getComponents().scene || {};
+    const { viewer } = scene;
+    document.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
+      detail: {
+        viewer,
+        mapStackController: scene.mapStackController,
+        operations: scene.operations,
+        placeSearch: scene.placeSearch,
+      },
+    }));
     if (viewer) {
       globalMineralIntelligence = createGlobalMineralIntelligence({
         viewer,
