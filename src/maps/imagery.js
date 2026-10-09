@@ -7,8 +7,10 @@ export const ESRI_ATTRIBUTION_HTML =
 export const ESRI_WORLD_IMAGERY_SERVICE =
   'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer';
 
+// Alternate ArcGIS tile host avoids a separate MapServer metadata request on
+// some networks while retaining the same World Imagery service and attribution.
 export const ESRI_WORLD_IMAGERY_TILES =
-  ESRI_WORLD_IMAGERY_SERVICE + '/tile/{z}/{y}/{x}';
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
 export function createOsmImagery(CesiumApi = Cesium) {
   return new CesiumApi.OpenStreetMapImageryProvider({
