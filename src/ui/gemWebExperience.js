@@ -1055,7 +1055,7 @@ function openMapView(shell) {
   }
   emit('gem:open-planet-surface');
   // Switching from a full-screen HTML shell to a WebGL canvas needs a resize
-  // pass in Chromium/P​​inokio before Cesium can paint the full viewport.
+  // pass in Chromium/Pinokio before Cesium can paint the full viewport.
   requestAnimationFrame(() => {
     window.dispatchEvent(new Event('resize'));
     const canvas = document.querySelector('#cesiumContainer canvas');
