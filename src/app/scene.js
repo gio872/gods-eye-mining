@@ -1,4 +1,5 @@
 import { createApplicationOperations } from './operations.js';
+import { isEarthEngineReady } from '../maps/geeReadiness.js';
 import * as Cesium from 'cesium';
 import {
   createApplicationViewer,
@@ -15,39 +16,6 @@ import {
 } from '../renderGovernor.js';
 import { describeError } from './errors.js';
 
-/**
- * Health probing must not block the global map. A 200 from a proxy is not
- * enough: the gateway must confirm that Earth Engine authentication worked.
- * If it fails or stalls, use the public satellite imagery fallback instead.
- */
-export async function isEarthEngineReady(
-  signal,
-  { fetchImpl = globalThis.fetch, timeoutMs = 2500 } = {},
-) {
-  const timeoutController = new AbortController();
-  const timeout = setTimeout(
-    () => timeoutController.abort(new Error('Earth Engine health timeout')),
-    timeoutMs,
-  );
-  const combinedSignal = signal
-    ? AbortSignal.any([signal, timeoutController.signal])
-    : timeoutController.signal;
-  try {
-    const response = await fetchImpl('/api/gee/health', {
-      method: 'GET',
-      signal: combinedSignal,
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    if (!response.ok) return false;
-    const payload = await response.json();
-    return payload?.ok === true && payload?.provider === 'earth-engine';
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
 
 /** Construct the application globe using the caller's local configuration. */
 export async function createApplicationScene({
