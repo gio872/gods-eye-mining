@@ -1,0 +1,58 @@
+name: GEM Planetary Surface Validation
+
+on:
+  push:
+    branches: [feature/global-mineral-intelligence]
+    paths:
+      - 'src/app/scene.js'
+      - 'src/maps/geeReadiness.js'
+      - 'src/maps/geeReadiness.test.mjs'
+      - 'src/maps/initialStack.js'
+      - 'src/maps/initialStack.test.mjs'
+      - 'src/maps/imagery.js'
+      - 'src/maps/imagery.test.mjs'
+      - 'src/ui/gemPlanetSurface.js'
+      - 'src/ui/gemPlanetSurface.test.mjs'
+      - '.github/workflows/planetary-surface.yml'
+  pull_request:
+    paths:
+      - 'src/app/scene.js'
+      - 'src/maps/geeReadiness.js'
+      - 'src/maps/geeReadiness.test.mjs'
+      - 'src/maps/initialStack.js'
+      - 'src/maps/initialStack.test.mjs'
+      - 'src/maps/imagery.js'
+      - 'src/maps/imagery.test.mjs'
+      - 'src/ui/gemPlanetSurface.js'
+      - 'src/ui/gemPlanetSurface.test.mjs'
+      - '.github/workflows/planetary-surface.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gem-planetary-surface-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: '1'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.14.0
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Test planetary surface and satellite startup
+        run: node --test src/maps/geeReadiness.test.mjs src/maps/initialStack.test.mjs src/maps/imagery.test.mjs src/ui/gemPlanetSurface.test.mjs
+      - name: Build production application
+        run: npm run build
