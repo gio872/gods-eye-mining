@@ -1182,7 +1182,12 @@ function wireShell(shell) {
   });
 
   shell.querySelectorAll('[data-module]').forEach((card) => {
-    card.addEventListener('click', () => openWorkspace(card.dataset.module));
+    card.addEventListener('click', () => {
+      // The Planet Map card opens the actual Cesium globe immediately;
+      // its interactive controls live in the focused Planet Surface module.
+      if (card.dataset.module === 'map') emit('gem:open-map');
+      else openWorkspace(card.dataset.module);
+    });
   });
   shell.querySelectorAll('[data-open-module]').forEach((button) => {
     button.addEventListener('click', () => openWorkspace(button.dataset.openModule));
