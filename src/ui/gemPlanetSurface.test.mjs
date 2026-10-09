@@ -4,6 +4,7 @@ import {
   formatPlanetaryCoordinate,
   formatPlanetaryDistance,
   getAvailablePlanetaryStacks,
+  getGlobalSurfaceStackCandidates,
   normalizePlanetarySearchQuery,
 } from './gemPlanetSurface.js';
 
@@ -39,4 +40,27 @@ test('planetary search trims and bounds country, place and coordinate queries', 
   assert.equal(normalizePlanetarySearchQuery('4.6231, -72.1885'), '4.6231, -72.1885');
   assert.equal(normalizePlanetarySearchQuery('   '), '');
   assert.equal(normalizePlanetarySearchQuery('x'.repeat(260)).length, 240);
+});
+
+test('global surface prefers a global Cesium imagery layer over photoreal 3D tiles', () => {
+  const controller = {
+    getStacks: () => [
+      { id: 'photoreal', label: 'Google 3D', kind: 'photoreal', available: true },
+      { id: 'bing-aerial', label: 'Bing Aerial', kind: 'ion', available: false },
+      { id: 'gee-global-eo', label: 'Google Earth Engine', kind: 'gee-imagery', available: true },
+      { id: 'osm', label: 'OpenStreetMap', kind: 'osm', available: true },
+      { id: 'esri-imagery', label: 'Esri Satellite', kind: 'esri-imagery', available: true },
+    ],
+  };
+  assert.deepEqual(
+    getGlobalSurfaceStackCandidates(controller).map((stack) => stack.id),
+    ['esri-imagery', 'osm', 'gee-global-eo'],
+  );
+});
+
+test('global surface gracefully handles a runtime with no world imagery sources', () => {
+  assert.deepEqual(getGlobalSurfaceStackCandidates({ getStacks: () => [
+    { id: 'photoreal', kind: 'photoreal', available: true },
+    { id: 'bing-aerial', kind: 'ion', available: false },
+  ] }), []);
 });
