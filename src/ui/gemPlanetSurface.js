@@ -108,6 +108,17 @@ function removeCoordinateGrid(viewer) {
   if (source) viewer.dataSources.remove(source, true);
 }
 
+function planetarySourceNote(stack) {
+  if (stack?.unavailableReason) return stack.unavailableReason;
+  if (stack?.id === 'gee-global-eo') {
+    return 'GEE raster access requires valid server-side Earth Engine authentication. Dataset requests run through the GEM gateway.';
+  }
+  if (stack?.id === 'photoreal') {
+    return 'Photorealistic city detail is provider-dependent; use an available global imagery stack where this is unavailable.';
+  }
+  return 'Source selection is managed by the live GEM map-source controller.';
+}
+
 function buildPanel() {
   const panel = document.createElement('section');
   panel.className = 'gem-planet-surface';
@@ -263,13 +274,7 @@ export function installGemPlanetSurface() {
     panel.querySelector('[data-active-map]').textContent =
       runtime.mapStackController.getActiveStack()?.label || current || '—';
     const note = panel.querySelector('[data-source-note]');
-    note.textContent = selected?.unavailableReason
-      ? selected.unavailableReason
-      : selected?.id === 'gee-global-eo'
-        ? 'GEE raster access requires valid server-side Earth Engine authentication. Dataset requests run through the GEM gateway.'
-        : selected?.id === 'photoreal'
-          ? 'Photorealistic city detail is provider-dependent; use an available global imagery stack where this is unavailable.'
-          : 'Source selection is managed by the live GEM map-source controller.';
+    note.textContent = planetarySourceNote(selected);
     panel.querySelector('[data-gee-row]').classList.toggle('gps-hidden', current !== 'gee-global-eo');
   }
 
