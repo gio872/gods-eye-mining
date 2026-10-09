@@ -54,7 +54,7 @@ test('global surface prefers a global Cesium imagery layer over photoreal 3D til
   };
   assert.deepEqual(
     getGlobalSurfaceStackCandidates(controller).map((stack) => stack.id),
-    ['esri-imagery', 'osm', 'gee-global-eo'],
+    ['esri-imagery', 'gee-global-eo', 'osm'],
   );
 });
 
@@ -63,4 +63,20 @@ test('global surface gracefully handles a runtime with no world imagery sources'
     { id: 'photoreal', kind: 'photoreal', available: true },
     { id: 'bing-aerial', kind: 'ion', available: false },
   ] }), []);
+});
+
+
+test('global surface prefers configured satellite basemaps before street maps', () => {
+  const controller = {
+    getStacks: () => [
+      { id: 'osm', label: 'OpenStreetMap', kind: 'osm', available: true },
+      { id: 'bing-aerial', label: 'Bing Aerial', kind: 'ion', available: true },
+      { id: 'esri-imagery', label: 'Esri Satellite', kind: 'esri-imagery', available: true },
+      { id: 'gee-global-eo', label: 'Google Earth Engine', kind: 'gee-imagery', available: false },
+    ],
+  };
+  assert.deepEqual(
+    getGlobalSurfaceStackCandidates(controller).map((stack) => stack.id),
+    ['esri-imagery', 'bing-aerial', 'osm'],
+  );
 });
