@@ -7,8 +7,8 @@ export const ESRI_ATTRIBUTION_HTML =
 export const ESRI_WORLD_IMAGERY_SERVICE =
   'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer';
 
-// Alternate ArcGIS tile host avoids a separate MapServer metadata request on
-// some networks while retaining the same World Imagery service and attribution.
+// Alternate ArcGIS tile host lets the initial viewer request imagery tiles
+// directly instead of first depending on a separate MapServer metadata query.
 export const ESRI_WORLD_IMAGERY_TILES =
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
@@ -20,27 +20,18 @@ export function createOsmImagery(CesiumApi = Cesium) {
 }
 
 /**
- * Prefer the ArcGIS metadata-backed provider, but keep a direct tile URL
- * fallback for networks that block MapServer metadata queries while allowing
- * cached/REST tiles. The controller still falls back to OSM if tile delivery
- * itself fails, so the viewer never silently remains a blank globe.
+ * Start with the public global satellite tile endpoint directly. If that
+ * provider cannot even be constructed, use the metadata-backed ArcGIS factory
+ * as a secondary route. Tile request failures are handled by the map controller
+ * which can switch to the next configured map source.
  */
-export async function createEsriImagery(CesiumApi = Cesium) {
+export function createEsriImagery(CesiumApi = Cesium) {
   const options = {
     credit:
       'Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
     enablePickFeatures: false,
   };
   try {
-    return await CesiumApi.ArcGisMapServerImageryProvider.fromUrl(
-      ESRI_WORLD_IMAGERY_SERVICE,
-      options,
-    );
-  } catch (error) {
-    console.warn(
-      '[MapStack] ArcGIS imagery metadata unavailable; using direct World Imagery tiles:',
-      error?.message || error,
-    );
     return new CesiumApi.UrlTemplateImageryProvider({
       url: ESRI_WORLD_IMAGERY_TILES,
       tilingScheme: new CesiumApi.WebMercatorTilingScheme(),
@@ -54,6 +45,15 @@ export async function createEsriImagery(CesiumApi = Cesium) {
       credit: options.credit,
       enablePickFeatures: false,
     });
+  } catch (error) {
+    console.warn(
+      '[MapStack] Direct World Imagery tiles unavailable; trying ArcGIS MapServer metadata:',
+      error?.message || error,
+    );
+    return CesiumApi.ArcGisMapServerImageryProvider.fromUrl(
+      ESRI_WORLD_IMAGERY_SERVICE,
+      options,
+    );
   }
 }
 
