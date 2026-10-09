@@ -391,7 +391,11 @@ export function installGemPlanetSurface() {
           liveStack.kind !== 'photoreal'
         ) {
           fillBasemaps();
-          status('GLOBAL SATELLITE SURFACE READY · ' + (liveStack.label || liveStack.id).toUpperCase(), 'success');
+          status(
+            (candidate.id === 'osm' ? 'GLOBAL MAP FALLBACK READY · ' : 'GLOBAL SATELLITE SURFACE READY · ') +
+              (liveStack.label || liveStack.id).toUpperCase(),
+            'success',
+          );
           return true;
         }
         status(
@@ -405,7 +409,11 @@ export function installGemPlanetSurface() {
           if (settled && settled.kind !== 'photoreal' && viewer.scene.globe.show !== false) {
             viewer.scene.requestRender?.();
             fillBasemaps();
-            status('GLOBAL CESIUM SURFACE READY · ' + (settled.label || settled.id).toUpperCase(), 'success');
+            status(
+              (settled.id === 'osm' ? 'GLOBAL MAP FALLBACK READY · ' : 'GLOBAL SATELLITE SURFACE READY · ') +
+                (settled.label || settled.id).toUpperCase(),
+              'success',
+            );
             return true;
           }
           failures.push(settled?.lastError || (candidate.label + ' did not activate a global globe'));
