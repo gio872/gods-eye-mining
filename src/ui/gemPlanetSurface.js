@@ -10,6 +10,11 @@ export function formatPlanetaryCoordinate(latitude, longitude) {
   return lat + ' · ' + lon;
 }
 
+/** Normalize a user-entered country, place or coordinate query before geocoding. */
+export function normalizePlanetarySearchQuery(value) {
+  return String(value ?? '').trim().slice(0, 240);
+}
+
 export function formatPlanetaryDistance(meters) {
   if (!Number.isFinite(meters) || meters < 0) return '—';
   if (meters < 1000) return Math.round(meters) + ' m';
@@ -222,6 +227,7 @@ export function installGemPlanetSurface() {
   let measureLines = [];
   let renderedAltitude = null;
   let activeSearchController = null;
+  let pendingPlanetSearch = null;
   let gridSourceAdded = false;
   const handlers = [];
   let panelHandlers = [];
@@ -369,6 +375,29 @@ export function installGemPlanetSurface() {
       if (request.signal.aborted || !panel) return;
       status('SEARCH FAILED · ' + String(error?.message || error), 'error');
     }
+  }
+
+  function launchPendingSearch() {
+    if (!pendingPlanetSearch || !panel || !screenHandler ||
+        !runtime?.viewer || runtime.viewer.isDestroyed()) return;
+    const query = pendingPlanetSearch;
+    pendingPlanetSearch = null;
+    const input = panel.querySelector('[name="query"]');
+    if (input) input.value = query;
+    void runSearch(query);
+  }
+
+  function requestPlanetSearch(query) {
+    const value = normalizePlanetarySearchQuery(query);
+    if (!value) {
+      openSurface();
+      status('ENTER A COUNTRY, PLACE OR COORDINATE PAIR', 'error');
+      panel?.querySelector('[name="query"]')?.focus();
+      return;
+    }
+    pendingPlanetSearch = value;
+    openSurface();
+    launchPendingSearch();
   }
 
   function wirePanel() {
@@ -548,6 +577,7 @@ export function installGemPlanetSurface() {
   function closeSurface(notify = true) {
     activeSearchController?.abort();
     activeSearchController = null;
+    pendingPlanetSearch = null;
     disposePanelRuntime();
     if (runtime?.viewer && !runtime.viewer.isDestroyed()) {
       for (const entity of [...measurePins, ...measureLines]) runtime.viewer.entities.remove(entity);
@@ -575,10 +605,12 @@ export function installGemPlanetSurface() {
       }
     }
     if (panel) fillBasemaps();
+    launchPendingSearch();
   }
 
   bind(document, 'gem:open-planet-surface', openSurface, 'persistent');
   bind(document, 'gem:planet-surface-ready', (event) => attachRuntime(event.detail), 'persistent');
+  bind(document, 'gem:planet-surface-search', (event) => requestPlanetSearch(event.detail?.query), 'persistent');
   bind(document, 'gem:close-planet-surface', () => closeSurface(false), 'persistent');
 
   return {
