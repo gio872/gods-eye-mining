@@ -11,7 +11,7 @@
  */
 
 const MODULES = [
-  { id: 'map', label: 'Planet Map', eyebrow: 'ORIENT', text: 'Navigate the living planetary surface and move from geography into intelligence.', meta: 'GLOBAL SURFACE', action: 'map', art: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg' },
+  { id: 'map', label: 'Planet / Global Surface', eyebrow: 'PLANET', text: 'Navigate the entire Earth, search places and coordinates, switch available basemaps, and inspect the surface.', meta: 'PLANETARY DATA FABRIC', action: 'map', art: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg' },
   { id: 'resources', label: 'Resource Atlas', eyebrow: 'EXPLORE', text: 'Minerals, metals, petroleum and gas with location, depth, evidence and provenance.', meta: '4D DATA FABRIC', action: 'resources', art: 'https://img-mm.manoramaonline.com/content/dam/mm/mo/archive/technology/science/images/2026/2/1/rare-earth-mineral.jpg?h=583&w=1120' },
   { id: 'targets', label: 'Target Intelligence', eyebrow: 'DISCOVER', text: 'Find, rank and explain exploration targets from converging planetary evidence.', meta: 'AI + EVIDENCE', action: 'targets', art: 'https://content.geovalevektor.com/images/mineral-exploration/1765722830595-Mineral-exploration.png' },
   { id: 'assets', label: 'Asset Intelligence', eyebrow: 'OPERATE', text: 'Track physical assets, digital twins, custody, trade and settlement.', meta: 'DIGITAL TWIN', action: 'assets', requiresPlan: 'TRADING', art: 'https://dela.ru/medianew/img/2-8958794.jpg' },
@@ -1015,11 +1015,9 @@ function openMapView(shell) {
     back.className = 'gem-map-focus-back';
     back.textContent = '← BACK TO GEM';
     document.body.append(back);
-    back.addEventListener('click', () => {
-      shell.classList.remove('gem-map-focus');
-      back.remove();
-    });
+    back.addEventListener('click', () => emit('gem:close-planet-surface'));
   }
+  emit('gem:open-planet-surface');
 }
 
 function buildShell() {
@@ -1116,6 +1114,11 @@ function wireShell(shell) {
   });
 
   document.addEventListener('gem:open-map', () => openMapView(shell));
+  document.addEventListener('gem:close-planet-surface', () => {
+    shell.classList.remove('gem-map-focus');
+    document.querySelector('.gem-map-focus-back')?.remove();
+    document.querySelector('.gem-workspace')?.classList.remove('is-open');
+  });
   document.addEventListener('gem:open-participants', () => openGemAccountModal());
 
   shell.querySelectorAll('.gem-cinematic-tools button').forEach((button) => {
