@@ -240,6 +240,7 @@ export function installGemPlanetSurface() {
   let pendingPlanetSearch = null;
   let gridSourceAdded = false;
   let globalSourcePromise = null;
+  let initialGlobalViewPromise = null;
   const handlers = [];
   let panelHandlers = [];
   const bind = (element, type, listener, scope = 'panel') => {
@@ -423,9 +424,9 @@ export function installGemPlanetSurface() {
   }
 
   function startInitialGlobalView() {
-    if (initialFlightDone || !panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
+    if (initialFlightDone || !panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return initialGlobalViewPromise;
     initialFlightDone = true;
-    void ensureGlobalSurfaceSource().then(() => {
+    initialGlobalViewPromise = ensureGlobalSurfaceSource().then(() => {
       if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
       if (pendingPlanetSearch) {
         launchPendingSearch();
@@ -435,7 +436,10 @@ export function installGemPlanetSurface() {
       fillBasemaps();
     }).catch((error) => {
       if (panel) status('GLOBAL SURFACE INITIALIZATION FAILED · ' + String(error?.message || error), 'error');
+    }).finally(() => {
+      initialGlobalViewPromise = null;
     });
+    return initialGlobalViewPromise;
   }
 
   async function runSearch(query) {
@@ -485,7 +489,9 @@ export function installGemPlanetSurface() {
     }
     pendingPlanetSearch = value;
     openSurface();
-    launchPendingSearch();
+    // If the first world activation is still in flight, it will launch this
+    // search after the global base map settles, avoiding competing camera flights.
+    if (!initialGlobalViewPromise) launchPendingSearch();
   }
 
   function wirePanel() {
@@ -689,9 +695,11 @@ export function installGemPlanetSurface() {
       removePanelHandlers();
       wirePanel();
     }
-    if (panel) fillBasemaps();
-    if (panel) startInitialGlobalView();
-    launchPendingSearch();
+    if (panel) {
+      fillBasemaps();
+      if (!initialFlightDone) startInitialGlobalView();
+      else if (!initialGlobalViewPromise) launchPendingSearch();
+    }
   }
 
   bind(document, 'gem:open-planet-surface', openSurface, 'persistent');
