@@ -54,8 +54,14 @@ export async function createApplicationScene({
     container: 'cesiumContainer',
     creditContainer,
   });
-  // Keep the ellipsoid visible while remote basemap readiness is being resolved.
+  // Give the Planet workspace the live Cesium canvas immediately. Basemap
+  // providers and the full app's data/tool layers can continue initializing
+  // asynchronously without leaving focused surface mode on a black screen.
   viewer.scene.globe.show = true;
+  viewer.scene.requestRender?.();
+  window.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
+    detail: { viewer, operations },
+  }));
   defer(() => {
     uninstallRenderGovernor(viewer);
     if (!viewer.isDestroyed()) viewer.destroy();
