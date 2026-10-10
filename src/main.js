@@ -37,6 +37,7 @@ const application = createStandaloneApplication({
   cesiumToken: import.meta.env.CESIUM_ION_TOKEN,
   allowQaRegistration: import.meta.env.DEV,
   initialView: dedicatedGlobalSurface ? 'global' : 'austin',
+  skipPhotoreal: dedicatedGlobalSurface,
   // The classic map window owns its own layer UI, so do not reveal the first-run
   // welcome panel on top of the live map. Provider settings still initialize.
   initializeWelcome: dedicatedGlobalSurface ? () => null : undefined,
