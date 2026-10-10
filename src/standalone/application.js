@@ -19,6 +19,7 @@ export function createStandaloneApplication({
   allowQaRegistration = false,
   initialView = 'austin',
   initializeWelcome,
+  skipPhotoreal = false,
 }) {
   if (constructed)
     throw new Error('The standalone application already owns this page');
@@ -43,6 +44,7 @@ export function createStandaloneApplication({
         googleApiKey,
         cesiumToken,
         loaderStatus,
+        skipPhotoreal,
       });
       // Publish the live globe as soon as its scene and basemap controller
       // are ready. Do not wait for every data/layer/tool subsystem: the Planet
