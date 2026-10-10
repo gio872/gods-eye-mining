@@ -33,14 +33,6 @@ application
     installMineralIntelligenceCenter();
     const scene = application.getComponents().scene || {};
     const { viewer } = scene;
-    document.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
-      detail: {
-        viewer,
-        mapStackController: scene.mapStackController,
-        operations: scene.operations,
-        placeSearch: scene.placeSearch,
-      },
-    }));
     // Keep the static GEM product-home background visible at startup.
     // The live Cesium Planet / Global Surface viewer opens only when the user
     // selects that module (or the Layers navigation item).
@@ -60,6 +52,9 @@ application
   })
   .catch((error) => {
     console.error('GEM initialization failed:', error);
+    document.dispatchEvent(new CustomEvent('gem:planet-surface-error', {
+      detail: { message: describeError(error) },
+    }));
     const loaderStatus = document.querySelector(
       '#loading-screen .loader-status',
     );
