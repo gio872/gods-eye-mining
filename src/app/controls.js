@@ -1,6 +1,7 @@
 import { catalogControlServices } from './catalog.js';
 import { StyleManager } from '../ui/composition.js';
 import { flyToAustin } from '../camera.js';
+import * as Cesium from 'cesium';
 import { initCockpitCloudEffects } from '../cockpitCloudEffects.js';
 
 /** Construct the existing controls and camera presentation. */
@@ -12,6 +13,7 @@ export function createApplicationControls({
   catalog,
   placeSearch,
   defer,
+  initialView = 'austin',
 }) {
   // Initialize the style manager (post-processing, HUD, locations, share links)
   const styleManager = new Controls(viewer, {
@@ -39,8 +41,23 @@ export function createApplicationControls({
   });
   defer(() => cockpitCloudEffects?.destroy());
 
-  // If no share link state, do default fly-to Austin
-  if (!styleManager.hasShareState) {
+  // Preserve the classic Austin fly-in for the main experience. The
+  // dedicated Global Surface window starts at planetary scale instead, so
+  // the operator immediately sees the whole Earth and its normal layer UI.
+  if (!styleManager.hasShareState && initialView === 'global') {
+    loaderStatus.textContent = 'Opening Global Surface...';
+    viewer.camera.cancelFlight();
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(0, 15, 24500000),
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0,
+      },
+    });
+    viewer.scene.globe.show = true;
+    viewer.scene.requestRender?.();
+  } else if (!styleManager.hasShareState) {
     loaderStatus.textContent = 'Flying to Austin, TX...';
     defer(flyToAustin(viewer));
   } else {
