@@ -2,6 +2,7 @@ import { buildGemHomeUrl } from './gemWorkspaceRoute.js';
 
 export function installGemGlobalSurfaceWindow() {
   if (document.querySelector('.gem-global-surface-toolbar')) return;
+  document.title = 'TerraQueen GEM — Global Surface';
   document.body.classList.add('gem-global-surface-window');
   document.documentElement.dataset.gemWorkspace = 'global-surface';
 
