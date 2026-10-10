@@ -42,9 +42,18 @@ export function createStandaloneApplication({
         cesiumToken,
         loaderStatus,
       });
-      // Share the already-configured keyless/geospatial search instance with
-      // focused product workspaces; do not construct a second geocoder stack.
+      // Publish the live globe as soon as its scene and basemap controller
+      // are ready. Do not wait for every data/layer/tool subsystem: the Planet
+      // workspace can open while those independent systems continue starting.
       scene.placeSearch = placeSearch;
+      window.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
+        detail: {
+          viewer: scene.viewer,
+          mapStackController: scene.mapStackController,
+          operations: scene.operations,
+          placeSearch,
+        },
+      }));
       catalog = createStandaloneCatalog({
         nepalBoundaryResolver: (signal) =>
           scene.operations.annotationResolver.resolveRegionRingForQuery(
