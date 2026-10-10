@@ -9,6 +9,13 @@ on:
       - 'src/ui/gemWebExperience.js'
       - 'src/main.js'
       - 'src/standalone/application.js'
+      - 'src/ui/gemWorkspaceRoute.js'
+      - 'src/ui/gemWorkspaceRoute.test.mjs'
+      - 'src/ui/gemGlobalSurfaceWindow.js'
+      - 'src/ui/gemGlobalSurfaceWindow.test.mjs'
+      - 'src/app/controls.js'
+      - 'src/app/tools.js'
+      - 'src/standalone/controls.js'
       - '.github/workflows/gem-planet-surface-tests.yml'
       - 'package-lock.json'
   pull_request:
@@ -43,6 +50,6 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Test planetary surface helpers
-        run: node --test src/ui/gemPlanetSurface.test.mjs
+        run: node --test src/ui/gemPlanetSurface.test.mjs src/ui/gemWorkspaceRoute.test.mjs src/ui/gemGlobalSurfaceWindow.test.mjs
       - name: Build application
         run: npm run build
