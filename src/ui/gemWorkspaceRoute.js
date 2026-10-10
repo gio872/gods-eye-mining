@@ -13,3 +13,10 @@ export function buildGlobalSurfaceUrl(currentHref) {
   url.searchParams.set(GEM_WORKSPACE_QUERY, GLOBAL_SURFACE_WORKSPACE);
   return url.toString();
 }
+
+/** Return the normal product URL from a dedicated workspace URL. */
+export function buildGemHomeUrl(currentHref) {
+  const url = new URL(currentHref);
+  url.searchParams.delete(GEM_WORKSPACE_QUERY);
+  return url.toString();
+}
