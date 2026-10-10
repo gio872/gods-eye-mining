@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildGlobalSurfaceUrl, isGlobalSurfaceWindow } from './gemWorkspaceRoute.js';
+import { buildGemHomeUrl, buildGlobalSurfaceUrl, isGlobalSurfaceWindow } from './gemWorkspaceRoute.js';
 
 test('Global Surface route detection is explicit and case-sensitive', () => {
   assert.equal(isGlobalSurfaceWindow('?gemWorkspace=global-surface'), true);
@@ -13,5 +13,12 @@ test('Global Surface URL preserves the Pinokio origin and unrelated query parame
   assert.equal(
     buildGlobalSurfaceUrl('http://127.0.0.1:42004/?token=local#map'),
     'http://127.0.0.1:42004/?token=local&gemWorkspace=global-surface#map',
+  );
+});
+
+test('Home URL removes only the dedicated workspace marker', () => {
+  assert.equal(
+    buildGemHomeUrl('http://127.0.0.1:42004/?token=local&gemWorkspace=global-surface#map'),
+    'http://127.0.0.1:42004/?token=local#map',
   );
 });
