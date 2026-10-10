@@ -66,7 +66,9 @@ export function createStandaloneApplication({
         signal: context.signal,
         surface: scene.operations.surface,
       });
-      return scene;
+      // Make the already-configured search instance available to focused
+      // workspaces without constructing a second geocoder or Cesium viewer.
+      return { ...scene, placeSearch };
     },
     createControls: (context) =>
       createStandaloneControls({
