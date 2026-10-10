@@ -12,12 +12,13 @@ import { installGemPlanetSurface } from './ui/gemPlanetSurface.js';
 import { detectGemLocale, applyGemLocale, getGemSupportedLanguages } from './i18n/gemLocale.js';
 
 const dedicatedGlobalSurface = isGlobalSurfaceWindow(window.location.search);
+let planetSurfaceController = null;
 
 // Product discovery lives in the main window. The dedicated Global Surface
 // route deliberately keeps the classic God’s Eye View layer/navigation UI and
 // does not put the product shell over the Cesium canvas.
 if (dedicatedGlobalSurface) {
-  installGemPlanetSurface();
+  planetSurfaceController = installGemPlanetSurface();
   installGemGlobalSurfaceWindow();
 } else {
   installMineralIntelligenceCenter();
@@ -25,7 +26,7 @@ if (dedicatedGlobalSurface) {
   installGemAssetIntelligenceCenter();
   installGemInvestorIntelligence();
   installGemWebExperience();
-  installGemPlanetSurface();
+  planetSurfaceController = installGemPlanetSurface();
 }
 
 globalThis.GEM_SUPPORTED_LANGUAGES = getGemSupportedLanguages();
@@ -45,12 +46,18 @@ let globalMineralIntelligence = null;
 
 application
   .start()
-  .then(() => {
+  .then(async () => {
     const scene = application.getComponents().scene || {};
     const { viewer } = scene;
     if (!viewer) return;
 
     if (dedicatedGlobalSurface) {
+      // Wait until map-source activation has completed, then explicitly select
+      // a global satellite-capable surface (Esri/Bing/GEE/OSM fallback). This
+      // makes the new viewer useful even if startup retained Google 3D or a
+      // previous non-global basemap.
+      await planetSurfaceController?.activateGlobalSurface();
+
       // The application has loaded its original God’s Eye View catalog and
       // controls. Publish its real scene to optional Planet Surface tools,
       // but keep the legacy layer panels visible by default.
