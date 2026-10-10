@@ -407,7 +407,15 @@ export function installGemPlanetSurface() {
     const viewer = runtime?.viewer;
     if (!viewer || viewer.isDestroyed()) return Promise.resolve(false);
     const controller = runtime.mapStackController;
-    const activeStack = controller?.getActiveStack?.();
+    if (!controller) {
+      // The viewer can be ready before its imagery registry finishes loading.
+      // Keep the ellipsoid rendered; the complete runtime event will attach the
+      // actual map-source controller and select the best available basemap.
+      viewer.scene.globe.show = true;
+      viewer.scene.requestRender?.();
+      return Promise.resolve(true);
+    }
+    const activeStack = controller.getActiveStack?.();
     const needsGlobalGlobe = viewer.scene.globe.show === false ||
       activeStack?.id === 'photoreal' || activeStack?.kind === 'photoreal';
     // Opening Planet / Global Surface deliberately returns to the best
@@ -819,7 +827,7 @@ export function installGemPlanetSurface() {
   bind(document, 'gem:planet-surface-ready', (event) => attachRuntime(event.detail), 'persistent');
   bind(document, 'gem:planet-surface-error', (event) => {
     startupError = String(event.detail?.message || 'Unknown startup error').slice(0, 240);
-    if (panel && !runtime?.viewer) {
+    if (panel && !runtime?.mapStackController) {
       status('MAP ENGINE ERROR · ' + startupError, 'error');
       const node = panel.querySelector('[data-search-status]');
       if (node) node.title = startupError;
