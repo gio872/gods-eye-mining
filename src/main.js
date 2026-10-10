@@ -46,10 +46,22 @@ application
       });
       globalMineralIntelligence.mount();
 
-      // The Planet / Global Surface is the default GEM workspace: open the
-      // live Cesium globe immediately after the scene and controllers are ready.
-      // The product discovery home remains accessible through the "BACK TO GEM"
-      // control; no second viewer is created.
+      // Provide the focused planetary surface with the *same* live scene
+      // objects created by application startup. Without this bridge the
+      // surface panel can render before the globe exists, stay in its waiting
+      // state, and show an empty basemap selector over a black canvas.
+      document.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
+        detail: {
+          viewer,
+          mapStackController: scene.mapStackController,
+          operations: scene.operations,
+          placeSearch: scene.placeSearch,
+        },
+      }));
+
+      // The Planet / Global Surface is the default GEM workspace. Fire its
+      // ready event first so openSurface can wire directly to this viewer.
+      // The product discovery home remains available through BACK TO GEM.
       document.dispatchEvent(new CustomEvent('gem:open-map'));
     }
   })
