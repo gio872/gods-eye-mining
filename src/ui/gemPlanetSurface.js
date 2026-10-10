@@ -222,16 +222,16 @@ function installStyles() {
        have intentionally high z-index values, so scope this override to map mode. */
     body.gem-planet-surface-open .gem-product-shell,
     body.gem-planet-surface-open .gem-workspace,
-    body.gem-planet-surface-open .gem-command-header,
-    body.gem-planet-surface-open .gem-map-hud,
-    body.gem-planet-surface-open .gem-sources-panel,
-    body.gem-planet-surface-open .gem-target-panel,
-    body.gem-planet-surface-open .gem-bottom-intelligence,
-    body.gem-planet-surface-open .gem-module-dock,
-    body.gem-planet-surface-open .gem-global-intel-panel,
-    body.gem-planet-surface-open .gem-decision-center,
-    body.gem-planet-surface-open .gem-launch-panel,
-    body.gem-planet-surface-open .gem-command-center-force,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-command-header,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-map-hud,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-sources-panel,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-target-panel,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-bottom-intelligence,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-module-dock,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-global-intel-panel,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-decision-center,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-launch-panel,
+    body.gem-planet-surface-open:not(.gem-global-surface-window) .gem-command-center-force,
     body.gem-planet-surface-open #loading-screen,
     body.gem-planet-surface-open #first-run-launcher {
       display:none!important;visibility:hidden!important;pointer-events:none!important;
@@ -248,6 +248,12 @@ function installStyles() {
     }
     body.gem-planet-surface-open .gem-planet-surface {
       z-index:2147483008!important;
+    }
+    /* Dedicated Global Surface preserves the original God’s Eye layer and
+       navigation panels; the new map-tools panel is optional and non-modal. */
+    body.gem-global-surface-window .gem-planet-surface {
+      left:auto!important;right:14px!important;top:74px!important;bottom:14px!important;
+      width:min(360px,calc(100vw - 28px))!important;
     }
     body.gem-planet-surface-open .gem-map-focus-back {
       z-index:2147483009!important;
