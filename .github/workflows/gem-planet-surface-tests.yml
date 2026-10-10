@@ -25,6 +25,13 @@ on:
       - 'src/ui/gemWebExperience.js'
       - 'src/main.js'
       - 'src/standalone/application.js'
+      - 'src/ui/gemWorkspaceRoute.js'
+      - 'src/ui/gemWorkspaceRoute.test.mjs'
+      - 'src/ui/gemGlobalSurfaceWindow.js'
+      - 'src/ui/gemGlobalSurfaceWindow.test.mjs'
+      - 'src/app/controls.js'
+      - 'src/app/tools.js'
+      - 'src/standalone/controls.js'
       - '.github/workflows/gem-planet-surface-tests.yml'
 permissions:
   contents: read
