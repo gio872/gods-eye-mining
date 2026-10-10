@@ -29,6 +29,7 @@ export async function createApplicationScene({
   loaderStatus,
   signal,
   defer,
+  skipPhotoreal = false,
 }) {
   const operations = createApplicationOperations({
     requests: requestServices,
@@ -66,9 +67,14 @@ export async function createApplicationScene({
   configureCreditKeyboardAccess(document);
   // Publish after registering cleanup, but before the first asynchronous
   // provider/readiness probe. Planet is useful even while other subsystems load.
-  window.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
-    detail: { viewer, operations },
-  }));
+  viewer.scene.globe.show = true;
+  viewer.scene.requestRender?.();
+  const earlySurfaceDetail = { viewer, operations };
+  window.dispatchEvent(new CustomEvent('gem:planet-surface-ready', { detail: earlySurfaceDetail }));
+  // The dedicated planetary surface needs global imagery, not city-level 3D tiles.
+  // Publish the live globe before any provider probe so slow credentials/network
+  // cannot leave the dedicated window indefinitely black.
+  document.dispatchEvent(new CustomEvent('gem:planet-surface-ready', { detail: earlySurfaceDetail }));
   const geeReady = await isEarthEngineReady(signal);
   let photoreal = { tileset: null, route: null, errors: [] };
   if (geeReady) {
@@ -78,10 +84,12 @@ export async function createApplicationScene({
       googleApiKey || cesiumToken
         ? 'Loading Google 3D Tiles...'
         : 'Loading the keyless globe...';
-    photoreal = await loadPhotorealisticTileset(Cesium, {
-      googleApiKey,
-      cesiumToken,
-    });
+    if (!skipPhotoreal) {
+      photoreal = await loadPhotorealisticTileset(Cesium, {
+        googleApiKey,
+        cesiumToken,
+      });
+    }
   }
   const tileset = photoreal.tileset;
   // A provider can finish after cancellation; retain ownership of its result.
