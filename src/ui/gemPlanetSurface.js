@@ -260,6 +260,7 @@ function installStyles() {
 export function installGemPlanetSurface() {
   let panel = null;
   let runtime = null;
+  let startupError = null;
   let destroyed = false;
   let initialFlightDone = false;
   let screenHandler = null;
@@ -737,7 +738,16 @@ export function installGemPlanetSurface() {
         wirePanelWaiting();
       }
       panel.classList.remove('is-minimized');
-      status('INITIALIZING PLANETARY SURFACE · WAITING FOR MAP ENGINE', 'loading');
+      status(
+        startupError
+          ? 'MAP ENGINE ERROR · ' + startupError
+          : 'INITIALIZING PLANETARY SURFACE · WAITING FOR MAP ENGINE',
+        startupError ? 'error' : 'loading',
+      );
+      if (startupError) {
+        const node = panel.querySelector('[data-search-status]');
+        node.title = startupError;
+      }
       return;
     }
     if (!panel) {
@@ -788,6 +798,7 @@ export function installGemPlanetSurface() {
   function attachRuntime(detail) {
     if (!detail?.viewer || detail.viewer.isDestroyed()) return;
     runtime = detail;
+    startupError = null;
     if (panel) {
       document.body.classList.add('gem-planet-surface-open');
       resizeViewer();
@@ -806,6 +817,14 @@ export function installGemPlanetSurface() {
 
   bind(document, 'gem:open-planet-surface', openSurface, 'persistent');
   bind(document, 'gem:planet-surface-ready', (event) => attachRuntime(event.detail), 'persistent');
+  bind(document, 'gem:planet-surface-error', (event) => {
+    startupError = String(event.detail?.message || 'Unknown startup error').slice(0, 240);
+    if (panel && !runtime?.viewer) {
+      status('MAP ENGINE ERROR · ' + startupError, 'error');
+      const node = panel.querySelector('[data-search-status]');
+      if (node) node.title = startupError;
+    }
+  }, 'persistent');
   bind(document, 'gem:planet-surface-search', (event) => requestPlanetSearch(event.detail?.query), 'persistent');
   bind(document, 'gem:close-planet-surface', () => closeSurface(false), 'persistent');
 
