@@ -433,7 +433,7 @@ export function installGemPlanetSurface() {
       const candidates = getGlobalSurfaceStackCandidates(controller);
       const failures = [];
       for (const candidate of candidates) {
-        if (!panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return false;
+        if ((!panel && !document.body.classList.contains('gem-global-surface-window')) || !runtime?.viewer || runtime.viewer.isDestroyed()) return false;
         const liveStack = controller.getActiveStack?.();
         if (
           liveStack?.id === candidate.id &&
@@ -503,9 +503,20 @@ export function installGemPlanetSurface() {
 
   async function focusGlobalSurface(duration = 1.8) {
     const ready = await ensureGlobalSurfaceSource({ preferSatellite: true });
-    if (!ready || !panel || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
+    if (!ready || (!panel && !document.body.classList.contains('gem-global-surface-window')) || !runtime?.viewer || runtime.viewer.isDestroyed()) return;
     globalCamera(runtime.viewer, duration);
+    runtime.viewer.scene.requestRender?.();
     fillBasemaps();
+  }
+
+  /** Activate a worldwide-capable basemap and camera without forcing the tools panel open. */
+  async function activateGlobalSurface(duration = 2.2) {
+    const ready = await ensureGlobalSurfaceSource({ preferSatellite: true });
+    if (!ready || !runtime?.viewer || runtime.viewer.isDestroyed()) return false;
+    globalCamera(runtime.viewer, duration);
+    runtime.viewer.scene.requestRender?.();
+    fillBasemaps();
+    return true;
   }
 
   function startInitialGlobalView() {
@@ -844,6 +855,7 @@ export function installGemPlanetSurface() {
 
   return {
     open: openSurface,
+    activateGlobalSurface,
     destroy() {
       if (destroyed) return;
       destroyed = true;
