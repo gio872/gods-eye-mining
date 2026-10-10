@@ -52,22 +52,28 @@ application
     if (!viewer) return;
 
     if (dedicatedGlobalSurface) {
+      const surfaceDetail = {
+        viewer,
+        mapStackController: scene.mapStackController,
+        operations: scene.operations,
+        placeSearch: scene.placeSearch,
+      };
+      // Attach the just-created scene to the surface controller before asking
+      // it to activate imagery. The scene module can emit an earlier ready
+      // event on window; this explicit document event is the UI's binding.
+      document.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
+        detail: surfaceDetail,
+      }));
+
       // Wait until map-source activation has completed, then explicitly select
       // a global satellite-capable surface (Esri/Bing/GEE/OSM fallback). This
       // makes the new viewer useful even if startup retained Google 3D or a
       // previous non-global basemap.
       await planetSurfaceController?.activateGlobalSurface();
 
-      // The application has loaded its original God’s Eye View catalog and
-      // controls. Publish its real scene to optional Planet Surface tools,
-      // but keep the legacy layer panels visible by default.
+      // Publish the settled stack so the toolbar reports the real active map.
       document.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
-        detail: {
-          viewer,
-          mapStackController: scene.mapStackController,
-          operations: scene.operations,
-          placeSearch: scene.placeSearch,
-        },
+        detail: surfaceDetail,
       }));
       return;
     }
