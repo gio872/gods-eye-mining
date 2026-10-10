@@ -41,6 +41,12 @@ application
         placeSearch: scene.placeSearch,
       },
     }));
+    // GEM's operational start view is the live planetary globe, not the
+    // static product-home background. The home screen remains one click away
+    // through the Planet Surface panel's close button / BACK TO GEM control.
+    requestAnimationFrame(() => {
+      document.dispatchEvent(new CustomEvent('gem:open-map'));
+    });
     if (viewer) {
       globalMineralIntelligence = createGlobalMineralIntelligence({
         viewer,
