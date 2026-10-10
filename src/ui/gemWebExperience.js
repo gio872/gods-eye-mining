@@ -1,3 +1,5 @@
+import { buildGlobalSurfaceUrl, isGlobalSurfaceWindow } from './gemWorkspaceRoute.js';
+
 /**
  * GEM Web Experience
  * Product-first discovery shell for GEM.
@@ -1045,8 +1047,36 @@ function openWorkspaceUnlocked(module) {
 }
 
 function openMapView(shell) {
-  if (!shell) return;
-  // Focus the existing Cesium viewer; do not instantiate a second map.
+  if (!isGlobalSurfaceWindow(window.location.search)) {
+    // Open the real God’s Eye View runtime in a dedicated window. This runs
+    // synchronously from the user's click, so Chromium/Pinokio can allow it.
+    const destination = buildGlobalSurfaceUrl(window.location.href);
+    let surfaceWindow = null;
+    try {
+      surfaceWindow = window.open(
+        destination,
+        'GEMGlobalSurface',
+        'popup=yes,width=1600,height=1000,resizable=yes,scrollbars=yes,location=yes',
+      );
+    } catch {
+      surfaceWindow = null;
+    }
+    if (surfaceWindow) {
+      try { surfaceWindow.focus(); } catch {}
+      showToast('GLOBAL SURFACE OPENED IN A NEW WINDOW');
+      return;
+    }
+    // If the browser blocks pop-ups, still make the requested workspace usable
+    // instead of leaving the user on a dead control.
+    showToast('POP-UP BLOCKED · OPENING GLOBAL SURFACE HERE');
+    window.location.assign(destination);
+    return;
+  }
+  if (!shell) {
+    document.dispatchEvent(new CustomEvent('gem:open-planet-surface'));
+    return;
+  }
+  // In a dedicated Global Surface window, focus its own Cesium viewer.
   document.body.classList.add('gem-planet-surface-open');
   shell.classList.add('gem-map-focus');
   document.querySelector('.gem-workspace')?.classList.remove('is-open');
