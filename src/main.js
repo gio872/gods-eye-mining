@@ -33,9 +33,6 @@ application
     installMineralIntelligenceCenter();
     const scene = application.getComponents().scene || {};
     const { viewer } = scene;
-    // Keep the static GEM product-home background visible at startup.
-    // The live Cesium Planet / Global Surface viewer opens only when the user
-    // selects that module (or the Layers navigation item).
     if (viewer) {
       globalMineralIntelligence = createGlobalMineralIntelligence({
         viewer,
@@ -48,6 +45,12 @@ application
             : undefined,
       });
       globalMineralIntelligence.mount();
+
+      // The Planet / Global Surface is the default GEM workspace: open the
+      // live Cesium globe immediately after the scene and controllers are ready.
+      // The product discovery home remains accessible through the "BACK TO GEM"
+      // control; no second viewer is created.
+      document.dispatchEvent(new CustomEvent('gem:open-map'));
     }
   })
   .catch((error) => {
