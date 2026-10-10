@@ -54,14 +54,9 @@ export async function createApplicationScene({
     container: 'cesiumContainer',
     creditContainer,
   });
-  // Give the Planet workspace the live Cesium canvas immediately. Basemap
-  // providers and the full app's data/tool layers can continue initializing
-  // asynchronously without leaving focused surface mode on a black screen.
+  // The ellipsoid must remain visible while remote map sources initialize.
   viewer.scene.globe.show = true;
   viewer.scene.requestRender?.();
-  window.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
-    detail: { viewer, operations },
-  }));
   defer(() => {
     uninstallRenderGovernor(viewer);
     if (!viewer.isDestroyed()) viewer.destroy();
@@ -69,6 +64,11 @@ export async function createApplicationScene({
   defer(installTrackpadPinchZoom(viewer));
   registerDataCredits(viewer, credits);
   configureCreditKeyboardAccess(document);
+  // Publish after registering cleanup, but before the first asynchronous
+  // provider/readiness probe. Planet is useful even while other subsystems load.
+  window.dispatchEvent(new CustomEvent('gem:planet-surface-ready', {
+    detail: { viewer, operations },
+  }));
   const geeReady = await isEarthEngineReady(signal);
   let photoreal = { tileset: null, route: null, errors: [] };
   if (geeReady) {
