@@ -920,6 +920,12 @@ async function syncPlanLocks(shell) {
 }
 
 function openWorkspace(module) {
+  // Planet / Global Surface is a direct transition to the live Cesium viewer,
+  // never an intermediate product card or informational workspace.
+  if (module === 'map') {
+    emit('gem:open-map');
+    return;
+  }
   const meta = MODULES.find(item => item.id === module);
   const requiredPlan = meta?.requiresPlan;
   if (!requiredPlan) return openWorkspaceUnlocked(module);
